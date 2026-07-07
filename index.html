@@ -53,6 +53,22 @@
     text-indent: .3em;
     color: #aaaad4;
   }
+  #breath-count {
+    position: absolute; left: 0; right: 0; bottom: -26px;
+    font-size: 11px; letter-spacing: .3em;
+    color: #8888bb;
+  }
+
+  /* 吐くときのことば */
+  #cue {
+    bottom: 27%; left: 8%; right: 8%;
+    font-size: clamp(11px, 2vw, 14px);
+    letter-spacing: .2em;
+    line-height: 1.9;
+    color: #9a9ac8;
+    opacity: 0;
+    transition: opacity 1.2s;
+  }
 
   #counter {
     bottom: 6.5%; left: 0; right: 0;
@@ -79,7 +95,8 @@
     font-size: clamp(11px, 2vw, 14px);
     letter-spacing: 0.35em;
     color: #9a9ac8;
-    transition: opacity 2s;
+    transition: opacity 1.5s;
+    opacity: 0;
   }
 
   #sound-btn {
@@ -122,16 +139,36 @@
     color: #b8b8dd;
   }
 
-  /* はじまりの画面 */
-  #start {
+  /* オーバーレイ共通 */
+  .overlay {
     position: fixed; inset: 0; z-index: 30;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     background: rgba(6,6,24,.88);
     color: #c8c8e8;
-    transition: opacity 1.5s;
+    transition: opacity 1.2s;
+    padding: 24px;
   }
-  #start.hidden { opacity: 0; pointer-events: none; }
+  .overlay.hidden {
+    opacity: 0; pointer-events: none;
+    visibility: hidden;
+    transition: opacity 1.2s, visibility 0s 1.2s; /* フェード完了後に非表示化 */
+  }
+  .overlay button {
+    font-family: inherit;
+    background: rgba(20,20,50,.6);
+    border: 1px solid rgba(160,160,220,.45);
+    border-radius: 6px;
+    color: #d8d8f2;
+    padding: 14px 22px;
+    font-size: 15px;
+    letter-spacing: .2em;
+    cursor: pointer;
+    line-height: 1.7;
+  }
+  .overlay button:hover { background: rgba(40,40,90,.7); box-shadow: 0 0 16px rgba(140,140,255,.3); }
+  .overlay button small { display: block; font-size: 10px; color: #8888bb; letter-spacing: .1em; }
+
   #start .story {
     font-size: clamp(12px, 2.4vw, 15px);
     line-height: 2.6;
@@ -146,21 +183,137 @@
     margin-bottom: 22px;
   }
   #start .modes { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
-  #start button {
-    font-family: inherit;
-    background: rgba(20,20,50,.6);
-    border: 1px solid rgba(160,160,220,.45);
-    border-radius: 6px;
-    color: #d8d8f2;
-    padding: 14px 22px;
-    font-size: 15px;
-    letter-spacing: .2em;
-    cursor: pointer;
-    line-height: 1.7;
-  }
-  #start button:hover { background: rgba(40,40,90,.7); box-shadow: 0 0 16px rgba(140,140,255,.3); }
-  #start button small { display: block; font-size: 10px; color: #8888bb; letter-spacing: .1em; }
   #start .note { margin-top: 20px; font-size: 10.5px; color: #77779f; letter-spacing: .15em; }
+
+  /* 呼吸のこころえ */
+  #howto h2 {
+    font-size: 17px; letter-spacing: .4em; text-indent: .4em;
+    font-weight: normal; color: #d8d8f2;
+    margin-bottom: 26px;
+  }
+  #howto .lines {
+    font-size: clamp(12px, 2.2vw, 14px);
+    line-height: 2.5;
+    letter-spacing: .12em;
+    color: #b8b8dd;
+    text-align: left;
+    max-width: 460px;
+    margin-bottom: 14px;
+  }
+  #howto .lines strong { color: #ffe09e; font-weight: normal; }
+  #howto .mode-desc {
+    font-size: 12px; color: #9a9ac8; letter-spacing: .15em;
+    margin-bottom: 26px; line-height: 2;
+    text-align: center;
+  }
+  #howto label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11.5px; color: #8888bb; letter-spacing: .1em;
+    margin-bottom: 24px; cursor: pointer;
+  }
+  #howto input[type="checkbox"] { accent-color: #7d7daa; }
+
+  /* お参りのあと・締め */
+  #after .q, #finish .msg {
+    font-size: clamp(13px, 2.4vw, 16px);
+    letter-spacing: .25em; text-indent: .25em;
+    line-height: 2.4;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  #after .btns, #finish .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  #finish .stats {
+    font-size: 12px; color: #9a9ac8; letter-spacing: .2em;
+    line-height: 2.4; margin-bottom: 30px; text-align: center;
+  }
+
+  /* おかえり（2回目以降のスタート） */
+  #start .welcome-title {
+    font-size: clamp(13px, 2.4vw, 16px);
+    letter-spacing: .2em; text-indent: .2em;
+    color: #ffe09e; margin-bottom: 18px; text-align: center;
+  }
+  #start .progress-card {
+    background: rgba(255,255,255,.04);
+    border-radius: 12px;
+    padding: 14px 24px; margin-bottom: 32px; text-align: center;
+  }
+  #start .progress-card .streak { font-size: 12px; color: #b0b0d6; letter-spacing: .12em; line-height: 2; }
+  #start .progress-card .streak b { color: #ffe09e; font-size: 18px; font-weight: normal; }
+  #start .progress-card .collected { font-size: 11.5px; color: #9a9ac8; letter-spacing: .12em; margin: 8px 0 10px; }
+  #start .mini-dots { display: flex; justify-content: center; gap: 6px; }
+  #start .mini-dots span { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(120,120,160,.6); }
+  #start .mini-dots span.on { box-shadow: 0 0 7px currentColor; background: currentColor; border-color: transparent; }
+  #start .book-link {
+    margin-top: 26px; font-size: 12px; color: #9a9ac8; letter-spacing: .18em;
+    cursor: pointer; border-bottom: 1px solid rgba(150,150,200,.3); padding-bottom: 2px;
+  }
+  #start .book-link:hover { color: #d8d8f2; }
+
+  /* 御朱印帳（図鑑） */
+  #goshuincho .book-title {
+    font-size: 18px; letter-spacing: .4em; text-indent: .4em;
+    font-weight: normal; color: #ececff; margin-bottom: 26px;
+  }
+  #goshuincho .book-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 20px 18px; width: min(86vw, 360px); margin-bottom: 18px;
+  }
+  #goshuincho .cell { text-align: center; cursor: pointer; }
+  #goshuincho .orb { width: 46px; height: 46px; border-radius: 50%; margin: 0 auto 7px; }
+  #goshuincho .orb.met { box-shadow: 0 0 14px currentColor; background: currentColor; }
+  #goshuincho .orb.unmet {
+    border: 1px dashed rgba(90,90,130,.8);
+    display: flex; align-items: center; justify-content: center;
+    color: #55557a; font-size: 18px;
+  }
+  #goshuincho .orb.locked {
+    border: 1px solid #7fffd4; color: #7fffd4;
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+  }
+  #goshuincho .cell-name { font-size: 11px; color: #c8c8e8; letter-spacing: .1em; }
+  #goshuincho .cell-name.dim { color: #666690; }
+  #goshuincho .cell-name.dragon { color: #7fffd4; }
+  #goshuincho .book-detail {
+    min-height: 70px; width: min(86vw, 360px);
+    font-size: 12px; line-height: 1.9; color: #b8b8dd;
+    text-align: center; margin-bottom: 18px;
+  }
+  #goshuincho .book-detail .d-name {
+    color: #ececff; font-size: 14px; letter-spacing: .2em;
+    display: block; margin-bottom: 6px;
+  }
+  #goshuincho .book-note {
+    font-size: 11px; color: #8f8fc0; letter-spacing: .1em;
+    line-height: 1.9; text-align: center; margin-bottom: 24px;
+  }
+
+  /* 御朱印帳を縦スクロール可能に（守護神セクションで背が高くなるため） */
+  #goshuincho { justify-content: flex-start; overflow-y: auto; padding-top: 40px; touch-action: pan-y; }
+  #goshuincho .book-subhead {
+    font-size: 12px; color: #9a9ac8; letter-spacing: .3em; text-indent: .3em; margin-bottom: 16px;
+  }
+
+  /* 守護神セクション */
+  #goshuincho .guardian-section {
+    width: min(86vw, 360px); margin-bottom: 26px;
+    border-bottom: 1px solid rgba(150,150,200,.2); padding-bottom: 26px;
+  }
+  #goshuincho .g-lead { font-size: 12px; color: #b8b8dd; letter-spacing: .1em; text-align: center; margin-bottom: 16px; line-height: 1.9; }
+  #goshuincho .g-inputs { display: flex; justify-content: center; align-items: center; gap: 5px; margin-bottom: 18px; font-size: 12px; color: #9a9ac8; }
+  #goshuincho .g-inputs input {
+    width: 64px; background: rgba(255,255,255,.06); border: 1px solid rgba(160,160,220,.35);
+    border-radius: 6px; color: #e8e8f8; font-family: inherit; font-size: 15px;
+    text-align: center; padding: 8px 4px; -moz-appearance: textfield;
+  }
+  #goshuincho .g-inputs input::-webkit-outer-spin-button,
+  #goshuincho .g-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  #goshuincho #g-divine { display: block; margin: 0 auto; }
+  #goshuincho .g-label { font-size: 11px; color: #9a9ac8; letter-spacing: .3em; text-indent: .3em; text-align: center; margin-bottom: 12px; }
+  #goshuincho .g-orb { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 10px; }
+  #goshuincho .g-name { font-size: 18px; color: #ececff; letter-spacing: .2em; text-indent: .2em; text-align: center; margin-bottom: 4px; text-shadow: 0 0 14px rgba(180,180,255,.6); }
+  #goshuincho .g-yomi { font-size: 10.5px; color: #8f8fc0; letter-spacing: .15em; text-align: center; margin-bottom: 12px; }
+  #goshuincho .g-trait { font-size: 12px; color: #b8b8dd; line-height: 2; text-align: center; }
 </style>
 </head>
 <body>
@@ -168,10 +321,12 @@
 
 <div class="ui" id="title">八百万の神々</div>
 <div class="ui" id="subtitle">HOSHI NO YASHIRO — TOUCH TO SUMMON STARS</div>
-<div class="ui" id="hint">画面に触れたままにすると、星が生まれます</div>
+<div class="ui" id="hint"></div>
+<div class="ui" id="cue"></div>
 <div class="ui" id="breath-wrap">
   <div id="breath-ring"></div>
   <div id="breath-text">吸う</div>
+  <div id="breath-count"></div>
 </div>
 <div class="ui" id="counter">STARS BORN 00000</div>
 <div class="ui" id="en-dots"></div>
@@ -182,13 +337,22 @@
 </div>
 <button id="sound-btn" title="音のON/OFF">🔇</button>
 
-<div id="start">
-  <div class="story">
+<!-- はじまり -->
+<div class="overlay" id="start">
+  <div class="story" id="start-story">
     昔、宇宙は八百万の神々の光で満ちていた。<br>
     けれど人が空を見上げなくなり、<br>
     神々はひとり、またひとりと眠りについた。<br>
     <br>
     あなたの呼吸だけが、神々を呼び覚ますことができる——。
+  </div>
+  <div class="welcome" id="start-welcome" style="display:none;">
+    <div class="welcome-title">おかえりなさい</div>
+    <div class="progress-card">
+      <div class="streak" id="w-streak-line">連続 <b>0</b> 日目のお参り</div>
+      <div class="collected">結んだ縁　<span id="w-collected">0 / 8柱</span></div>
+      <div class="mini-dots" id="w-dots"></div>
+    </div>
   </div>
   <div class="ask">今日は、どんな時間にする？</div>
   <div class="modes">
@@ -197,6 +361,70 @@
     <button data-mode="oyasumi">おやすみ<small>4-7-8呼吸（寝る前に）</small></button>
   </div>
   <div class="note">※4-7-8呼吸は息を止める時間が長めです。苦しいときは無理せず「整える」へ。</div>
+  <div class="book-link" id="open-book-start" style="display:none;">御朱印帳をひらく</div>
+</div>
+
+<!-- 呼吸のこころえ -->
+<div class="overlay hidden" id="howto">
+  <h2>呼吸のこころえ</h2>
+  <div class="lines">
+    一、背筋をのばして、肩の力をぬいて座ります<br>
+    一、光のリングに合わせて、三回呼吸します<br>
+    一、<strong>吐くときは「はぁー」と小さく声に出して。<br>
+    　　否定的なエネルギーが、息と一緒に<br>
+    　　体から出ていくイメージで</strong><br>
+    一、三回の呼吸が終わったら、星を迎えます
+  </div>
+  <div class="mode-desc" id="mode-desc"></div>
+  <label><input type="checkbox" id="hide-howto"> 次からこの説明を表示しない</label>
+  <button id="howto-start">お参りをはじめる</button>
+</div>
+
+<!-- お参りのあと -->
+<div class="overlay hidden" id="after">
+  <div class="q">新しい神様との縁が、結ばれました。</div>
+  <div class="btns">
+    <button id="btn-again">もうひと巡り<small>つづけて呼吸する</small></button>
+    <button id="btn-finish">今日はここまで</button>
+  </div>
+</div>
+
+<!-- 締め -->
+<div class="overlay hidden" id="finish">
+  <div class="msg">今日の分は、整いました。</div>
+  <div class="stats" id="finish-stats"></div>
+  <div class="btns">
+    <button id="open-book-finish">御朱印帳をみる<small>集めた神様をながめる</small></button>
+    <button id="btn-close">空をながめる<small>また明日、お参りください</small></button>
+  </div>
+</div>
+
+<!-- 御朱印帳（図鑑） -->
+<div class="overlay hidden" id="goshuincho">
+  <div class="book-title">御朱印帳</div>
+  <div class="guardian-section">
+    <div id="guardian-ask">
+      <div class="g-lead" id="g-lead">あなたの守護神を、誕生日からおみちびきします</div>
+      <div class="g-inputs">
+        <input type="number" id="g-year" placeholder="1990" min="1900" max="2100" inputmode="numeric">年
+        <input type="number" id="g-month" placeholder="1" min="1" max="12" inputmode="numeric">月
+        <input type="number" id="g-day" placeholder="1" min="1" max="31" inputmode="numeric">日
+      </div>
+      <button id="g-divine">みちびく</button>
+    </div>
+    <div id="guardian-result" style="display:none;">
+      <div class="g-label">あなたの守護神</div>
+      <div class="g-orb" id="g-orb"></div>
+      <div class="g-name" id="g-name"></div>
+      <div class="g-yomi" id="g-yomi"></div>
+      <div class="g-trait" id="g-trait"></div>
+    </div>
+  </div>
+  <div class="book-subhead">出会った神々</div>
+  <div class="book-grid" id="book-grid"></div>
+  <div class="book-detail" id="book-detail"></div>
+  <div class="book-note">八柱すべてと縁を結ぶと、龍神様が姿を現す。</div>
+  <button id="book-close">とじる</button>
 </div>
 
 <script type="module">
@@ -231,17 +459,57 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     { name: '大大吉', rate: 0.02, scale: 2.0,  color: '#7fffd4' }, // 龍神様
   ];
 
+  // ===== 守護神（誕生日で決まる一柱・正本は docs/CONCEPT.md / guardian-source.md）=====
+  const GUARDIANS = {
+    1:  { name: '須佐之男命', yomi: 'すさのおのみこと', color: 0xff6b5a,
+          trait: '荒々しくも正義感が強く、勇気と行動力の神。困難に立ち向かう力を授ける。' },
+    2:  { name: '月読命', yomi: 'つくよみのみこと', color: 0xbcd0f5,
+          trait: '夜と月を司る神。知性と冷静さで、論理的な思考と決断を与える。' },
+    3:  { name: '天照大御神', yomi: 'あまてらすおおみかみ', color: 0xffd84a,
+          trait: '太陽を司る最高神。明るさと温かさで、導く力と創造力を与える。' },
+    4:  { name: '神産巣日神', yomi: 'かみむすびのかみ', color: 0x9be0a8,
+          trait: '創造と生産の神。物事を生み出す力で、仕事や事業の実りを支える。' },
+    5:  { name: '大黒天', yomi: 'だいこくてん', color: 0xe8c06a,
+          trait: '福の神。豊穣と財運を司り、家庭の幸福と商売繁盛をもたらす。' },
+    6:  { name: '伊邪那美命', yomi: 'いざなみのみこと', color: 0xf0a6c8,
+          trait: '国生みの女神。創造力と生命力に富み、母性と包容力で新しい始まりを支える。' },
+    7:  { name: '思金神', yomi: 'おもいかねのかみ', color: 0xb3a6ec,
+          trait: '知恵と英知の神。深い思慮と洞察で、問題を解く力を与える。' },
+    8:  { name: '伊邪那岐命・伊邪那美命', yomi: 'いざなぎ・いざなみのみこと', color: 0xa6dcd4,
+          trait: '国生みの神夫婦。創造と調和のバランスで、人の縁の円満を支える。' },
+    9:  { name: '恵比須天', yomi: 'えびすてん', color: 0x86c6ea,
+          trait: '漁業と商売の神。誠実と努力を重んじ、正しい成功と幸運をもたらす。' },
+    11: { name: '弁財天', yomi: 'べんざいてん', color: 0xf2c2e6,
+          trait: '芸術と音楽、雄弁と知恵の女神。美しさと才能を与え、表現を豊かにする。' },
+    22: { name: '高御産巣日神', yomi: 'たかみむすひのかみ', color: 0xcaa6ff,
+          trait: '高天原の創造神。強い意志と高い理想で、大きな目標の達成を支える。' },
+    33: { name: '天之御中主神', yomi: 'あめのみなかぬし', color: 0xf2f2ff,
+          trait: '最初に現れた根源神。深い慈愛と無限の可能性で、真の自己実現へ導く。' },
+  };
+  const MASTER = new Set([11, 22, 33]);
+  function digitSum(n) { return String(n).split('').reduce((a, c) => a + (+c), 0); }
+  function guardianNumber(year, month, day) {
+    // 資料の手順: 生年の各桁を足す → 月を足す → 日を足す → 1桁化（11/22/33はそのまま）
+    let sum = digitSum(year) + month + day;
+    while (sum > 9 && !MASTER.has(sum)) sum = digitSum(sum);
+    return sum;
+  }
+
   // ===== 呼吸モード =====
   const MODES = {
-    totonoeru: { name: '整える',   phases: [['吸う',4],['吐く',4]] },
-    shuchu:    { name: '集中',     phases: [['吸う',4],['止める',4],['吐く',4],['止める',4]] },
-    oyasumi:   { name: 'おやすみ', phases: [['吸う',4],['止める',7],['吐く',8]] },
+    totonoeru: { name: '整える',   phases: [['吸う',4],['吐く',4]],
+      desc: '「整える」— 4秒吸って、4秒吐く。いちばん基本の呼吸です。' },
+    shuchu:    { name: '集中',     phases: [['吸う',4],['止める',4],['吐く',4],['止める',4]],
+      desc: '「集中」— 4秒ずつ、吸う→止める→吐く→止める。心がひとつに定まります。' },
+    oyasumi:   { name: 'おやすみ', phases: [['吸う',4],['止める',7],['吐く',8]],
+      desc: '「おやすみ」— 4秒吸って、7秒止めて、8秒かけて吐く。眠りへ向かう呼吸です。' },
   };
-  let mode = null;      // 選択された呼吸モード
-  let modeKey = null;
-  let segments = [];    // [{label, dur, from, to}]
+  const BREATHS_PER_VISIT = 3;  // 3呼吸でひと巡り
+  const SUMMON_SECONDS = 8;     // 星迎えのタッチ時間
+
+  let mode = null, modeKey = null;
+  let segments = [];
   let cycleTotal = 8;
-  let started = false;
 
   function setMode(key) {
     modeKey = key;
@@ -278,8 +546,21 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   try { save = JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch { save = {}; }
   save.born = save.born || 0;
   save.counts = save.counts || {};
+  save.streak = save.streak || 0;
+  save.lastDay = save.lastDay || '';
+  save.bornToday = save.bornToday || 0;
+  save.hideHowto = save.hideHowto || false;
+  save.firstMet = save.firstMet || {};  // 神様ごとに初めて出会った日
+  save.guardian = save.guardian || null;  // 守護神の番号（診断済みなら 1〜9/11/22/33）
   function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch {} }
   function allEightMet() { return KAMI.filter(k => !k.hidden).every(k => (save.counts[k.id] || 0) > 0); }
+  function localDate(d) { return (d || new Date()).toLocaleDateString('sv-SE'); }
+
+  // ===== 状態遷移 =====
+  // title → howto → session（3呼吸）→ summon（星迎え）→ card → after → finish → idle
+  let state = 'title';
+  let sessionTime = 0;   // セッション内の呼吸用時計（お参りごとにリセット）
+  let breathsDone = 0;
 
   // ===== 基本セットアップ =====
   const canvas = document.getElementById('canvas');
@@ -339,7 +620,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     scene.add(new THREE.Points(geo, mat));
   }
 
-  // ===== 漂う光の塵（タッチすると集まってくる）=====
+  // ===== 漂う光の塵 =====
   const DUST_N = 400;
   const dustPos = new Float32Array(DUST_N * 3);
   const dustVel = new Float32Array(DUST_N * 3);
@@ -361,17 +642,22 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   scene.add(new THREE.Points(dustGeo, dustMat));
 
   // ===== おみくじ =====
-  function rollOmikuji() {
+  function rollOnce() {
     let r = Math.random();
     for (const rar of [...RARITY].reverse()) {  // 大大吉2%から順に判定
       if (r < rar.rate) {
-        // 大大吉は八柱コンプ後だけ。それまでは大吉に格下げ
         if (rar.name === '大大吉' && !allEightMet()) return RARITY[2];
         return rar;
       }
       r -= rar.rate;
     }
     return RARITY[0];
+  }
+  function rollOmikuji(boost) {
+    // その日最初の一柱は2回引いて良い方（今日の初縁）
+    if (!boost) return rollOnce();
+    const a = rollOnce(), b = rollOnce();
+    return RARITY.indexOf(a) >= RARITY.indexOf(b) ? a : b;
   }
 
   function pickKami(rarity) {
@@ -396,7 +682,18 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   // ===== 神様（光球タイプ）=====
   const kamis = [];
   function birthKami(position) {
-    const rarity = rollOmikuji();
+    // その日最初の誕生なら streak 更新＋初縁ブースト
+    const today = localDate();
+    let firstOfDay = false;
+    if (save.lastDay !== today) {
+      const yesterday = localDate(new Date(Date.now() - 86400000));
+      save.streak = (save.lastDay === yesterday) ? save.streak + 1 : 1;
+      save.lastDay = today;
+      save.bornToday = 0;
+      firstOfDay = true;
+    }
+
+    const rarity = rollOmikuji(firstOfDay);
     const kami = pickKami(rarity);
 
     if (kami.id === 'ryujin') {
@@ -431,11 +728,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     }
 
     save.born++;
+    save.bornToday++;
     save.counts[kami.id] = (save.counts[kami.id] || 0) + 1;
+    if (!save.firstMet[kami.id]) save.firstMet[kami.id] = today;
     persist();
     counterEl.textContent = 'STARS BORN ' + String(save.born).padStart(5, '0');
     refreshDots();
-    showBirthCard(rarity, kami);
+    showBirthCard(rarity, kami, firstOfDay);
     playBirthChime(kami.id === 'ryujin');
   }
 
@@ -445,8 +744,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     const N = 160;
     const pos = new Float32Array(N * 3);
     const col = new Float32Array(N * 3);
-    const tail = new THREE.Color(0x7fffd4); // 尾は青緑
-    const head = new THREE.Color(0xffd700); // 頭は金
+    const tail = new THREE.Color(0x7fffd4);
+    const head = new THREE.Color(0xffd700);
     const tmp = new THREE.Color();
     for (let i = 0; i < N; i++) {
       const s = i / (N - 1);
@@ -474,7 +773,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     dragons.push({ points, geo, headGlow, N, bornAt: clockTime, offset: Math.random() * 100 });
   }
 
-  function updateDragons(dt) {
+  function updateDragons() {
     for (const d of dragons) {
       const age = clockTime - d.bornAt;
       const appear = Math.min(age / 3, 1);
@@ -482,21 +781,20 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       const t = clockTime * 0.35 + d.offset;
       for (let i = 0; i < d.N; i++) {
         const s = i / (d.N - 1);
-        const ang = t + s * 3.6;                      // 体は頭より遅れてついてくる
+        const ang = t + s * 3.6;
         const radius = (13 + Math.sin(s * 6 + t) * 1.5) * appear;
         pos[i*3]   = Math.cos(ang) * radius;
         pos[i*3+1] = Math.sin(ang * 0.9) * 6 * appear + Math.sin(s * 8 + t * 1.6) * 1.2;
         pos[i*3+2] = Math.sin(ang) * radius * 0.35;
       }
       d.geo.attributes.position.needsUpdate = true;
-      // 頭の光は先頭の粒子に追従
       const hi = (d.N - 1) * 3;
       d.headGlow.position.set(pos[hi], pos[hi+1], pos[hi+2]);
       d.headGlow.material.opacity = 0.8 * appear;
     }
   }
 
-  // ===== 星の種（育成中の存在）=====
+  // ===== 星の種（星迎えで育てる）=====
   let seed = null;
   function createSeed(pos) {
     const group = new THREE.Group();
@@ -511,7 +809,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     return { group, halo, progress: 0, pos: pos.clone() };
   }
 
-  // ===== 入力（タッチ／クリック長押し）=====
+  // ===== 入力 =====
   let holding = false;
   const pointerNDC = new THREE.Vector2();
   const holdTarget = new THREE.Vector3();
@@ -526,13 +824,16 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
 
   window.addEventListener('pointerdown', (e) => {
-    if (!started) return;
-    if (e.target.closest && e.target.closest('button')) return;
-    holding = true;
-    updateHoldTarget(e.clientX, e.clientY);
-    if (!seed) seed = createSeed(holdTarget);
-    else seed.pos.copy(holdTarget);
-    hintEl.style.opacity = '0';
+    if (e.target.closest && e.target.closest('button, .overlay, label')) return;
+    if (state === 'summon') {
+      holding = true;
+      updateHoldTarget(e.clientX, e.clientY);
+      if (!seed) seed = createSeed(holdTarget);
+      else seed.pos.copy(holdTarget);
+      setHint('');
+    } else if (state === 'idle') {
+      startSession(); // 空をながめた後、画面にふれるともうひと巡り
+    }
   });
   window.addEventListener('pointermove', (e) => {
     if (holding) updateHoldTarget(e.clientX, e.clientY);
@@ -585,31 +886,53 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     });
   }
 
-  function playPhaseTick() {
+  function playTone(freq, dur, gain) {
     if (!audioCtx || !soundOn) return;
     const o = audioCtx.createOscillator();
     o.type = 'sine';
-    o.frequency.value = 660;
+    o.frequency.value = freq;
     const g = audioCtx.createGain();
     const t0 = audioCtx.currentTime;
-    g.gain.setValueAtTime(0.04, t0);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.4);
+    g.gain.setValueAtTime(gain, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
     o.connect(g); g.connect(audioCtx.destination);
-    o.start(t0); o.stop(t0 + 0.45);
+    o.start(t0); o.stop(t0 + dur + 0.05);
   }
+  const playPhaseTick   = () => playTone(660, 0.4, 0.04);   // 呼吸の切り替わり
+  const playSessionGong = () => playTone(220, 2.5, 0.15);   // お参りのはじまり
+  const playSummonBell  = () => { playTone(880, 1.2, 0.08); playTone(1320, 1.6, 0.05); }; // 星迎えへ
 
   // ===== UI =====
   const counterEl = document.getElementById('counter');
   const hintEl = document.getElementById('hint');
+  const cueEl = document.getElementById('cue');
   const breathRing = document.getElementById('breath-ring');
   const breathText = document.getElementById('breath-text');
+  const breathCount = document.getElementById('breath-count');
   const birthCard = document.getElementById('birth-card');
   const birthRarity = document.getElementById('birth-rarity');
   const birthName = document.getElementById('birth-name');
   const birthStory = document.getElementById('birth-story');
   const dotsEl = document.getElementById('en-dots');
+  const overlays = {
+    start: document.getElementById('start'),
+    howto: document.getElementById('howto'),
+    after: document.getElementById('after'),
+    finish: document.getElementById('finish'),
+    goshuincho: document.getElementById('goshuincho'),
+  };
 
   counterEl.textContent = 'STARS BORN ' + String(save.born).padStart(5, '0');
+
+  function showOverlay(name) {
+    for (const [k, el] of Object.entries(overlays)) {
+      el.classList.toggle('hidden', k !== name);
+    }
+  }
+  function setHint(text) {
+    hintEl.textContent = text;
+    hintEl.style.opacity = text ? '1' : '0';
+  }
 
   // 縁ドット（八柱＋龍神様）
   for (const k of KAMI) {
@@ -625,9 +948,148 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
   refreshDots();
 
+  // ===== スタート画面（初回 / おかえり）=====
+  const eightKami = KAMI.filter(k => !k.hidden);
+  function collectedCount() { return eightKami.filter(k => (save.counts[k.id] || 0) > 0).length; }
+  function currentStreak() {
+    // 今日か昨日にお参りしていれば継続中、それ以外は途切れ
+    const today = localDate();
+    const yesterday = localDate(new Date(Date.now() - 86400000));
+    return (save.lastDay === today || save.lastDay === yesterday) ? save.streak : 0;
+  }
+  function populateWelcome() {
+    const ds = currentStreak();
+    document.getElementById('w-streak-line').innerHTML =
+      ds > 0 ? '連続 <b>' + ds + '</b> 日目のお参り' : '今日から、またはじめましょう';
+    document.getElementById('w-collected').textContent = collectedCount() + ' / 8柱';
+    const wd = document.getElementById('w-dots');
+    wd.innerHTML = '';
+    for (const k of eightKami) {
+      const s = document.createElement('span');
+      s.style.color = '#' + k.color.toString(16).padStart(6, '0');
+      if ((save.counts[k.id] || 0) > 0) s.classList.add('on');
+      wd.appendChild(s);
+    }
+  }
+  const returning = save.born > 0;
+  document.getElementById('start-story').style.display   = returning ? 'none' : '';
+  document.getElementById('start-welcome').style.display = returning ? '' : 'none';
+  document.getElementById('open-book-start').style.display = returning ? '' : 'none';
+  if (returning) populateWelcome();
+
+  // ===== 御朱印帳（図鑑）=====
+  const bookGrid = document.getElementById('book-grid');
+  const bookDetail = document.getElementById('book-detail');
+  let bookReturn = 'start';
+
+  function renderBook() {
+    bookGrid.innerHTML = '';
+    for (const k of KAMI) {
+      const met = (save.counts[k.id] || 0) > 0;
+      const hex = '#' + k.color.toString(16).padStart(6, '0');
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+
+      const orb = document.createElement('div');
+      if (met) { orb.className = 'orb met'; orb.style.color = hex; }
+      else if (k.hidden) { orb.className = 'orb locked'; orb.textContent = '？'; }
+      else { orb.className = 'orb unmet'; orb.textContent = '？'; }
+
+      const name = document.createElement('div');
+      name.className = 'cell-name' + (met ? (k.hidden ? ' dragon' : '') : (k.hidden ? ' dragon' : ' dim'));
+      name.textContent = met ? k.name : (k.hidden ? '龍神様' : '？？？');
+
+      cell.appendChild(orb); cell.appendChild(name);
+      cell.addEventListener('click', () => showBookDetail(k, met));
+      bookGrid.appendChild(cell);
+    }
+  }
+  function showBookDetail(k, met) {
+    if (met) {
+      const cnt = save.counts[k.id] || 0;
+      const first = save.firstMet[k.id] || '';
+      bookDetail.innerHTML = '<span class="d-name">' + k.name + '</span>' + k.story +
+        '<br><span style="color:#8f8fc0;font-size:11px">これまで ' + cnt + ' 度の縁' +
+        (first ? '　はじまりは ' + first : '') + '</span>';
+    } else if (k.hidden) {
+      bookDetail.innerHTML = '<span class="d-name" style="color:#7fffd4">龍神様</span>' +
+        '八柱すべてと縁を結んだ者の前にだけ、その姿を現すという。';
+    } else {
+      bookDetail.innerHTML = '<span class="d-name">？？？</span>' +
+        'まだ見ぬ神様。呼吸をかさねて、出会いを待ちましょう。';
+    }
+  }
+  function openBook(returnTo) {
+    bookReturn = returnTo;
+    renderBook();
+    renderGuardian();
+    bookDetail.innerHTML = 'ひとつ選ぶと、その神様のことが読めます。';
+    showOverlay('goshuincho');
+  }
+  function closeBook() {
+    if (bookReturn === 'finish') { showOverlay('finish'); }
+    else { populateWelcome(); showOverlay('start'); }
+  }
+  document.getElementById('open-book-start').addEventListener('click', () => openBook('start'));
+  document.getElementById('open-book-finish').addEventListener('click', () => openBook('finish'));
+  document.getElementById('book-close').addEventListener('click', closeBook);
+
+  // ===== 守護神（誕生日で決まる一柱）=====
+  let guardianObj = null;  // 瞑想空間に常駐する守護神
+  function spawnGuardian(num) {
+    const g = GUARDIANS[num];
+    if (!g) return;
+    if (guardianObj) scene.remove(guardianObj.group);
+    const group = new THREE.Group();
+    const base = new THREE.Vector3(0, 9, -3);
+    group.position.copy(base);
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: softGlow, color: g.color, transparent: true, opacity: 0.5,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    group.add(halo);
+    const core = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: softGlow, color: 0xffffff, transparent: true, opacity: 0.95,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    group.add(core);
+    scene.add(group);
+    guardianObj = { group, halo, core, base, phase: 0, bornAt: clockTime };
+  }
+  function renderGuardian() {
+    const has = save.guardian && GUARDIANS[save.guardian];
+    document.getElementById('guardian-ask').style.display = has ? 'none' : '';
+    document.getElementById('guardian-result').style.display = has ? '' : 'none';
+    if (has) {
+      const g = GUARDIANS[save.guardian];
+      const hex = '#' + g.color.toString(16).padStart(6, '0');
+      const orb = document.getElementById('g-orb');
+      orb.style.background = hex;
+      orb.style.boxShadow = '0 0 22px ' + hex;
+      document.getElementById('g-name').textContent = g.name;
+      document.getElementById('g-yomi').textContent = g.yomi;
+      document.getElementById('g-trait').textContent = g.trait;
+    }
+  }
+  document.getElementById('g-divine').addEventListener('click', () => {
+    const y = parseInt(document.getElementById('g-year').value, 10);
+    const m = parseInt(document.getElementById('g-month').value, 10);
+    const d = parseInt(document.getElementById('g-day').value, 10);
+    const lead = document.getElementById('g-lead');
+    if (!(y >= 1900 && y <= 2100) || !(m >= 1 && m <= 12) || !(d >= 1 && d <= 31)) {
+      lead.textContent = '生年月日を正しく入れてください（例 1990 / 1 / 1）';
+      return;
+    }
+    save.guardian = guardianNumber(y, m, d);
+    persist();
+    renderGuardian();
+    spawnGuardian(save.guardian);
+    playBirthChime(false);
+  });
+
   let cardTimer = null;
-  function showBirthCard(rarity, kami) {
-    birthRarity.textContent = '— ' + rarity.name + ' —';
+  function showBirthCard(rarity, kami, firstOfDay) {
+    birthRarity.textContent = '— ' + rarity.name + (firstOfDay ? '（今日の初縁）' : '') + ' —';
     birthRarity.style.color = rarity.color;
     birthName.textContent = kami.name;
     birthStory.textContent = kami.story;
@@ -636,39 +1098,116 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     cardTimer = setTimeout(() => { birthCard.style.opacity = '0'; }, 8000);
   }
 
-  // はじまりの画面
-  const startEl = document.getElementById('start');
-  startEl.querySelectorAll('button').forEach(btn => {
+  // 吐くときのことば（呼吸ごとに巡る）
+  const EXHALE_CUES = [
+    '「はぁー」と声にして、いらないものを息と一緒に手放す',
+    '肩の力を、ふっとゆるめて',
+    '今日の疲れが、光の塵になって流れていく',
+  ];
+
+  // ===== 流れの制御 =====
+  function startSession() {
+    state = 'session';
+    sessionTime = 0;
+    breathsDone = 0;
+    lastPhaseLabel = '';
+    showOverlay(null);
+    setHint('');
+    breathCount.textContent = '1 / ' + BREATHS_PER_VISIT;
+    playSessionGong();
+  }
+
+  function enterSummon() {
+    state = 'summon';
+    breathCount.textContent = '';
+    cueEl.style.opacity = '0';
+    setHint('画面に触れたまま、星を迎えましょう');
+    playSummonBell();
+  }
+
+  // はじまり: モード選択
+  overlays.start.querySelectorAll('button[data-mode]').forEach(btn => {
     btn.addEventListener('click', () => {
       setMode(btn.dataset.mode);
-      started = true;
-      startEl.classList.add('hidden');
       ensureAudio();
       setSound(true); // モード選択の操作をきっかけに音を開始（🔇で消せる）
-      clockTime = 0;  // 呼吸を「吸う」から始める
+      if (save.hideHowto) {
+        startSession();
+      } else {
+        state = 'howto';
+        document.getElementById('mode-desc').textContent = mode.desc +
+          (modeKey === 'oyasumi' ? '（息止めが苦しいときは、無理をしないで）' : '');
+        showOverlay('howto');
+      }
     });
   });
 
+  document.getElementById('howto-start').addEventListener('click', () => {
+    save.hideHowto = document.getElementById('hide-howto').checked;
+    persist();
+    startSession();
+  });
+
+  document.getElementById('btn-again').addEventListener('click', () => startSession());
+
+  document.getElementById('btn-finish').addEventListener('click', () => {
+    state = 'finish';
+    document.getElementById('finish-stats').innerHTML =
+      '今日むかえた神様　' + save.bornToday + '柱<br>' +
+      '連続 ' + save.streak + '日目のお参り';
+    showOverlay('finish');
+  });
+
+  document.getElementById('btn-close').addEventListener('click', () => {
+    state = 'idle';
+    showOverlay(null);
+    setHint('画面にふれると、もうひと巡りはじまります');
+  });
+
   // ===== メインループ =====
-  let clockTime = 0;
+  let clockTime = 0;        // 全体時計（神様の漂い用・止めない）
   let lastT = performance.now() / 1000;
   let lastPhaseLabel = '';
+  let prevBreathVal = 0;
 
   function animate() {
     requestAnimationFrame(animate);
     const now = performance.now() / 1000;
     const dt = Math.min(now - lastT, 0.05);
     lastT = now;
-    if (started) clockTime += dt;
+    clockTime += dt;
 
-    const bs = started ? breathState(clockTime) : { label: '吸う', value: 0.3 };
+    const breathing = (state === 'session' || state === 'summon');
+    if (breathing) sessionTime += dt; // 星迎え中も呼吸ガイドは続ける（巡り数は session 中のみ数える）
+
+    const bs = breathing && mode ? breathState(sessionTime) : { label: '吸う', value: 0.3 };
 
     // 呼吸リング
     breathRing.style.transform = `scale(${0.75 + bs.value * 0.55})`;
-    breathText.textContent = bs.label;
-    if (started && bs.label !== lastPhaseLabel) {
+    breathText.textContent = breathing ? bs.label : '';
+    if (state === 'session' && bs.label !== lastPhaseLabel) {
       if (lastPhaseLabel) playPhaseTick();
+      // 吐くフェーズに入ったら、ことばを出す
+      if (bs.label === '吐く') {
+        cueEl.textContent = EXHALE_CUES[breathsDone % EXHALE_CUES.length];
+        cueEl.style.opacity = '1';
+      } else if (bs.label === '吸う') {
+        cueEl.style.opacity = '0';
+      }
       lastPhaseLabel = bs.label;
+    }
+
+    // 呼吸カウント（3呼吸でひと巡り）
+    if (state === 'session') {
+      const done = Math.floor(sessionTime / cycleTotal);
+      if (done !== breathsDone) {
+        breathsDone = done;
+        if (breathsDone >= BREATHS_PER_VISIT) {
+          enterSummon();
+        } else {
+          breathCount.textContent = (breathsDone + 1) + ' / ' + BREATHS_PER_VISIT;
+        }
+      }
     }
 
     // カメラをゆっくり漂わせる
@@ -677,7 +1216,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     camera.lookAt(0, 0, 0);
 
     // 塵の動き
-    const attract = holding && seed;
+    const attract = holding && seed && state === 'summon';
+    const breathPull = breathing ? (bs.value - prevBreathVal) : 0; // 吸うと集まり、吐くと離れる
+    prevBreathVal = bs.value;
     for (let i = 0; i < DUST_N; i++) {
       let x = dustPos[i*3], y = dustPos[i*3+1], z = dustPos[i*3+2];
       if (attract) {
@@ -693,6 +1234,12 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
         }
       } else {
         x += dustVel[i*3]; y += dustVel[i*3+1]; z += dustVel[i*3+2];
+        if (breathPull) {
+          // 呼吸に合わせて、塵がわずかに寄せては返す
+          const d = Math.sqrt(x*x + y*y + z*z) + 0.001;
+          const k = breathPull * 1.6;
+          x -= (x / d) * k; y -= (y / d) * k; z -= (z / d) * k;
+        }
         if (Math.abs(x) > 38) dustVel[i*3] *= -1;
         if (Math.abs(y) > 25) dustVel[i*3+1] *= -1;
         if (Math.abs(z) > 18) dustVel[i*3+2] *= -1;
@@ -701,10 +1248,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     }
     dustGeo.attributes.position.needsUpdate = true;
 
-    // 種の成長（ひと呼吸サイクルぶん押し続けると誕生）
+    // 星迎え: 触れている間だけ種が育つ（8秒で誕生）
     if (seed) {
       seed.group.position.lerp(seed.pos, 0.1);
-      if (holding) seed.progress += dt / cycleTotal;
+      if (holding && state === 'summon') seed.progress += dt / SUMMON_SECONDS;
 
       const s = 0.3 + seed.progress * 3.2 + bs.value * 0.5;
       seed.halo.scale.setScalar(s);
@@ -714,7 +1261,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
         const p = seed.group.position.clone();
         scene.remove(seed.group);
         seed = null;
+        holding = false;
+        state = 'card';
         birthKami(p);
+        setTimeout(() => {
+          if (state === 'card') showOverlay('after');
+          if (state === 'card') state = 'after';
+        }, 5000);
       }
     }
 
@@ -733,17 +1286,36 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       k.halo.material.opacity = 0.5 * appear;
     }
 
-    updateDragons(dt);
+    // 守護神の漂い（ひときわ大きく、上方に鎮座）
+    if (guardianObj) {
+      const g = guardianObj;
+      const age = clockTime - g.bornAt;
+      const appear = Math.min(age / 3, 1);
+      g.phase += dt * 0.1;
+      g.group.position.x = g.base.x + Math.sin(g.phase) * 3;
+      g.group.position.y = g.base.y + Math.sin(g.phase * 0.6) * 1.2;
+      const pulse = 1 + bs.value * 0.18;
+      g.halo.scale.setScalar(13 * appear * pulse);
+      g.core.scale.setScalar(3.4 * appear);
+      g.halo.material.opacity = 0.5 * appear;
+    }
+
+    updateDragons();
 
     renderer.render(scene, camera);
   }
   animate();
+
+  // 診断済みなら、起動時に守護神を空間へ呼び出す
+  if (save.guardian && GUARDIANS[save.guardian]) spawnGuardian(save.guardian);
 
   // 開発用フック（本番の遊びには影響しない）
   window._hoshi = {
     dragon: () => birthDragon(),
     reset: () => { localStorage.removeItem(SAVE_KEY); location.reload(); },
     save: () => save,
+    skip: () => { if (state === 'session') { sessionTime = BREATHS_PER_VISIT * cycleTotal; } }, // テスト用: 呼吸を飛ばす
+    guardianNum: (y, m, d) => guardianNumber(y, m, d), // テスト用: 計算だけ確認
   };
 })();
 </script>
