@@ -29,5 +29,9 @@
 
 ## 状態
 
-* Phase 1 プロトタイプ完成（2026-07-07・クロちゃん/Fable 5）
-* Git未設定・未公開（公開はいいともさんのGO後）
+* Phase 1 完成・公開済み（2026-07-07・クロちゃん/Fable 5）
+  * 呼吸法3モード（整える4-4／集中ボックス／おやすみ4-7-8）
+  * 八柱＋隠しの龍神様、おみくじ誕生（吉〜大大吉）、時間帯・モード連動
+  * 誕生カード（逸話表示）、縁ドット、localStorage記録
+* 公開URL: https://hoshi-no-yashiro.pages.dev
+* リポジトリ: https://github.com/ii-tomo/hoshi-no-yashiro（push＝自動デプロイ。pushは本人GO後のみ）
