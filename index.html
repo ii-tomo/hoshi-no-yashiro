@@ -38,6 +38,7 @@
     bottom: 13%; left: 50%;
     transform: translateX(-50%);
     width: 90px; height: 90px;
+    transition: opacity 1s;
   }
   #breath-ring {
     position: absolute; inset: 0;
@@ -185,13 +186,13 @@
   #start .modes { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
   #start .note { margin-top: 20px; font-size: 10.5px; color: #77779f; letter-spacing: .15em; }
 
-  /* 呼吸のこころえ */
-  #howto h2 {
+  /* 呼吸のこころえ・奉納のこころえ */
+  #howto h2, #hounou-intro h2 {
     font-size: 17px; letter-spacing: .4em; text-indent: .4em;
     font-weight: normal; color: #d8d8f2;
     margin-bottom: 26px;
   }
-  #howto .lines {
+  #howto .lines, #hounou-intro .lines {
     font-size: clamp(12px, 2.2vw, 14px);
     line-height: 2.5;
     letter-spacing: .12em;
@@ -200,7 +201,7 @@
     max-width: 460px;
     margin-bottom: 14px;
   }
-  #howto .lines strong { color: #ffe09e; font-weight: normal; }
+  #howto .lines strong, #hounou-intro .lines strong { color: #ffe09e; font-weight: normal; }
   #howto .mode-desc {
     font-size: 12px; color: #9a9ac8; letter-spacing: .15em;
     margin-bottom: 26px; line-height: 2;
@@ -213,18 +214,37 @@
   }
   #howto input[type="checkbox"] { accent-color: #7d7daa; }
 
-  /* お参りのあと・締め */
-  #after .q, #finish .msg {
+  /* お参りのあと・締め・奉納のあと */
+  #after .q, #finish .msg, #hounou-end .msg {
     font-size: clamp(13px, 2.4vw, 16px);
     letter-spacing: .25em; text-indent: .25em;
     line-height: 2.4;
     margin-bottom: 30px;
     text-align: center;
   }
-  #after .btns, #finish .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
-  #finish .stats {
+  #after .btns, #finish .btns, #hounou-end .btns, #hounou-intro .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  #finish .stats, #hounou-end .stats {
     font-size: 12px; color: #9a9ac8; letter-spacing: .2em;
     line-height: 2.4; margin-bottom: 30px; text-align: center;
+  }
+
+  /* 御朱印帳: 奉納の記録 */
+  #goshuincho .book-hounou {
+    font-size: 11.5px; color: #c8b078; letter-spacing: .18em;
+    margin-top: 14px; text-align: center;
+  }
+
+  /* 奉納の舞: 判定のことば（祝詞が届いた神様のそばに出る。位置はJSで指定） */
+  #norito-pop {
+    left: 0; top: 0;
+    transform: translate(-50%, -100%);
+    font-size: clamp(14px, 2.8vw, 18px);
+    letter-spacing: .3em; text-indent: .3em;
+    color: #ffe09e;
+    opacity: 0;
+    transition: opacity .25s;
+    text-shadow: 0 0 18px rgba(255,224,158,.6);
+    white-space: nowrap;
   }
 
   /* おかえり（2回目以降のスタート） */
@@ -335,6 +355,7 @@
   <div id="birth-name"></div>
   <div id="birth-story"></div>
 </div>
+<div class="ui" id="norito-pop"></div>
 <button id="sound-btn" title="音のON/OFF">🔇</button>
 
 <!-- はじまり -->
@@ -361,6 +382,7 @@
     <button data-mode="oyasumi">おやすみ<small>4-7-8呼吸（寝る前に）</small></button>
   </div>
   <div class="note">※4-7-8呼吸は息を止める時間が長めです。苦しいときは無理せず「整える」へ。</div>
+  <div class="book-link" id="open-hounou-start" style="display:none;">奉納の舞をささげる</div>
   <div class="book-link" id="open-book-start" style="display:none;">御朱印帳をひらく</div>
 </div>
 
@@ -385,7 +407,37 @@
   <div class="q">新しい神様との縁が、結ばれました。</div>
   <div class="btns">
     <button id="btn-again">もうひと巡り<small>つづけて呼吸する</small></button>
+    <button id="btn-hounou">奉納の舞<small>結んだ縁に、祝詞をささげる</small></button>
     <button id="btn-finish">今日はここまで</button>
+  </div>
+</div>
+
+<!-- 奉納のこころえ -->
+<div class="overlay hidden" id="hounou-intro">
+  <h2>奉納の舞</h2>
+  <div class="lines">
+    一、太鼓の音に、耳をすませます<br>
+    一、神様のまわりに、光の環がちかづきます<br>
+    一、<strong>環が神様にかさなる刹那、画面にふれて<br>
+    　　祝詞（のりと）をささげます</strong><br>
+    一、ふれるのは、<strong>画面のどこでも</strong>かまいません<br>
+    　　（大切なのは、場所ではなく呼吸のあうこと）<br>
+    一、外れても、だいじょうぶ。<br>
+    　　音はすべて、宇宙にとけていきます
+  </div>
+  <div class="btns">
+    <button id="hounou-start">舞をはじめる</button>
+    <button id="hounou-cancel">やめておく</button>
+  </div>
+</div>
+
+<!-- 奉納のあと -->
+<div class="overlay hidden" id="hounou-end">
+  <div class="msg">祝詞が、届きました。</div>
+  <div class="stats" id="hounou-stats"></div>
+  <div class="btns">
+    <button id="hounou-again">もうひと舞<small>つづけてささげる</small></button>
+    <button id="hounou-to-finish">今日はここまで</button>
   </div>
 </div>
 
@@ -423,6 +475,7 @@
   <div class="book-subhead">出会った神々</div>
   <div class="book-grid" id="book-grid"></div>
   <div class="book-detail" id="book-detail"></div>
+  <div class="book-hounou" id="book-hounou"></div>
   <div class="book-note">八柱すべてと縁を結ぶと、龍神様が姿を現す。</div>
   <button id="book-close">とじる</button>
 </div>
@@ -552,6 +605,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   save.hideHowto = save.hideHowto || false;
   save.firstMet = save.firstMet || {};  // 神様ごとに初めて出会った日
   save.guardian = save.guardian || null;  // 守護神の番号（診断済みなら 1〜9/11/22/33）
+  save.hounouCount = save.hounouCount || 0;    // 奉納の舞をささげた回数
+  save.noritoTotal = save.noritoTotal || 0;    // 届いた祝詞の累計
+  save.seenHounouIntro = save.seenHounouIntro || false;  // 奉納のこころえを見たか
   function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch {} }
   function allEightMet() { return KAMI.filter(k => !k.hidden).every(k => (save.counts[k.id] || 0) > 0); }
   function localDate(d) { return (d || new Date()).toLocaleDateString('sv-SE'); }
@@ -597,6 +653,22 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     return new THREE.CanvasTexture(c);
   }
   const softGlow = makeGlowTexture('rgba(255,255,255,1)', 'rgba(180,180,255,0.5)');
+
+  // 奉納の舞: 光の環（線だけの円）
+  function makeRingTexture() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const g = c.getContext('2d');
+    g.strokeStyle = 'rgba(255,255,255,1)';
+    g.lineWidth = 4;
+    g.shadowColor = 'rgba(255,255,255,0.9)';
+    g.shadowBlur = 10;
+    g.beginPath();
+    g.arc(64, 64, 50, 0, Math.PI * 2);
+    g.stroke();
+    return new THREE.CanvasTexture(c);
+  }
+  const ringTex = makeRingTexture();
 
   // ===== 背景の星空 =====
   {
@@ -831,6 +903,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       if (!seed) seed = createSeed(holdTarget);
       else seed.pos.copy(holdTarget);
       setHint('');
+    } else if (state === 'hounou') {
+      if (hounou && !hounou.closing) judgeTouch();  // 画面のどこにふれてもよい
     } else if (state === 'idle') {
       startSession(); // 空をながめた後、画面にふれるともうひと巡り
     }
@@ -865,7 +939,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     soundOn = on;
     soundBtn.textContent = on ? '🔊' : '🔇';
     if (audioCtx && droneGain) {
-      droneGain.gain.linearRampToValueAtTime(on ? 0.25 : 0, audioCtx.currentTime + 1.5);
+      // 奉納の舞の間は環境音を下げ、太鼓と柏手を立たせる
+      const level = state === 'hounou' ? 0.1 : 0.25;
+      droneGain.gain.linearRampToValueAtTime(on ? level : 0, audioCtx.currentTime + 1.5);
     }
   }
   soundBtn.addEventListener('click', () => { ensureAudio(); setSound(!soundOn); });
@@ -902,6 +978,96 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   const playSessionGong = () => playTone(220, 2.5, 0.15);   // お参りのはじまり
   const playSummonBell  = () => { playTone(880, 1.2, 0.08); playTone(1320, 1.6, 0.05); }; // 星迎えへ
 
+  // ----- 和楽器（奉納の舞・すべてコード生成）-----
+  // 太鼓: 拍の頭のドン（小節頭は強く）。
+  // 基音だけだとスマホの小さいスピーカーでは帯域的に聞こえないため、倍音とバチのアタックを重ねる
+  function playTaiko(strong) {
+    if (!audioCtx || !soundOn) return;
+    const t0 = audioCtx.currentTime;
+    const vol = strong ? 0.55 : 0.38;
+    // 胴の響き: ピッチの落ちる基音＋1オクターブ上の倍音
+    [[150, 55, vol], [300, 110, vol * 0.35]].forEach(([f0, f1, v]) => {
+      const o = audioCtx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(f0, t0);
+      o.frequency.exponentialRampToValueAtTime(f1, t0 + 0.28);
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(v, t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.55);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0); o.stop(t0 + 0.6);
+    });
+    // バチの当たる音（短いノイズ）
+    const len = Math.floor(audioCtx.sampleRate * 0.03);
+    const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    const lp = audioCtx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 900;
+    const ng = audioCtx.createGain();
+    ng.gain.value = vol * 0.5;
+    src.connect(lp); lp.connect(ng); ng.connect(audioCtx.destination);
+    src.start(t0);
+  }
+  // 鈴: 祝詞が届いた音。「お見事」はシャラーンと長く華やかに、「良き」は短くつつましく
+  function playSuzu(fine) {
+    if (!audioCtx || !soundOn) return;
+    const freqs = fine ? [2093, 2637, 3520, 4186, 5274] : [2093, 3135];
+    const step = fine ? 0.04 : 0.012;   // お見事は粒をずらしてきらめかせる
+    const dur  = fine ? 1.6 : 0.5;
+    const base = fine ? 0.11 : 0.05;
+    freqs.forEach((f, i) => {
+      const o = audioCtx.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f;
+      const g = audioCtx.createGain();
+      const t0 = audioCtx.currentTime + i * step;
+      g.gain.setValueAtTime(base / (i * 0.5 + 1), t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0); o.stop(t0 + dur + 0.05);
+    });
+  }
+  // 柏手: タップした瞬間に必ず鳴る短い「パン」（叩いた実感。届けば鈴が重なる）
+  function playKashiwade() {
+    if (!audioCtx || !soundOn) return;
+    const t0 = audioCtx.currentTime;
+    const len = Math.floor(audioCtx.sampleRate * 0.09);
+    const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+    // 2つの帯域を重ねて「パンッ」の張りを出す
+    [[1200, 1.0, 0.5], [2600, 0.8, 0.3]].forEach(([freq, q, vol]) => {
+      const src = audioCtx.createBufferSource();
+      src.buffer = buf;
+      const bp = audioCtx.createBiquadFilter();
+      bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = q;
+      const g = audioCtx.createGain();
+      g.gain.value = vol;
+      src.connect(bp); bp.connect(g); g.connect(audioCtx.destination);
+      src.start(t0);
+    });
+  }
+  // 笙: 和音のひとふき（はじまりとおわり）。dur は 2秒以上で使う
+  function playSho(dur) {
+    if (!audioCtx || !soundOn) return;
+    const t0 = audioCtx.currentTime;
+    [220, 293.66, 329.63, 440, 587.33].forEach(f => {
+      const o = audioCtx.createOscillator();
+      o.type = 'triangle';
+      o.frequency.value = f;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.linearRampToValueAtTime(0.03, t0 + 0.8);
+      g.gain.setValueAtTime(0.03, t0 + dur - 1.2);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0); o.stop(t0 + dur + 0.1);
+    });
+  }
+
   // ===== UI =====
   const counterEl = document.getElementById('counter');
   const hintEl = document.getElementById('hint');
@@ -920,7 +1086,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     after: document.getElementById('after'),
     finish: document.getElementById('finish'),
     goshuincho: document.getElementById('goshuincho'),
+    'hounou-intro': document.getElementById('hounou-intro'),
+    'hounou-end': document.getElementById('hounou-end'),
   };
+  const noritoPop = document.getElementById('norito-pop');
 
   counterEl.textContent = 'STARS BORN ' + String(save.born).padStart(5, '0');
 
@@ -975,6 +1144,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   document.getElementById('start-story').style.display   = returning ? 'none' : '';
   document.getElementById('start-welcome').style.display = returning ? '' : 'none';
   document.getElementById('open-book-start').style.display = returning ? '' : 'none';
+  document.getElementById('open-hounou-start').style.display =
+    (returning && collectedCount() >= 1) ? '' : 'none';  // 縁を結んでから奉納できる
   if (returning) populateWelcome();
 
   // ===== 御朱印帳（図鑑）=====
@@ -1024,6 +1195,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     renderBook();
     renderGuardian();
     bookDetail.innerHTML = 'ひとつ選ぶと、その神様のことが読めます。';
+    document.getElementById('book-hounou').textContent = save.hounouCount > 0
+      ? '奉納の舞 ' + save.hounouCount + ' 度　届いた祝詞 ' + save.noritoTotal
+      : '';
     showOverlay('goshuincho');
   }
   function closeBook() {
@@ -1105,8 +1279,232 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     '今日の疲れが、光の塵になって流れていく',
   ];
 
+  // ===== 奉納の舞（Phase 2 音ゲー・正本は docs/CONCEPT.md）=====
+  const HOUNOU_BEAT = 60 / 54;              // 54BPM・1拍の秒数
+  const HOUNOU_BARS = 8;                    // 4拍子×8小節
+  const HOUNOU_LEADIN = 3.5;                // はじまりの間（笙のひとふき）
+  const RING_APPROACH = HOUNOU_BEAT * 2;     // 環はちょうど2拍かけて近づく（太鼓2発ぶん）
+  const JUDGE_FINE = 0.15, JUDGE_OK = 0.38;  // 判定窓（秒）。前は0.3/0.65で甘すぎ、外れも届いてしまった
+
+  let hounou = null;           // 進行中の奉納
+  let hounouReturn = 'start';  // こころえで「やめておく」時の戻り先
+  const colorMists = [];       // 祝詞が届いて空間に残る彩りの靄
+  const breathWrap = document.getElementById('breath-wrap');
+
+  function showNoritoPop(text, seat) {
+    // 祝詞が届いた神様のそば（少し上）に出す
+    const v = seat.pos.clone().project(camera);
+    noritoPop.style.left = ((v.x * 0.5 + 0.5) * window.innerWidth) + 'px';
+    noritoPop.style.top  = ((-v.y * 0.5 + 0.5) * window.innerHeight - 26) + 'px';
+    noritoPop.textContent = text;
+    noritoPop.style.opacity = '1';
+    clearTimeout(showNoritoPop._t);
+    showNoritoPop._t = setTimeout(() => { noritoPop.style.opacity = '0'; }, 700);
+  }
+
+  function buildSeats() {
+    // 縁を結んだ神様（八柱のうち出会った柱）が円座に並ぶ。画面の縦横に合わせた楕円
+    const met = eightKami.filter(k => (save.counts[k.id] || 0) > 0);
+    const halfH = Math.tan(Math.PI / 6) * 32;   // カメラ fov60・z32 の縦半径
+    const halfW = halfH * camera.aspect;
+    const rx = Math.min(halfW * 0.62, 14);
+    const ry = Math.min(halfH * 0.5, 8.5);
+    const seats = [];
+    met.forEach((kami, i) => {
+      const ang = Math.PI / 2 + (i / met.length) * Math.PI * 2;
+      const pos = new THREE.Vector3(Math.cos(ang) * rx, Math.sin(ang) * ry + 1.5, 0);
+      const group = new THREE.Group();
+      group.position.copy(pos);
+      const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: softGlow, color: kami.color, transparent: true, opacity: 0,
+        depthWrite: false, blending: THREE.AdditiveBlending,
+      }));
+      group.add(halo);
+      const core = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: softGlow, color: 0xffffff, transparent: true, opacity: 0,
+        depthWrite: false, blending: THREE.AdditiveBlending,
+      }));
+      group.add(core);
+      // 受けの環: 動く環がここに重なる瞬間が「ちょうど」（環が近づく間だけうっすら浮かぶ）
+      const guide = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: ringTex, color: 0xffffff, transparent: true, opacity: 0,
+        depthWrite: false, blending: THREE.AdditiveBlending,
+      }));
+      guide.scale.setScalar(5.5);
+      group.add(guide);
+      scene.add(group);
+      seats.push({ kami, group, halo, core, guide, pos, glow: 0, aim: 0 });
+    });
+    return seats;
+  }
+
+  function cleanupHounou() {
+    if (!hounou) return;
+    for (const s of hounou.seats) scene.remove(s.group);
+    for (const n of hounou.notes) if (n.ring) scene.remove(n.ring);
+    hounou = null;
+  }
+
+  function startHounou() {
+    cleanupHounou();
+    state = 'hounou';
+    showOverlay(null);
+    breathWrap.style.opacity = '0';   // 奉納中は呼吸リングを休ませる
+    const seats = buildSeats();
+    const notes = [];
+    for (let bar = 0, idx = 0; bar < HOUNOU_BARS; bar++) {
+      for (const beat of [1, 3]) {    // 太鼓が1・3拍目、祝詞は2・4拍目
+        notes.push({
+          time: HOUNOU_LEADIN + (bar * 4 + beat) * HOUNOU_BEAT,
+          seat: seats[idx++ % seats.length],
+          status: 'wait', ring: null,
+        });
+      }
+    }
+    const beats = [];
+    for (let b = 0; b < HOUNOU_BARS * 4; b++) {
+      beats.push({ time: HOUNOU_LEADIN + b * HOUNOU_BEAT, strong: b % 4 === 0, played: false });
+    }
+    hounou = {
+      time: 0, seats, notes, beats, hits: 0, fines: 0,
+      endAt: HOUNOU_LEADIN + HOUNOU_BARS * 4 * HOUNOU_BEAT + 2.0,
+      closing: false, fade: 1,
+    };
+    if (audioCtx && droneGain && soundOn) {
+      droneGain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 1.0);  // 環境音を下げて太鼓を立たせる
+    }
+    playSho(3.0);
+    setHint('環がかさなったら、画面のどこかにふれる');
+    setTimeout(() => { if (state === 'hounou') setHint(''); }, 4500);
+  }
+
+  function openHounou(from) {
+    hounouReturn = from;
+    ensureAudio();
+    if (!soundOn) setSound(true);   // 音が主役なので自動でON（🔇で消せる）
+    if (save.seenHounouIntro) {
+      startHounou();
+    } else {
+      state = 'hounou-intro';
+      showOverlay('hounou-intro');
+    }
+  }
+
+  function hitNote(n, fine) {
+    n.status = 'hit';
+    n.seat.glow = 1;
+    hounou.hits++;
+    if (fine) hounou.fines++;
+    playSuzu(fine);
+    showNoritoPop(fine ? 'お見事' : '良き', n.seat);
+    // 空間に、その神様の色の靄がひとつ残る（成功するほど宇宙が彩られる）
+    const mist = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: softGlow, color: n.seat.kami.color, transparent: true, opacity: 0.1,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    mist.position.set((Math.random() - .5) * 40, (Math.random() - .5) * 24, -6 - Math.random() * 10);
+    mist.scale.setScalar(9 + Math.random() * 8);
+    scene.add(mist);
+    colorMists.push({ sprite: mist, phase: Math.random() * Math.PI * 2 });
+  }
+
+  function judgeTouch() {
+    playKashiwade();  // 叩けば必ず柏手が返る（外れても・責めない）
+    let best = null, bestAbs = Infinity;
+    for (const n of hounou.notes) {
+      if (n.status !== 'wait') continue;
+      const d = Math.abs(n.time - hounou.time);
+      if (d < bestAbs) { bestAbs = d; best = n; }
+    }
+    if (best && bestAbs <= JUDGE_OK) hitNote(best, bestAbs <= JUDGE_FINE);
+    // 外れは何も言わない（責めない）
+  }
+
+  function finishHounou() {
+    state = 'hounou-end';
+    hounou.closing = true;
+    save.hounouCount++;
+    save.noritoTotal += hounou.hits;
+    persist();
+    playSho(4.0);
+    if (audioCtx && droneGain && soundOn) {
+      droneGain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 2.0);  // 環境音を戻す
+    }
+    document.getElementById('hounou-stats').innerHTML =
+      '届いた祝詞　' + hounou.hits + ' / ' + hounou.notes.length + '<br>' +
+      save.hounouCount + ' 度目の奉納';
+    showOverlay('hounou-end');
+    breathWrap.style.opacity = '';
+  }
+
+  function updateHounou(dt) {
+    const h = hounou;
+    if (!h.closing) {
+      h.time += dt;
+      // 太鼓の拍
+      for (const b of h.beats) {
+        if (!b.played && h.time >= b.time) { b.played = true; playTaiko(b.strong); }
+      }
+      // 光の環
+      for (const n of h.notes) {
+        const t = n.time - h.time;
+        if (n.status === 'wait' && !n.ring && t <= RING_APPROACH) {
+          const ring = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: ringTex, color: n.seat.kami.color, transparent: true, opacity: 0,
+            depthWrite: false, blending: THREE.AdditiveBlending,
+          }));
+          ring.position.copy(n.seat.pos);
+          scene.add(ring);
+          n.ring = ring;
+        }
+        if (n.status === 'wait' && n.ring) {
+          const k = t / RING_APPROACH;                     // 1 → 0 → 負
+          if (k >= 0) {
+            n.ring.scale.setScalar(5.5 + k * 9);           // 14.5 → 5.5（受けの環に重なる）
+            n.ring.material.opacity = Math.min((1 - k) * 1.8, 0.85);
+          } else {
+            // ちょうどを過ぎたら止まらず、神様の光に沈みながら消えていく（「いま」を一点に）
+            const p = Math.min(-t / JUDGE_OK, 1);          // 0 → 1
+            n.ring.scale.setScalar(5.5 - p * 1.8);
+            n.ring.material.opacity = 0.85 * (1 - p);
+          }
+          if (t < -JUDGE_OK) n.status = 'passed';          // 流れた（責めず、静かに）
+        }
+        if ((n.status === 'passed' || n.status === 'hit') && n.ring) {
+          if (n.status === 'hit') n.ring.scale.multiplyScalar(1 + dt * 2.2);  // 光紋になって広がる
+          n.ring.material.opacity -= dt * (n.status === 'hit' ? 1.4 : 0.9);
+          if (n.ring.material.opacity <= 0) { scene.remove(n.ring); n.ring = null; }
+        }
+      }
+      if (h.time >= h.endAt) finishHounou();
+    } else {
+      // 舞のおわり: 座がゆっくり光に溶ける
+      h.fade = Math.max(0, h.fade - dt * 0.5);
+    }
+    // 環が来ている神様をほのかに明るく（いまどの子なのか、目でわかるように）
+    for (const s of h.seats) s.aim = 0;
+    if (!h.closing) {
+      for (const n of h.notes) {
+        if (n.status === 'wait' && n.ring) n.seat.aim = Math.max(n.seat.aim, n.ring.material.opacity);
+      }
+    }
+    // 座の神様のたたずまい
+    for (const s of h.seats) {
+      s.glow = Math.max(0, s.glow - dt * 0.9);
+      const appear = Math.min(h.time / 2, 1) * h.fade;
+      const breathe = 1 + Math.sin(clockTime * 1.1 + s.pos.x) * 0.05;
+      s.halo.scale.setScalar(6 * appear * breathe * (1 + s.glow * 0.7 + s.aim * 0.35));
+      s.core.scale.setScalar(2.0 * appear * (1 + s.glow * 0.5 + s.aim * 0.2));
+      s.halo.material.opacity = (0.45 + s.glow * 0.4 + s.aim * 0.25) * appear;
+      s.core.material.opacity = 0.9 * appear;
+      s.guide.material.opacity = s.aim * 0.28 * appear;  // 受けの環は、環が近づく間だけ浮かぶ
+    }
+    if (h.closing && h.fade <= 0) cleanupHounou();
+  }
+
   // ===== 流れの制御 =====
   function startSession() {
+    if (!mode) setMode('totonoeru');  // モード未選択で来たら（奉納だけして空をながめた後など）基本の呼吸で
     state = 'session';
     sessionTime = 0;
     breathsDone = 0;
@@ -1150,13 +1548,29 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
   document.getElementById('btn-again').addEventListener('click', () => startSession());
 
-  document.getElementById('btn-finish').addEventListener('click', () => {
+  function showFinish() {
     state = 'finish';
     document.getElementById('finish-stats').innerHTML =
       '今日むかえた神様　' + save.bornToday + '柱<br>' +
       '連続 ' + save.streak + '日目のお参り';
     showOverlay('finish');
+  }
+  document.getElementById('btn-finish').addEventListener('click', showFinish);
+
+  // 奉納の舞への入り口と出口
+  document.getElementById('open-hounou-start').addEventListener('click', () => openHounou('start'));
+  document.getElementById('btn-hounou').addEventListener('click', () => openHounou('after'));
+  document.getElementById('hounou-start').addEventListener('click', () => {
+    save.seenHounouIntro = true;
+    persist();
+    startHounou();
   });
+  document.getElementById('hounou-cancel').addEventListener('click', () => {
+    if (hounouReturn === 'after') { state = 'after'; showOverlay('after'); }
+    else { state = 'title'; showOverlay('start'); }
+  });
+  document.getElementById('hounou-again').addEventListener('click', () => startHounou());
+  document.getElementById('hounou-to-finish').addEventListener('click', showFinish);
 
   document.getElementById('btn-close').addEventListener('click', () => {
     state = 'idle';
@@ -1300,6 +1714,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       g.halo.material.opacity = 0.5 * appear;
     }
 
+    // 奉納の舞（closing中のフェードも含む）
+    if (hounou) updateHounou(dt);
+    // 彩りの靄（奉納のあとも空間に残り、ゆっくり明滅する）
+    for (const m of colorMists) {
+      m.sprite.material.opacity = 0.07 + Math.sin(clockTime * 0.4 + m.phase) * 0.035;
+    }
+
     updateDragons();
 
     renderer.render(scene, camera);
@@ -1316,6 +1737,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     save: () => save,
     skip: () => { if (state === 'session') { sessionTime = BREATHS_PER_VISIT * cycleTotal; } }, // テスト用: 呼吸を飛ばす
     guardianNum: (y, m, d) => guardianNumber(y, m, d), // テスト用: 計算だけ確認
+    meetAll: () => { eightKami.forEach(k => { save.counts[k.id] = save.counts[k.id] || 1; }); save.born = save.born || 8; persist(); refreshDots(); }, // テスト用: 八柱と出会った状態に
+    hounouSkip: () => { if (hounou && !hounou.closing) hounou.time = hounou.endAt; }, // テスト用: 舞を終わりへ
+    hounouState: () => hounou && { time: hounou.time, hits: hounou.hits, fines: hounou.fines, closing: hounou.closing }, // テスト用: 進行確認
   };
 })();
 </script>
