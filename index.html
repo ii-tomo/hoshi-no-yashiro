@@ -351,6 +351,7 @@
   #goshuincho .musubi-grid .orb.unmet { font-size: 14px; }
   #goshuincho .musubi-grid .cell-name { font-size: 10px; }
   #goshuincho .musubi-grid .cell-pair { font-size: 9px; color: #77779f; letter-spacing: .12em; margin-top: 2px; }
+  #goshuincho .cell-pair.now { color: #ffe9a8; }
 
   /* 縁むすび: 二柱えらび */
   #musubi-select .m-lead { font-size: clamp(11.5px, 2.2vw, 13px); line-height: 2.2; letter-spacing: .12em; color: #b8b8dd; text-align: center; margin-bottom: 12px; }
@@ -522,6 +523,9 @@
   <div class="musubi-link" id="open-musubi">縁をむすぶ ─ 祝詞八つ</div>
   <div class="book-grid musubi-grid" id="musubi-grid"></div>
   <div class="book-detail" id="musubi-detail"></div>
+  <div class="book-subhead musubi-head">節気の二十四柱</div>
+  <div class="book-grid musubi-grid" id="sekki-grid"></div>
+  <div class="book-detail" id="sekki-detail"></div>
   <div class="book-hounou" id="book-hounou"></div>
   <div class="book-note">八柱すべてと縁を結ぶと、龍神様が姿を現す。</div>
   <button id="book-close">とじる</button>
@@ -638,6 +642,68 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     const order = KAMI.map(k => k.id);
     const [x, y] = [idA, idB].sort((a, b) => order.indexOf(a) - order.indexOf(b));
     return MUSUBI.find(m => m.pair[0] === x && m.pair[1] === y);
+  }
+
+  // ===== 節気の二十四柱（Phase 3.5・正本は docs/CONCEPT.md）=====
+  // その節気の期間だけ、おみくじに混ざる（重み+2）。出会い損ねても来年また巡ってくる（責めない）
+  // 開始日は固定近似（実際の節気は年により±1日ずれるが、遊びに影響しないので天文計算はしない）
+  const SEKKI = [
+    { id: 'sekki-risshun',   name: '立春の神', yomi: 'りっしゅん', start: '02-04', color: 0xc8e8a8,
+      story: '暦の上で春がはじまる日の神。寒さの中に、もう春の種はまかれている。' },
+    { id: 'sekki-usui',      name: '雨水の神', yomi: 'うすい',     start: '02-19', color: 0xb0d8e8,
+      story: '雪が雨に変わるころの神。かたかった心も、ゆっくりゆるんでいい。' },
+    { id: 'sekki-keichitsu', name: '啓蟄の神', yomi: 'けいちつ',   start: '03-06', color: 0xc0b890,
+      story: '土の中の虫が目覚めるころの神。眠っていた気持ちが、動き出す。' },
+    { id: 'sekki-shunbun',   name: '春分の神', yomi: 'しゅんぶん', start: '03-21', color: 0xf0c8d8,
+      story: '昼と夜がひとしくなる日の神。かたよらない、まんなかの心をくれる。' },
+    { id: 'sekki-seimei',    name: '清明の神', yomi: 'せいめい',   start: '04-05', color: 0xd8f0e8,
+      story: 'すべてが清らかに明るむころの神。深呼吸がいちばんおいしい季節。' },
+    { id: 'sekki-kokuu',     name: '穀雨の神', yomi: 'こくう',     start: '04-20', color: 0xa8c8e0,
+      story: '田畑をうるおす春の雨の神。育つものには、待つ時間が要る。' },
+    { id: 'sekki-rikka',     name: '立夏の神', yomi: 'りっか',     start: '05-06', color: 0xa8e0c0,
+      story: '夏の気配がたちのぼる日の神。新しいことを始めるなら、風はもう追い風。' },
+    { id: 'sekki-shouman',   name: '小満の神', yomi: 'しょうまん', start: '05-21', color: 0xc8e890,
+      story: '万物がすこしずつ満ちるころの神。足りないくらいが、伸びしろになる。' },
+    { id: 'sekki-boushu',    name: '芒種の神', yomi: 'ぼうしゅ',   start: '06-06', color: 0xb0d090,
+      story: '種をまくころの神。今日まいたものの名前を、忘れないで。' },
+    { id: 'sekki-geshi',     name: '夏至の神', yomi: 'げし',       start: '06-21', color: 0xffd890,
+      story: '一年でいちばん昼が長い日の神。光の多い日は、影も濃くていい。' },
+    { id: 'sekki-shousho',   name: '小暑の神', yomi: 'しょうしょ', start: '07-07', color: 0x90d0e8,
+      story: '暑さが本気を出しはじめるころの神。無理をしない、が夏の作法。' },
+    { id: 'sekki-taisho',    name: '大暑の神', yomi: 'たいしょ',   start: '07-23', color: 0xff9880,
+      story: '一年でもっとも暑いころの神。とけるような日は、とけていい。' },
+    { id: 'sekki-risshuu',   name: '立秋の神', yomi: 'りっしゅう', start: '08-08', color: 0xe8c890,
+      story: '暦の上で秋が立つ日の神。風の中に、ひとすじの涼を見つける名人。' },
+    { id: 'sekki-shosho',    name: '処暑の神', yomi: 'しょしょ',   start: '08-23', color: 0xd8b8a0,
+      story: '暑さがおさまるころの神。がんばった夏に、そっと幕を引いてくれる。' },
+    { id: 'sekki-hakuro',    name: '白露の神', yomi: 'はくろ',     start: '09-08', color: 0xe0e8f0,
+      story: '草に白い露がむすぶころの神。朝のいちばん静かな宝物。' },
+    { id: 'sekki-shuubun',   name: '秋分の神', yomi: 'しゅうぶん', start: '09-23', color: 0xe8b878,
+      story: '昼と夜がふたたびひとしくなる日の神。実りを数える、感謝の刻。' },
+    { id: 'sekki-kanro',     name: '寒露の神', yomi: 'かんろ',     start: '10-08', color: 0xc0c8e0,
+      story: '露が冷たくなるころの神。澄んだ空気は、遠くの音まで届ける。' },
+    { id: 'sekki-soukou',    name: '霜降の神', yomi: 'そうこう',   start: '10-24', color: 0xd8d0c0,
+      story: 'はじめての霜が降りるころの神。終わりじたくも、美しくできる。' },
+    { id: 'sekki-rittou',    name: '立冬の神', yomi: 'りっとう',   start: '11-08', color: 0xb0b8d0,
+      story: '冬が立つ日の神。こもる季節は、深まる季節でもある。' },
+    { id: 'sekki-shousetsu', name: '小雪の神', yomi: 'しょうせつ', start: '11-22', color: 0xe8ecf0,
+      story: 'はじめての雪がちらつくころの神。白いものは、音まで白くする。' },
+    { id: 'sekki-taisetsu',  name: '大雪の神', yomi: 'たいせつ',   start: '12-07', color: 0xf0f4f8,
+      story: '雪が本降りになるころの神。積もる日は、積もるにまかせる。' },
+    { id: 'sekki-touji',     name: '冬至の神', yomi: 'とうじ',     start: '12-22', color: 0x9098c0,
+      story: '一年でいちばん夜が長い日の神。ここからは、毎日すこしずつ光が増える。' },
+    { id: 'sekki-shoukan',   name: '小寒の神', yomi: 'しょうかん', start: '01-05', color: 0xa8c0d8,
+      story: '寒の入りの神。寒さの底で、春を数えはじめる。' },
+    { id: 'sekki-daikan',    name: '大寒の神', yomi: 'だいかん',   start: '01-20', color: 0x88a8c8,
+      story: '一年でもっとも寒いころの神。いちばん冷えた朝の空が、いちばん澄んでいる。' },
+  ];
+  function sekkiNow(d) {
+    // いまの節気 = 開始日が今日以前でいちばん遅いもの。年明け〜小寒前は前年の冬至
+    const md = localDate(d).slice(5);
+    let cur = null;
+    for (const s of SEKKI) if (s.start <= md && (!cur || s.start > cur.start)) cur = s;
+    if (!cur) for (const s of SEKKI) if (!cur || s.start > cur.start) cur = s;
+    return cur;
   }
 
   // ===== 守護神（誕生日で決まる一柱・正本は docs/CONCEPT.md / guardian-source.md）=====
@@ -867,10 +933,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     if (rarity.name === '大大吉') return KAMI.find(k => k.id === 'ryujin');
     const hour = new Date().getHours();
     const pool = KAMI.filter(k => !k.hidden);
+    const sekki = sekkiNow();
+    if (sekki) pool.push(sekki);   // いまの節気の神だけ、おみくじに混ざる
     const weights = pool.map(k => {
       let w = 1;
       if (k.hours && k.hours.includes(hour)) w += 2;
       if (k.mode && k.mode === modeKey) w += 2;
+      if (k.start) w += 2;   // 節気の神の重み（時間帯の重みと同じ扱い）
       return w;
     });
     const total = weights.reduce((s, w) => s + w, 0);
@@ -1329,6 +1398,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     renderBook();
     renderGuardian();
     renderMusubiBook();
+    renderSekkiBook();
     bookDetail.innerHTML = 'ひとつ選ぶと、その神様のことが読めます。';
     document.getElementById('book-hounou').textContent = save.hounouCount > 0
       ? '奉納の舞 ' + save.hounouCount + ' 度　届いた祝詞 ' + save.noritoTotal
@@ -1447,6 +1517,50 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
         : 'まだ結ばれていない縁。何が生まれるかは、むすんでのお楽しみ') + '</small>';
     musubiGo.classList.remove('dim');
   }
+  // 御朱印帳「節気の章」（いまの節気の神だけが、おみくじに混ざる）
+  function renderSekkiBook() {
+    const grid = document.getElementById('sekki-grid');
+    const now = sekkiNow();
+    grid.innerHTML = '';
+    for (const s of SEKKI) {
+      const met = (save.counts[s.id] || 0) > 0;
+      const hex = '#' + s.color.toString(16).padStart(6, '0');
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const orb = document.createElement('div');
+      if (met) { orb.className = 'orb met'; orb.style.color = hex; }
+      else { orb.className = 'orb unmet'; orb.textContent = '？'; }
+      const name = document.createElement('div');
+      name.className = 'cell-name' + (met ? '' : ' dim');
+      name.textContent = s.name;   // 節気は暦のもの。名は隠さず、出会いだけを楽しみに
+      cell.appendChild(orb); cell.appendChild(name);
+      if (now && s.id === now.id) {
+        const mark = document.createElement('div');
+        mark.className = 'cell-pair now';
+        mark.textContent = 'いまここ';
+        cell.appendChild(mark);
+      }
+      cell.addEventListener('click', () => showSekkiDetail(s, met, now));
+      grid.appendChild(cell);
+    }
+    document.getElementById('sekki-detail').innerHTML = 'いまの節気の神だけが、おみくじに混ざります。';
+  }
+  function showSekkiDetail(s, met, now) {
+    const detail = document.getElementById('sekki-detail');
+    const here = now && s.id === now.id;
+    if (met) {
+      const cnt = save.counts[s.id] || 0;
+      detail.innerHTML = '<span class="d-name">' + s.name + '（' + s.yomi + '）</span>' + s.story +
+        '<br><span style="color:#8f8fc0;font-size:11px">これまで ' + cnt + ' 度の縁' +
+        (save.firstMet[s.id] ? '　はじまりは ' + save.firstMet[s.id] : '') + '</span>';
+    } else {
+      const [mo, da] = s.start.split('-').map(Number);
+      detail.innerHTML = '<span class="d-name">' + s.name + '</span>' +
+        mo + '月' + da + '日ごろにはじまる節気の神。' +
+        (here ? 'いまなら、お参りで出会えるかもしれません。' : '出会い損ねても、来年また巡ってきます。');
+    }
+  }
+
   musubiLink.addEventListener('click', () => {
     if (musubiLink.classList.contains('dim')) return;
     musubiSel = [];
@@ -2144,6 +2258,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     hounouSkip: () => { if (hounou && !hounou.closing) hounou.time = hounou.endAt; }, // テスト用: 舞を終わりへ
     hounouState: () => hounou && { time: hounou.time, hits: hounou.hits, fines: hounou.fines, closing: hounou.closing }, // テスト用: 進行確認
     norito: (n) => { save.noritoHeld = n; persist(); }, // テスト用: 祝詞の手持ちを設定
+    sekki: (d) => { const s = sekkiNow(d ? new Date(d) : undefined); return s && s.id; }, // テスト用: いまの節気
+    pick: (i) => pickKami(RARITY[i || 0]).id, // テスト用: おみくじ抽選だけ確認
     musubiSkip: () => { if (musubi && !musubi.done) finishMusubi(); }, // テスト用: むすびの呼吸を飛ばす
     musubiState: () => musubi && { id: musubi.m.id, holdTime: musubi.holdTime, done: musubi.done }, // テスト用: 進行確認
   };
