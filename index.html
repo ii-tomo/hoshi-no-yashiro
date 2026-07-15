@@ -186,8 +186,8 @@
   #start .modes { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
   #start .note { margin-top: 20px; font-size: 10.5px; color: #77779f; letter-spacing: .15em; }
 
-  /* 呼吸のこころえ・奉納のこころえ */
-  #howto h2, #hounou-intro h2 {
+  /* 呼吸のこころえ・奉納のこころえ・縁むすび */
+  #howto h2, #hounou-intro h2, #musubi-select h2 {
     font-size: 17px; letter-spacing: .4em; text-indent: .4em;
     font-weight: normal; color: #d8d8f2;
     margin-bottom: 26px;
@@ -334,6 +334,48 @@
   #goshuincho .g-name { font-size: 18px; color: #ececff; letter-spacing: .2em; text-indent: .2em; text-align: center; margin-bottom: 4px; text-shadow: 0 0 14px rgba(180,180,255,.6); }
   #goshuincho .g-yomi { font-size: 10.5px; color: #8f8fc0; letter-spacing: .15em; text-align: center; margin-bottom: 12px; }
   #goshuincho .g-trait { font-size: 12px; color: #b8b8dd; line-height: 2; text-align: center; }
+
+  /* 御朱印帳: むすびの章 */
+  #goshuincho .musubi-head { margin-top: 8px; }
+  #goshuincho .musubi-norito { font-size: 12px; color: #ffe9a8; letter-spacing: .2em; text-align: center; margin-bottom: 12px; }
+  #goshuincho .musubi-link {
+    font-size: 12.5px; color: #d8d8f2; letter-spacing: .18em;
+    border: 1px solid rgba(160,160,220,.45); border-radius: 22px;
+    padding: 10px 26px; margin-bottom: 22px; cursor: pointer;
+  }
+  #goshuincho .musubi-link:hover { background: rgba(40,40,90,.5); box-shadow: 0 0 14px rgba(140,140,255,.25); }
+  #goshuincho .musubi-link.dim { opacity: .45; cursor: default; }
+  #goshuincho .musubi-link.dim:hover { background: none; box-shadow: none; }
+  #goshuincho .musubi-grid { grid-template-columns: repeat(4, 1fr); gap: 16px 10px; }
+  #goshuincho .musubi-grid .orb { width: 36px; height: 36px; }
+  #goshuincho .musubi-grid .orb.unmet { font-size: 14px; }
+  #goshuincho .musubi-grid .cell-name { font-size: 10px; }
+  #goshuincho .musubi-grid .cell-pair { font-size: 9px; color: #77779f; letter-spacing: .12em; margin-top: 2px; }
+
+  /* 縁むすび: 二柱えらび */
+  #musubi-select .m-lead { font-size: clamp(11.5px, 2.2vw, 13px); line-height: 2.2; letter-spacing: .12em; color: #b8b8dd; text-align: center; margin-bottom: 12px; }
+  #musubi-select .m-norito { font-size: 12px; color: #ffe9a8; letter-spacing: .2em; margin-bottom: 24px; }
+  #musubi-select .m-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 24px; margin-bottom: 22px; }
+  #musubi-select .m-cell { text-align: center; cursor: pointer; }
+  #musubi-select .m-cell .m-orb {
+    width: 44px; height: 44px; border-radius: 50%; margin: 0 auto 7px;
+    background: currentColor; box-shadow: 0 0 12px currentColor;
+    transition: transform .3s, box-shadow .3s;
+  }
+  #musubi-select .m-cell.off { cursor: default; }
+  #musubi-select .m-cell.off .m-orb {
+    background: transparent; box-shadow: none;
+    border: 1px dashed rgba(90,90,130,.8); color: #55557a;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  #musubi-select .m-cell.sel .m-orb { transform: scale(1.16); box-shadow: 0 0 20px currentColor, 0 0 0 2px rgba(255,255,255,.75); }
+  #musubi-select .m-name { font-size: 10.5px; color: #c8c8e8; letter-spacing: .08em; }
+  #musubi-select .m-cell.off .m-name { color: #666690; }
+  #musubi-select .m-chosen { font-size: 12.5px; color: #d8d8f2; letter-spacing: .15em; min-height: 44px; text-align: center; line-height: 1.9; margin-bottom: 16px; }
+  #musubi-select .m-chosen small { display: block; font-size: 10.5px; color: #8f8fc0; }
+  #musubi-select .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  #musubi-select button.dim { opacity: .4; cursor: default; }
+  #musubi-select button.dim:hover { background: rgba(20,20,50,.6); box-shadow: none; }
 </style>
 </head>
 <body>
@@ -475,9 +517,27 @@
   <div class="book-subhead">出会った神々</div>
   <div class="book-grid" id="book-grid"></div>
   <div class="book-detail" id="book-detail"></div>
+  <div class="book-subhead musubi-head">むすびの二十八柱</div>
+  <div class="musubi-norito" id="musubi-norito">手持ちの祝詞　0</div>
+  <div class="musubi-link" id="open-musubi">縁をむすぶ ─ 祝詞八つ</div>
+  <div class="book-grid musubi-grid" id="musubi-grid"></div>
+  <div class="book-detail" id="musubi-detail"></div>
   <div class="book-hounou" id="book-hounou"></div>
   <div class="book-note">八柱すべてと縁を結ぶと、龍神様が姿を現す。</div>
   <button id="book-close">とじる</button>
+</div>
+
+<!-- 縁むすび: 二柱えらび -->
+<div class="overlay hidden" id="musubi-select">
+  <h2>縁をむすぶ</h2>
+  <div class="m-lead">出会った二柱をえらぶと、祝詞八つとひきかえに<br>ふた柱のあいだから、新しい神様が生まれます</div>
+  <div class="m-norito" id="m-norito">手持ちの祝詞　0</div>
+  <div class="m-grid" id="m-grid"></div>
+  <div class="m-chosen" id="m-chosen">むすぶ二柱を、えらんでください</div>
+  <div class="btns">
+    <button id="musubi-go">むすびの呼吸へ<small>ふれたまま、ひと呼吸</small></button>
+    <button id="musubi-cancel">やめておく</button>
+  </div>
 </div>
 
 <script type="module">
@@ -511,6 +571,74 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     { name: '大吉',   rate: 0.13, scale: 1.55, color: '#ffe09e' },
     { name: '大大吉', rate: 0.02, scale: 2.0,  color: '#7fffd4' }, // 龍神様
   ];
+
+  // ===== むすびの二十八柱（Phase 3 縁結び・正本は docs/CONCEPT.md）=====
+  // id は musubi-親1-親2（KAMI配列順の早い方が先）。28すべてに神がいる（どの縁も尊い・ハズレなし）
+  const MUSUBI = [
+    { id: 'musubi-hi-kaze',        pair: ['hi','kaze'],        name: '凪の神',     yomi: 'なぎ',       color: 0xd8f0b0,
+      story: '風がやみ、光だけがある朝の神。がんばらなくていい時間を、あなたにくれる。' },
+    { id: 'musubi-hi-yama',        pair: ['hi','yama'],        name: '望の神',     yomi: 'のぞみ',     color: 0xe4cc9e,
+      story: 'いちばん高いところから、いちばん遠くを見せてくれる神。明日の楽しみを、ひとつ増やしてくれる。' },
+    { id: 'musubi-hi-mizu',        pair: ['hi','mizu'],        name: '虹の神',     yomi: 'にじ',       color: 0xdcc8f0,
+      story: '雨あがりの空に七色の橋をかける神。涙のあとには、かならず光が差すと教えてくれる。' },
+    { id: 'musubi-hi-ho',          pair: ['hi','ho'],          name: '灯の神',     yomi: 'あかり',     color: 0xffc8a0,
+      story: '日が沈んでも消えない、小さなあかりの神。帰り道の足もとを、いつまでも照らしてくれる。' },
+    { id: 'musubi-hi-kaminari',    pair: ['hi','kaminari'],    name: '天啓の神',   yomi: 'てんけい',   color: 0xe0c4e0,
+      story: '光がひらめきを照らす神。もやもやの正体に、ふいに名前をつけてくれる。' },
+    { id: 'musubi-hi-tsuki',       pair: ['hi','tsuki'],       name: '時の神',     yomi: 'とき',       color: 0xeadcc8,
+      story: '昼と夜を静かにめぐらせる神。急がなくていい、と時計の針をゆるめてくれる。' },
+    { id: 'musubi-hi-hoshi',       pair: ['hi','hoshi'],       name: '暁の神',     yomi: 'あかつき',   color: 0xffc0b8,
+      story: '星が光に溶ける、いちにちで最も静かな刻の神。終わりと始まりは同じ色だと知っている。' },
+    { id: 'musubi-kaze-yama',      pair: ['kaze','yama'],      name: '木霊の神',   yomi: 'こだま',     color: 0xb8dcb0,
+      story: '呼べば返る、山の声の神。ひとりごとに、ちゃんと相槌をくれる。' },
+    { id: 'musubi-kaze-mizu',      pair: ['kaze','mizu'],      name: '雲の神',     yomi: 'くも',       color: 0xa8e8e0,
+      story: '水を抱いて空を渡る神。かたちを変えることは、負けではないと教えてくれる。' },
+    { id: 'musubi-kaze-ho',        pair: ['kaze','ho'],        name: '熾の神',     yomi: 'おこし',     color: 0xd8cca0,
+      story: '消えかけの火に、そっと息を送る神。「もう一度だけやってみよう」を、くれる。' },
+    { id: 'musubi-kaze-kaminari',  pair: ['kaze','kaminari'],  name: '舞風の神',   yomi: 'まいかぜ',   color: 0xbcd4e4,
+      story: '木の葉をくるりと躍らせる神。理由のない上機嫌を、ひとつ置いていく。' },
+    { id: 'musubi-kaze-tsuki',     pair: ['kaze','tsuki'],     name: '夜風の神',   yomi: 'よかぜ',     color: 0xc0ecdc,
+      story: '眠れない夜の窓辺を通る神。ほてった考えを、ちょうどよく冷ましてくれる。' },
+    { id: 'musubi-kaze-hoshi',     pair: ['kaze','hoshi'],     name: '流星の神',   yomi: 'りゅうせい', color: 0xd4cecc,
+      story: '星を運ぶ夜の風の神。願いごとは三秒あれば足りると、せかしてくれる。' },
+    { id: 'musubi-yama-mizu',      pair: ['yama','mizu'],      name: '恵みの神',   yomi: 'めぐみ',     color: 0xb4c4d0,
+      story: '山の水が里を潤すように、めぐるものすべての神。与えたものは、忘れたころに返ってくる。' },
+    { id: 'musubi-yama-ho',        pair: ['yama','ho'],        name: '竈の神',     yomi: 'かまど',     color: 0xe4b4a0,
+      story: '台所にすまう、いちばん身近な神。今日もごはんを食べたあなたを、それだけで良しとする。' },
+    { id: 'musubi-yama-kaminari',  pair: ['yama','kaminari'],  name: '磐座の神',   yomi: 'いわくら',   color: 0xccb0d0,
+      story: '雷の落ちた岩に宿る神。動じない、と決めた心のそばにいる。' },
+    { id: 'musubi-yama-tsuki',     pair: ['yama','tsuki'],     name: '影向の神',   yomi: 'ようごう',   color: 0xd0c8c8,
+      story: '月光が山肌に降りるとき、そこに現れる神。静けさそのものが、答えのこともある。' },
+    { id: 'musubi-yama-hoshi',     pair: ['yama','hoshi'],     name: '頂の神',     yomi: 'いただき',   color: 0xe4acb8,
+      story: '山のてっぺんで星に手をのばす神。届かなくても、近づいたぶんだけ景色は変わる。' },
+    { id: 'musubi-mizu-ho',        pair: ['mizu','ho'],        name: '湯の神',     yomi: 'ゆ',         color: 0xd0c0d0,
+      story: '水と火が仲直りして生まれた、あたたかい神。今日の肩の荷を、湯気にして逃がしてくれる。' },
+    { id: 'musubi-mizu-kaminari',  pair: ['mizu','kaminari'],  name: '慈雨の神',   yomi: 'じう',       color: 0xb8bcff,
+      story: '乾いた土に降る、やさしい雷雨の神。泣いていい日も、ちゃんと用意されている。' },
+    { id: 'musubi-mizu-tsuki',     pair: ['mizu','tsuki'],     name: '潮の神',     yomi: 'うしお',     color: 0xbcd4f8,
+      story: '月に引かれて満ち引きする、大きな呼吸の神。あなたの浮き沈みも、ただの潮どきかもしれない。' },
+    { id: 'musubi-mizu-hoshi',     pair: ['mizu','hoshi'],     name: '天の川の神', yomi: 'あまのがわ', color: 0xd0b8e8,
+      story: '星が流れて川になった神。離れているものたちを、光の橋でつないでくれる。' },
+    { id: 'musubi-ho-kaminari',    pair: ['ho','kaminari'],    name: '祭火の神',   yomi: 'まつりび',   color: 0xe8acd0,
+      story: '祭りのかがり火に宿る神。胸の高鳴りは、生きている合図だと笑う。' },
+    { id: 'musubi-ho-tsuki',       pair: ['ho','tsuki'],       name: '宵火の神',   yomi: 'よいび',     color: 0xecc4c8,
+      story: '日暮れどきの窓あかりの神。「おかえり」の一言のあたたかさを知っている。' },
+    { id: 'musubi-ho-hoshi',       pair: ['ho','hoshi'],       name: '星火の神',   yomi: 'ほしび',     color: 0xffa8b8,
+      story: '遠くでまたたく火の神。小さくても消えない光は、遠くからよく見える。' },
+    { id: 'musubi-kaminari-tsuki', pair: ['kaminari','tsuki'], name: '静雷の神',   yomi: 'しずいかずち', color: 0xd4c0f8,
+      story: '遠くで鳴る、夜の雷の神。怖いものも、距離をとれば景色になる。' },
+    { id: 'musubi-kaminari-hoshi', pair: ['kaminari','hoshi'], name: '天光の神',   yomi: 'てんこう',   color: 0xe8a4e8,
+      story: '夜空を走る光の神。ひらめきと願いがぶつかって、道になる。' },
+    { id: 'musubi-tsuki-hoshi',    pair: ['tsuki','hoshi'],    name: '星月夜の神', yomi: 'ほしづきよ', color: 0xecbce0,
+      story: '月と星が競わずに照らしあう夜の神。誰かと並んで光る方法を、教えてくれる。' },
+  ];
+  const MUSUBI_COST = 8;  // 縁むすびに使う祝詞の数（八にちなむ）
+  function musubiFor(idA, idB) {
+    // KAMI配列順で正規化してから探す（どちらを先に選んでも同じ縁）
+    const order = KAMI.map(k => k.id);
+    const [x, y] = [idA, idB].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    return MUSUBI.find(m => m.pair[0] === x && m.pair[1] === y);
+  }
 
   // ===== 守護神（誕生日で決まる一柱・正本は docs/CONCEPT.md / guardian-source.md）=====
   const GUARDIANS = {
@@ -606,14 +734,17 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   save.firstMet = save.firstMet || {};  // 神様ごとに初めて出会った日
   save.guardian = save.guardian || null;  // 守護神の番号（診断済みなら 1〜9/11/22/33）
   save.hounouCount = save.hounouCount || 0;    // 奉納の舞をささげた回数
-  save.noritoTotal = save.noritoTotal || 0;    // 届いた祝詞の累計
+  save.noritoTotal = save.noritoTotal || 0;    // 届いた祝詞の累計（記録用・減らさない）
   save.seenHounouIntro = save.seenHounouIntro || false;  // 奉納のこころえを見たか
+  // 手持ちの祝詞（奉納で＋、縁むすびで−8）。導入前から奉納していた人には累計ぶんを持たせる
+  save.noritoHeld = (save.noritoHeld == null) ? save.noritoTotal : save.noritoHeld;
   function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch {} }
   function allEightMet() { return KAMI.filter(k => !k.hidden).every(k => (save.counts[k.id] || 0) > 0); }
   function localDate(d) { return (d || new Date()).toLocaleDateString('sv-SE'); }
 
   // ===== 状態遷移 =====
   // title → howto → session（3呼吸）→ summon（星迎え）→ card → after → finish → idle
+  // 縁むすび: goshuincho → musubi-select（二柱えらび）→ musubi（むすびの呼吸）→ musubi-card → goshuincho
   let state = 'title';
   let sessionTime = 0;   // セッション内の呼吸用時計（お参りごとにリセット）
   let breathsDone = 0;
@@ -905,6 +1036,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       setHint('');
     } else if (state === 'hounou') {
       if (hounou && !hounou.closing) judgeTouch();  // 画面のどこにふれてもよい
+    } else if (state === 'musubi') {
+      if (musubi && !musubi.done) { holding = true; setHint(''); }  // ふれたまま、ひと呼吸
     } else if (state === 'idle') {
       startSession(); // 空をながめた後、画面にふれるともうひと巡り
     }
@@ -1088,6 +1221,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     goshuincho: document.getElementById('goshuincho'),
     'hounou-intro': document.getElementById('hounou-intro'),
     'hounou-end': document.getElementById('hounou-end'),
+    'musubi-select': document.getElementById('musubi-select'),
   };
   const noritoPop = document.getElementById('norito-pop');
 
@@ -1194,19 +1328,281 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     bookReturn = returnTo;
     renderBook();
     renderGuardian();
+    renderMusubiBook();
     bookDetail.innerHTML = 'ひとつ選ぶと、その神様のことが読めます。';
     document.getElementById('book-hounou').textContent = save.hounouCount > 0
       ? '奉納の舞 ' + save.hounouCount + ' 度　届いた祝詞 ' + save.noritoTotal
       : '';
     showOverlay('goshuincho');
+    state = 'goshuincho';
   }
   function closeBook() {
-    if (bookReturn === 'finish') { showOverlay('finish'); }
-    else { populateWelcome(); showOverlay('start'); }
+    if (bookReturn === 'finish') { state = 'finish'; showOverlay('finish'); }
+    else { populateWelcome(); state = 'title'; showOverlay('start'); }
   }
   document.getElementById('open-book-start').addEventListener('click', () => openBook('start'));
   document.getElementById('open-book-finish').addEventListener('click', () => openBook('finish'));
   document.getElementById('book-close').addEventListener('click', closeBook);
+
+  // ===== 縁むすび（Phase 3・正本は docs/CONCEPT.md）=====
+  // 奉納で貯めた祝詞8つで、出会った二柱の縁をむすぶ。どの縁からも必ず神様が生まれる（ハズレなし・責めない）
+  const MUSUBI_BREATH = 8;   // むすびの呼吸 = 4秒吸う→4秒吐く のひと呼吸
+  const musubiGrid = document.getElementById('musubi-grid');
+  const musubiDetail = document.getElementById('musubi-detail');
+  const musubiLink = document.getElementById('open-musubi');
+  const mChosen = document.getElementById('m-chosen');
+  const musubiGo = document.getElementById('musubi-go');
+  let musubi = null;    // 進行中のむすびの呼吸
+  let musubiSel = [];   // 二柱えらびで選択中の id
+
+  function kamiById(id) { return KAMI.find(k => k.id === id); }
+  function pairLabel(m) {
+    return kamiById(m.pair[0]).name.replace('の神', '') + ' × ' + kamiById(m.pair[1]).name.replace('の神', '');
+  }
+
+  // 御朱印帳「むすびの章」（28枠。未取得はシルエット）
+  function renderMusubiBook() {
+    document.getElementById('musubi-norito').textContent = '手持ちの祝詞　' + save.noritoHeld;
+    const canPair = eightKami.filter(k => (save.counts[k.id] || 0) > 0).length >= 2;
+    musubiLink.classList.toggle('dim', !canPair || save.noritoHeld < MUSUBI_COST);
+    if (!canPair) musubiLink.textContent = '二柱と出会うと、縁がむすべます';
+    else if (save.noritoHeld < MUSUBI_COST) musubiLink.textContent = '縁をむすぶ ─ 祝詞八つ（あと' + (MUSUBI_COST - save.noritoHeld) + 'つ）';
+    else musubiLink.textContent = '縁をむすぶ ─ 祝詞八つ';
+    musubiGrid.innerHTML = '';
+    for (const m of MUSUBI) {
+      const met = (save.counts[m.id] || 0) > 0;
+      const hex = '#' + m.color.toString(16).padStart(6, '0');
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const orb = document.createElement('div');
+      if (met) { orb.className = 'orb met'; orb.style.color = hex; }
+      else { orb.className = 'orb unmet'; orb.textContent = '？'; }
+      const name = document.createElement('div');
+      name.className = 'cell-name' + (met ? '' : ' dim');
+      name.textContent = met ? m.name : '？？？';
+      const pair = document.createElement('div');
+      pair.className = 'cell-pair';
+      pair.textContent = pairLabel(m);
+      cell.appendChild(orb); cell.appendChild(name); cell.appendChild(pair);
+      cell.addEventListener('click', () => showMusubiDetail(m, met));
+      musubiGrid.appendChild(cell);
+    }
+    musubiDetail.innerHTML = 'ひとつ選ぶと、その縁のことが読めます。';
+  }
+  function showMusubiDetail(m, met) {
+    const parents = kamiById(m.pair[0]).name + 'と' + kamiById(m.pair[1]).name;
+    if (met) {
+      const cnt = save.counts[m.id] || 0;
+      const first = save.firstMet[m.id] || '';
+      musubiDetail.innerHTML = '<span class="d-name">' + m.name + '（' + m.yomi + '）</span>' + m.story +
+        '<br><span style="color:#8f8fc0;font-size:11px">' + parents + 'の縁　これまで ' + cnt + ' 度' +
+        (first ? '　はじまりは ' + first : '') + '</span>';
+    } else {
+      musubiDetail.innerHTML = '<span class="d-name">？？？</span>' +
+        parents + 'のあいだに、まだ見ぬ縁がある。';
+    }
+  }
+
+  // 二柱えらび
+  function renderMusubiSelect() {
+    document.getElementById('m-norito').textContent = '手持ちの祝詞　' + save.noritoHeld;
+    const mGrid = document.getElementById('m-grid');
+    mGrid.innerHTML = '';
+    for (const k of eightKami) {
+      const met = (save.counts[k.id] || 0) > 0;
+      const cell = document.createElement('div');
+      cell.className = 'm-cell' + (met ? '' : ' off') + (musubiSel.includes(k.id) ? ' sel' : '');
+      const orb = document.createElement('div');
+      orb.className = 'm-orb';
+      if (met) orb.style.color = '#' + k.color.toString(16).padStart(6, '0');
+      else orb.textContent = '？';
+      const name = document.createElement('div');
+      name.className = 'm-name';
+      name.textContent = met ? k.name : '？？？';
+      cell.appendChild(orb); cell.appendChild(name);
+      if (met) cell.addEventListener('click', () => toggleMusubiSel(k.id));
+      mGrid.appendChild(cell);
+    }
+    updateMusubiChosen();
+  }
+  function toggleMusubiSel(id) {
+    if (musubiSel.includes(id)) musubiSel = musubiSel.filter(x => x !== id);
+    else {
+      musubiSel.push(id);
+      if (musubiSel.length > 2) musubiSel.shift();  // 三柱目を選んだら、いちばん古い選択と入れ替え
+    }
+    renderMusubiSelect();
+  }
+  function updateMusubiChosen() {
+    if (musubiSel.length < 2) {
+      mChosen.innerHTML = 'むすぶ二柱を、えらんでください';
+      musubiGo.classList.add('dim');
+      return;
+    }
+    const m = musubiFor(musubiSel[0], musubiSel[1]);
+    const cnt = save.counts[m.id] || 0;
+    mChosen.innerHTML = kamiById(m.pair[0]).name + '　×　' + kamiById(m.pair[1]).name +
+      '<small>' + (cnt > 0
+        ? 'この縁は、これまで ' + cnt + ' 度むすばれています'
+        : 'まだ結ばれていない縁。何が生まれるかは、むすんでのお楽しみ') + '</small>';
+    musubiGo.classList.remove('dim');
+  }
+  musubiLink.addEventListener('click', () => {
+    if (musubiLink.classList.contains('dim')) return;
+    musubiSel = [];
+    renderMusubiSelect();
+    state = 'musubi-select';
+    showOverlay('musubi-select');
+  });
+  document.getElementById('musubi-cancel').addEventListener('click', () => openBook(bookReturn));
+  musubiGo.addEventListener('click', () => {
+    if (musubiGo.classList.contains('dim') || musubiSel.length < 2) return;
+    if (save.noritoHeld < MUSUBI_COST) return;
+    startMusubi(musubiFor(musubiSel[0], musubiSel[1]));
+  });
+
+  // むすびの呼吸（3D空間の儀式）
+  function makeMusubiOrb(color, x) {
+    const group = new THREE.Group();
+    group.position.set(x, 2, 0);
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: softGlow, color, transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    group.add(halo);
+    const core = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: softGlow, color: 0xffffff, transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    group.add(core);
+    scene.add(group);
+    return { group, halo, core };
+  }
+  function startMusubi(m) {
+    ensureAudio();
+    if (!soundOn) setSound(true);
+    state = 'musubi';
+    showOverlay(null);
+    const kA = kamiById(m.pair[0]), kB = kamiById(m.pair[1]);
+    // 二柱の座は画面幅に合わせる（スマホ縦でも見切れない）
+    const halfH = Math.tan(Math.PI / 6) * 32;
+    const halfW = halfH * camera.aspect;
+    const x = Math.min(halfW * 0.55, 9);
+    const orbA = makeMusubiOrb(kA.color, -x);
+    const orbB = makeMusubiOrb(kB.color, x);
+    // 光の橋: 両端からともり、呼吸が満ちると中央でむすばれる
+    const N = 64;
+    const pos = new Float32Array(N * 3);
+    const col = new Float32Array(N * 3);
+    const ca = new THREE.Color(kA.color), cb = new THREE.Color(kB.color), tmp = new THREE.Color();
+    for (let i = 0; i < N; i++) {
+      const half = Math.floor(i / 2);
+      const s = (i % 2 === 0) ? half / (N - 1) : 1 - half / (N - 1);  // 偶数はA側から、奇数はB側から
+      pos[i*3]   = -x + 2 * x * s;
+      pos[i*3+1] = 2 + Math.sin(s * Math.PI) * 2.4;   // ゆるやかなアーチ
+      pos[i*3+2] = 0;
+      tmp.copy(ca).lerp(cb, s);
+      col[i*3] = tmp.r; col[i*3+1] = tmp.g; col[i*3+2] = tmp.b;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    geo.setDrawRange(0, 0);
+    const mat = new THREE.PointsMaterial({
+      map: softGlow, size: 1.1, vertexColors: true, transparent: true, opacity: 0.9,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    });
+    const bridge = new THREE.Points(geo, mat);
+    scene.add(bridge);
+    musubi = { m, orbA, orbB, bridge, N, holdTime: 0, appear: 0, done: false };
+    breathCount.textContent = '';
+    setHint('画面にふれたまま、ひと呼吸');
+    playSummonBell();
+  }
+  function musubiBreathState() {
+    const p = musubi.holdTime % MUSUBI_BREATH;
+    const inhale = p < 4;
+    const t = inhale ? p / 4 : (p - 4) / 4;
+    return {
+      label: inhale ? '吸う' : '吐く',
+      value: inhale ? 0.5 - 0.5 * Math.cos(t * Math.PI) : 0.5 + 0.5 * Math.cos(t * Math.PI),
+    };
+  }
+  function finishMusubi() {
+    const mu = musubi;
+    mu.done = true;
+    holding = false;
+    const m = mu.m;
+    // その日最初の誕生なら streak 更新（縁むすびも、ひと呼吸のお参り）
+    const today = localDate();
+    if (save.lastDay !== today) {
+      const yesterday = localDate(new Date(Date.now() - 86400000));
+      save.streak = (save.lastDay === yesterday) ? save.streak + 1 : 1;
+      save.lastDay = today;
+      save.bornToday = 0;
+    }
+    save.noritoHeld -= MUSUBI_COST;
+    save.born++;
+    save.bornToday++;
+    save.counts[m.id] = (save.counts[m.id] || 0) + 1;
+    if (!save.firstMet[m.id]) save.firstMet[m.id] = today;
+    persist();
+    counterEl.textContent = 'STARS BORN ' + String(save.born).padStart(5, '0');
+    // ふた柱のあいだに、むすびの神が生まれる（誕生後は空間を漂う）
+    const p = new THREE.Vector3(0, 3.2, 0);
+    const group = new THREE.Group();
+    group.position.copy(p);
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: softGlow, color: m.color, transparent: true, opacity: 0.5,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    group.add(halo);
+    const core = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: softGlow, color: 0xffffff, transparent: true, opacity: 0.95,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    group.add(core);
+    scene.add(group);
+    kamis.push({
+      group, halo, core, base: p.clone(),
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.15 + Math.random() * 0.2,
+      drift: new THREE.Vector3((Math.random()-.5)*.15, (Math.random()-.5)*.1, 0),
+      bornAt: clockTime, haloBase: 7 * 1.4, coreBase: 2.2 * 1.3,
+    });
+    state = 'musubi-card';
+    setHint('');
+    showBirthCard({ name: 'むすびの縁', color: '#e8c8f0' }, m, false);
+    playBirthChime(false);
+    setTimeout(() => {
+      cleanupMusubi();
+      if (state === 'musubi-card') openBook(bookReturn);
+    }, 5200);
+  }
+  function cleanupMusubi() {
+    if (!musubi) return;
+    scene.remove(musubi.orbA.group);
+    scene.remove(musubi.orbB.group);
+    scene.remove(musubi.bridge);
+    musubi = null;
+  }
+  function updateMusubi(dt, bs) {
+    const mu = musubi;
+    mu.appear = Math.min(mu.appear + dt / 1.5, 1);
+    if (!mu.done && holding) {
+      mu.holdTime += dt;
+      if (mu.holdTime >= MUSUBI_BREATH) { finishMusubi(); return; }
+    }
+    const prog = Math.min(mu.holdTime / MUSUBI_BREATH, 1);
+    mu.bridge.geometry.setDrawRange(0, Math.floor(mu.N * prog));
+    const breathe = 1 + bs.value * 0.12;
+    for (const o of [mu.orbA, mu.orbB]) {
+      o.halo.scale.setScalar(6 * mu.appear * breathe * (1 + prog * 0.3));
+      o.core.scale.setScalar(2.0 * mu.appear);
+      o.halo.material.opacity = (0.45 + prog * 0.3) * mu.appear;
+      o.core.material.opacity = 0.9 * mu.appear;
+    }
+  }
 
   // ===== 守護神（誕生日で決まる一柱）=====
   let guardianObj = null;  // 瞑想空間に常駐する守護神
@@ -1425,6 +1821,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     hounou.closing = true;
     save.hounouCount++;
     save.noritoTotal += hounou.hits;
+    save.noritoHeld += hounou.hits;   // 手持ちにも加わる（縁むすびで使える）
     persist();
     playSho(4.0);
     if (audioCtx && droneGain && soundOn) {
@@ -1432,6 +1829,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     }
     document.getElementById('hounou-stats').innerHTML =
       '届いた祝詞　' + hounou.hits + ' / ' + hounou.notes.length + '<br>' +
+      '手持ちの祝詞　' + save.noritoHeld + '<br>' +
       save.hounouCount + ' 度目の奉納';
     showOverlay('hounou-end');
     breathWrap.style.opacity = '';
@@ -1594,11 +1992,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     const breathing = (state === 'session' || state === 'summon');
     if (breathing) sessionTime += dt; // 星迎え中も呼吸ガイドは続ける（巡り数は session 中のみ数える）
 
-    const bs = breathing && mode ? breathState(sessionTime) : { label: '吸う', value: 0.3 };
+    const inMusubi = (state === 'musubi' && musubi && !musubi.done);  // むすびの呼吸は4-4固定
+    const bs = inMusubi ? musubiBreathState()
+             : (breathing && mode ? breathState(sessionTime) : { label: '吸う', value: 0.3 });
 
     // 呼吸リング
     breathRing.style.transform = `scale(${0.75 + bs.value * 0.55})`;
-    breathText.textContent = breathing ? bs.label : '';
+    breathText.textContent = (breathing || inMusubi) ? bs.label : '';
     if (state === 'session' && bs.label !== lastPhaseLabel) {
       if (lastPhaseLabel) playPhaseTick();
       // 吐くフェーズに入ったら、ことばを出す
@@ -1714,6 +2114,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       g.halo.material.opacity = 0.5 * appear;
     }
 
+    // むすびの呼吸（ふれたまま、ひと呼吸）
+    if (musubi) updateMusubi(dt, bs);
+
     // 奉納の舞（closing中のフェードも含む）
     if (hounou) updateHounou(dt);
     // 彩りの靄（奉納のあとも空間に残り、ゆっくり明滅する）
@@ -1740,6 +2143,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     meetAll: () => { eightKami.forEach(k => { save.counts[k.id] = save.counts[k.id] || 1; }); save.born = save.born || 8; persist(); refreshDots(); }, // テスト用: 八柱と出会った状態に
     hounouSkip: () => { if (hounou && !hounou.closing) hounou.time = hounou.endAt; }, // テスト用: 舞を終わりへ
     hounouState: () => hounou && { time: hounou.time, hits: hounou.hits, fines: hounou.fines, closing: hounou.closing }, // テスト用: 進行確認
+    norito: (n) => { save.noritoHeld = n; persist(); }, // テスト用: 祝詞の手持ちを設定
+    musubiSkip: () => { if (musubi && !musubi.done) finishMusubi(); }, // テスト用: むすびの呼吸を飛ばす
+    musubiState: () => musubi && { id: musubi.m.id, holdTime: musubi.holdTime, done: musubi.done }, // テスト用: 進行確認
   };
 })();
 </script>
