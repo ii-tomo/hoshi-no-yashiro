@@ -187,12 +187,12 @@
   #start .note { margin-top: 20px; font-size: 10.5px; color: #77779f; letter-spacing: .15em; }
 
   /* 呼吸のこころえ・奉納のこころえ・縁むすび */
-  #howto h2, #hounou-intro h2, #musubi-select h2 {
+  #howto h2, #hounou-intro h2, #musubi-select h2, #jinja-intro h2, #toritsugi h2, #shitsurae h2 {
     font-size: 17px; letter-spacing: .4em; text-indent: .4em;
     font-weight: normal; color: #d8d8f2;
     margin-bottom: 26px;
   }
-  #howto .lines, #hounou-intro .lines {
+  #howto .lines, #hounou-intro .lines, #jinja-intro .lines {
     font-size: clamp(12px, 2.2vw, 14px);
     line-height: 2.5;
     letter-spacing: .12em;
@@ -201,7 +201,7 @@
     max-width: 460px;
     margin-bottom: 14px;
   }
-  #howto .lines strong, #hounou-intro .lines strong { color: #ffe09e; font-weight: normal; }
+  #howto .lines strong, #hounou-intro .lines strong, #jinja-intro .lines strong { color: #ffe09e; font-weight: normal; }
   #howto .mode-desc {
     font-size: 12px; color: #9a9ac8; letter-spacing: .15em;
     margin-bottom: 26px; line-height: 2;
@@ -377,6 +377,48 @@
   #musubi-select .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
   #musubi-select button.dim { opacity: .4; cursor: default; }
   #musubi-select button.dim:hover { background: rgba(20,20,50,.6); box-shadow: none; }
+
+  /* 宇宙神社（Phase 4.0 はじまりの社） */
+  #jinja-hud {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+    z-index: 20; display: none; align-items: center; gap: 24px;
+    font-size: 12px; letter-spacing: .18em; color: #9a9ac8; white-space: nowrap;
+  }
+  #jinja-hud.on { display: flex; }
+  #jinja-hud .j-sachi { color: #ffe9a8; letter-spacing: .2em; }
+  #jinja-hud .j-link { cursor: pointer; border-bottom: 1px solid rgba(150,150,200,.3); padding-bottom: 2px; }
+  #jinja-hud .j-link:hover { color: #d8d8f2; }
+  #jinja-word {
+    position: fixed; left: 50%; top: 24%; transform: translateX(-50%);
+    z-index: 22; font-size: clamp(13px, 2.6vw, 17px); letter-spacing: .22em; text-indent: .22em;
+    color: #e8e0c8; text-shadow: 0 0 18px rgba(232,224,200,.5);
+    opacity: 0; transition: opacity .9s; white-space: nowrap; pointer-events: none;
+  }
+  #toritsugi { justify-content: flex-start; overflow-y: auto; padding-top: 46px; touch-action: pan-y; }
+  #toritsugi .negai {
+    font-size: clamp(13px, 2.8vw, 16px); line-height: 2.2; letter-spacing: .18em;
+    color: #e8e0c8; text-align: center; margin-bottom: 16px;
+  }
+  #toritsugi .t-lead { font-size: 11.5px; color: #9a9ac8; letter-spacing: .18em; margin-bottom: 20px; }
+  #toritsugi .t-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 22px; margin-bottom: 24px; width: min(86vw, 380px); }
+  #toritsugi .t-cell { text-align: center; cursor: pointer; opacity: .82; }
+  #toritsugi .t-cell .t-orb {
+    width: 38px; height: 38px; border-radius: 50%; margin: 0 auto 6px;
+    background: currentColor; box-shadow: 0 0 10px currentColor;
+    transition: transform .3s, box-shadow .3s;
+  }
+  #toritsugi .t-cell.sel { opacity: 1; }
+  #toritsugi .t-cell.sel .t-orb { transform: scale(1.22); box-shadow: 0 0 22px currentColor, 0 0 44px currentColor; }
+  #toritsugi .t-cell .t-name { font-size: 10px; letter-spacing: .1em; color: #c8c8e8; }
+  #toritsugi .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; padding-bottom: 34px; }
+  #toritsugi button.dim { opacity: .4; cursor: default; }
+  #toritsugi button.dim:hover { background: rgba(20,20,50,.6); box-shadow: none; }
+  #shitsurae .s-body { font-size: 13px; line-height: 2.5; letter-spacing: .16em; color: #b8b8dd; text-align: center; margin-bottom: 26px; }
+  #shitsurae .s-body .s-name { color: #e8e0c8; font-size: 16px; letter-spacing: .3em; }
+  #shitsurae .s-body .s-sachi { color: #ffe9a8; }
+  #shitsurae .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  #shitsurae button.dim { opacity: .4; cursor: default; }
+  #shitsurae button.dim:hover { background: rgba(20,20,50,.6); box-shadow: none; }
 </style>
 </head>
 <body>
@@ -399,6 +441,12 @@
   <div id="birth-story"></div>
 </div>
 <div class="ui" id="norito-pop"></div>
+<div id="jinja-word"></div>
+<div id="jinja-hud">
+  <span class="j-sachi" id="j-sachi">幸　0</span>
+  <span class="j-link" id="open-shitsurae">設えをととのえる</span>
+  <span class="j-link" id="jinja-leave">社をあとにする</span>
+</div>
 <button id="sound-btn" title="音のON/OFF">🔇</button>
 
 <!-- はじまり -->
@@ -426,6 +474,7 @@
   </div>
   <div class="note">※4-7-8呼吸は息を止める時間が長めです。苦しいときは無理せず「整える」へ。</div>
   <div class="book-link" id="open-hounou-start" style="display:none;">奉納の舞をささげる</div>
+  <div class="book-link" id="open-jinja-start" style="display:none;">宇宙神社へまいる</div>
   <div class="book-link" id="open-book-start" style="display:none;">御朱印帳をひらく</div>
 </div>
 
@@ -451,6 +500,7 @@
   <div class="btns">
     <button id="btn-again">もうひと巡り<small>つづけて呼吸する</small></button>
     <button id="btn-hounou">奉納の舞<small>結んだ縁に、祝詞をささげる</small></button>
+    <button id="btn-jinja" style="display:none;">宇宙神社<small>参拝者のねがいを、とりつぐ</small></button>
     <button id="btn-finish">今日はここまで</button>
   </div>
 </div>
@@ -526,6 +576,11 @@
   <div class="book-subhead musubi-head">節気の二十四柱</div>
   <div class="book-grid musubi-grid" id="sekki-grid"></div>
   <div class="book-detail" id="sekki-detail"></div>
+  <div class="book-subhead musubi-head">暮らしの十六柱</div>
+  <div class="musubi-norito" id="kurashi-sachi">積もった幸　0</div>
+  <div class="musubi-link" id="open-jinja-book">宇宙神社へまいる</div>
+  <div class="book-grid musubi-grid" id="kurashi-grid"></div>
+  <div class="book-detail" id="kurashi-detail"></div>
   <div class="book-hounou" id="book-hounou"></div>
   <div class="book-note">八柱すべてと縁を結ぶと、龍神様が姿を現す。</div>
   <button id="book-close">とじる</button>
@@ -541,6 +596,46 @@
   <div class="btns">
     <button id="musubi-go">むすびの呼吸へ<small>ふれたまま、ひと呼吸</small></button>
     <button id="musubi-cancel">やめておく</button>
+  </div>
+</div>
+
+<!-- 宇宙神社: とりつぎのこころえ -->
+<div class="overlay hidden" id="jinja-intro">
+  <h2>宇宙神社</h2>
+  <div class="lines">
+    一、シリウスのほとりに、小さな社があります<br>
+    一、参拝者の光が、ときおり社をたずねてきます<br>
+    一、<strong>光にふれると、ねがいがひとこと聞こえます</strong><br>
+    一、出会った神様から一柱えらんで、とりつぎます<br>
+    一、<strong>どの神様をえらんでも、だいじょうぶ</strong><br>
+    一、とりつぐたび、社に「幸（さち）」が積もり<br>
+    　　幸で、社の設え（しつらえ）がととのいます
+  </div>
+  <div class="btns">
+    <button id="jinja-intro-start">社へまいる</button>
+    <button id="jinja-intro-cancel">やめておく</button>
+  </div>
+</div>
+
+<!-- 宇宙神社: ねがいのとりつぎ -->
+<div class="overlay hidden" id="toritsugi">
+  <h2>ねがいのとりつぎ</h2>
+  <div class="negai" id="negai-text"></div>
+  <div class="t-lead">どの神様に、とりついでもらいましょう</div>
+  <div class="t-grid" id="t-grid"></div>
+  <div class="btns">
+    <button id="toritsugi-go">とりつぐ</button>
+    <button id="toritsugi-cancel">また、あとで</button>
+  </div>
+</div>
+
+<!-- 宇宙神社: 設えをととのえる -->
+<div class="overlay hidden" id="shitsurae">
+  <h2>設えをととのえる</h2>
+  <div class="s-body" id="s-body"></div>
+  <div class="btns">
+    <button id="shitsurae-build">ととのえる</button>
+    <button id="shitsurae-cancel">やめておく</button>
   </div>
 </div>
 
@@ -706,6 +801,90 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     return cur;
   }
 
+  // ===== 暮らしの十六柱（Phase 4.0・正本は docs/CONCEPT.md）=====
+  // 宇宙神社で設え（しつらえ）が建つと、その柱が宿る。配列順＝設えの建つ順（参道からはじまる）
+  const KURASHI = [
+    { id: 'kurashi-michi',  name: '道の神', yomi: 'みち',   shitsurae: '参道',       color: 0xc8b898,
+      story: '参道の一歩目から帰り道までを見守る神。迷った日も、来た道はぜんぶ道だったと教えてくれる。' },
+    { id: 'kurashi-to',     name: '戸の神', yomi: 'と',     shitsurae: '門戸',       color: 0xa8b8a0,
+      story: '開けるときと閉めるときのそばにいる神。「いってきます」と「ただいま」は、いちばん短い祝詞。' },
+    { id: 'kurashi-i',      name: '井の神', yomi: 'い',     shitsurae: '御神水の井', color: 0x98c8d8,
+      story: '深いところから水を汲み上げる神。涸れたように見える日も、底のほうはちゃんと湿っている。' },
+    { id: 'kurashi-kashigi', name: '炊の神', yomi: 'かしぎ', shitsurae: '社の竈屋',   color: 0xe0a888,
+      story: '湯気の立つところに宿る神。なにもできなかった日も、なにか食べたなら上出来とする。' },
+    { id: 'kurashi-utsuwa', name: '器の神', yomi: 'うつわ', shitsurae: '供えの器',   color: 0xd4c0a0,
+      story: '盛られたものを受けとめる神。小さい器の日があってもいい、割れなければ充分。' },
+    { id: 'kurashi-ito',    name: '糸の神', yomi: 'いと',   shitsurae: '結びの紐',   color: 0xe8b8c8,
+      story: 'ほつれを繕い、結び目をつくる神。切れた縁も、結びなおせば前より強い。' },
+    { id: 'kurashi-koto',   name: '言の神', yomi: 'こと',   shitsurae: '絵馬掛け',   color: 0xb8cce8,
+      story: '声に出した言葉に宿る神。「だいじょうぶ」と言えば、半分くらい本当になる。' },
+    { id: 'kurashi-fude',   name: '筆の神', yomi: 'ふで',   shitsurae: '御朱印の筆', color: 0xb0a8d0,
+      story: '書き記すものすべての神。忘れていいことと、忘れたくないことを、そっと分けてくれる。' },
+    { id: 'kurashi-ichi',   name: '市の神', yomi: 'いち',   shitsurae: '市の屋台',   color: 0xe8b090,
+      story: 'ひとの行き交うにぎわいの神。売り買いの奥にある「ありがとう」だけを集めている。' },
+    { id: 'kurashi-hashi',  name: '橋の神', yomi: 'はし',   shitsurae: '渡りの橋',   color: 0x98bcc8,
+      story: 'こちら側とむこう側をつなぐ神。渡るかどうかは、あなたが決めていい。' },
+    { id: 'kurashi-niwa',   name: '庭の神', yomi: 'にわ',   shitsurae: '苔の庭',     color: 0xa0c8a0,
+      story: '手入れされた小さな緑に宿る神。伸びすぎた枝を切るのも、やさしさのひとつ。' },
+    { id: 'kurashi-ne',     name: '音の神', yomi: 'ね',     shitsurae: '神楽鈴',     color: 0xc4b4e0,
+      story: '鈴も太鼓も、暮らしの物音もすべての神。となりの部屋の物音が、さびしさをひとつ消す。' },
+    { id: 'kurashi-ka',     name: '香の神', yomi: 'か',     shitsurae: '香炉',       color: 0xd8c4a8,
+      story: '立ちのぼる香りの神。ふとした匂いが、忘れていた日を連れてくる。' },
+    { id: 'kurashi-tane',   name: '種の神', yomi: 'たね',   shitsurae: '種畑',       color: 0xb8d098,
+      story: 'まかれた一粒に宿る神。芽が出るまでの暗い土の中も、ちゃんと育ちのうち。' },
+    { id: 'kurashi-nemuri', name: '眠の神', yomi: 'ねむり', shitsurae: '眠りの褥',   color: 0x98a4d0,
+      story: 'まぶたの上にすわる小さな神。眠れない夜は、目を閉じているだけで及第点をくれる。' },
+    { id: 'kurashi-hogi',   name: '祝の神', yomi: 'ほぎ',   shitsurae: '祝いの幟',   color: 0xf0bca8,
+      story: 'ことほぎの神。誕生日でなくても、今日を小さく祝っていいと言ってくれる。' },
+  ];
+  // 設えの建立コスト: 幸3からゆるやかに増える（3,3,3,4,4,4,…8）
+  function shitsuraeCost(index) { return 3 + Math.floor(index / 3); }
+
+  // 参拝者のねがい（小さくて、やさしくて、誰のものでもありうる願い）
+  const NEGAI = [
+    'あしたの朝、ちゃんと起きられますように',
+    'とおくの友だちが、元気でいますように',
+    '言えなかったごめんが、いつか言えますように',
+    'こんやは、ゆっくり眠れますように',
+    'かぞくが、けんかせずに笑っていますように',
+    'なくしたものが、ひょっこり出てきますように',
+    'あの人の検査が、なんでもありませんように',
+    '苦手なあの時間を、うまくやり過ごせますように',
+    '雨の日も、きらいにならずにいられますように',
+    'ちいさな約束を、ちゃんと守れますように',
+    'だれかの役に、そっと立てていますように',
+    '好きなものを、好きと言えますように',
+    '遠回りした分だけ、いい景色が見られますように',
+    '今日の失敗が、いつか笑い話になりますように',
+    'となりの席の人と、うまくやれますように',
+    '育てている花が、今年も咲きますように',
+    'あさの電車に、間に合いますように',
+    'おいしいごはんが、今日も食べられますように',
+    '母の腰の痛みが、すこしやわらぎますように',
+    'はじめての場所で、迷いませんように',
+    '手紙の返事が、来ますように',
+    '締め切りに、まにあいますように',
+    'こわい夢を、見ませんように',
+    '言いすぎたことばが、とげになりませんように',
+    'あしたの面接で、ちゃんと声が出ますように',
+    'ひとりの夜が、さびしすぎませんように',
+    '帰り道の月が、きれいでありますように',
+    'がんばりすぎずに、がんばれますように',
+    '大切な人に、大切と伝えられますように',
+    '今日をぶじに終えられたことに、ありがとう',
+  ];
+  // とりつぎのあとに添えられる、ひとこと（どの神様でも・責めない）
+  const TORITSUGI_WORDS = [
+    'だいじょうぶ、ちゃんと届いています',
+    'ゆっくりでいい、と言っています',
+    'その願いは、もう歩きはじめています',
+    '見守っている、と言っています',
+    '今夜は安心して眠るように、と',
+    'よく来たね、と言っています',
+    '風向きは、わるくないようです',
+    'その日まで、そばにいると言っています',
+  ];
+
   // ===== 守護神（誕生日で決まる一柱・正本は docs/CONCEPT.md / guardian-source.md）=====
   const GUARDIANS = {
     1:  { name: '須佐之男命', yomi: 'すさのおのみこと', color: 0xff6b5a,
@@ -804,6 +983,12 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   save.seenHounouIntro = save.seenHounouIntro || false;  // 奉納のこころえを見たか
   // 手持ちの祝詞（奉納で＋、縁むすびで−8）。導入前から奉納していた人には累計ぶんを持たせる
   save.noritoHeld = (save.noritoHeld == null) ? save.noritoTotal : save.noritoHeld;
+  // 宇宙神社（Phase 4.0）: 幸は手持ちと累計の二本立て（祝詞とおなじ）
+  save.sachi = save.sachi || 0;                    // 手持ちの幸（とりつぎで＋、設えで−）
+  save.sachiTotal = save.sachiTotal || 0;          // 積もった幸の累計（記録用・減らさない）
+  save.shitsurae = save.shitsurae || [];           // 建てた設えのid配列（KURASHI配列順）
+  save.toritsugiCount = save.toritsugiCount || 0;  // とりついだ願いの累計
+  save.seenJinjaIntro = save.seenJinjaIntro || false;  // とりつぎのこころえを見たか
   function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch {} }
   function allEightMet() { return KAMI.filter(k => !k.hidden).every(k => (save.counts[k.id] || 0) > 0); }
   function localDate(d) { return (d || new Date()).toLocaleDateString('sv-SE'); }
@@ -811,6 +996,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   // ===== 状態遷移 =====
   // title → howto → session（3呼吸）→ summon（星迎え）→ card → after → finish → idle
   // 縁むすび: goshuincho → musubi-select（二柱えらび）→ musubi（むすびの呼吸）→ musubi-card → goshuincho
+  // 宇宙神社: jinja-intro（初回のみ）→ jinja（社）⇄ toritsugi（ねがい）／shitsurae（設え）→ 戻り先へ
   let state = 'title';
   let sessionTime = 0;   // セッション内の呼吸用時計（お参りごとにリセット）
   let breathsDone = 0;
@@ -1096,7 +1282,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
 
   window.addEventListener('pointerdown', (e) => {
-    if (e.target.closest && e.target.closest('button, .overlay, label')) return;
+    if (e.target.closest && e.target.closest('button, .overlay, label, #jinja-hud')) return;
     if (state === 'summon') {
       holding = true;
       updateHoldTarget(e.clientX, e.clientY);
@@ -1107,6 +1293,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       if (hounou && !hounou.closing) judgeTouch();  // 画面のどこにふれてもよい
     } else if (state === 'musubi') {
       if (musubi && !musubi.done) { holding = true; setHint(''); }  // ふれたまま、ひと呼吸
+    } else if (state === 'jinja') {
+      if (sanpaisha && sanpaisha.state === 'waiting') openToritsugi();  // 参拝者の光にふれる（画面のどこでも）
     } else if (state === 'idle') {
       startSession(); // 空をながめた後、画面にふれるともうひと巡り
     }
@@ -1291,12 +1479,24 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     'hounou-intro': document.getElementById('hounou-intro'),
     'hounou-end': document.getElementById('hounou-end'),
     'musubi-select': document.getElementById('musubi-select'),
+    'jinja-intro': document.getElementById('jinja-intro'),
+    toritsugi: document.getElementById('toritsugi'),
+    shitsurae: document.getElementById('shitsurae'),
   };
   const noritoPop = document.getElementById('norito-pop');
 
   counterEl.textContent = 'STARS BORN ' + String(save.born).padStart(5, '0');
 
   function showOverlay(name) {
+    // 縁の進みで現れる入り口は、開くたびに最新の条件で出し分ける
+    if (name === 'start') {
+      document.getElementById('open-hounou-start').style.display =
+        (save.born > 0 && collectedCount() >= 1) ? '' : 'none';
+      document.getElementById('open-jinja-start').style.display = canJinja() ? '' : 'none';
+    }
+    if (name === 'after') {
+      document.getElementById('btn-jinja').style.display = canJinja() ? '' : 'none';
+    }
     for (const [k, el] of Object.entries(overlays)) {
       el.classList.toggle('hidden', k !== name);
     }
@@ -1349,6 +1549,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   document.getElementById('open-book-start').style.display = returning ? '' : 'none';
   document.getElementById('open-hounou-start').style.display =
     (returning && collectedCount() >= 1) ? '' : 'none';  // 縁を結んでから奉納できる
+  document.getElementById('open-jinja-start').style.display =
+    (returning && canJinja()) ? '' : 'none';  // むすびの神と縁ができると、社がひらく
   if (returning) populateWelcome();
 
   // ===== 御朱印帳（図鑑）=====
@@ -1399,6 +1601,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     renderGuardian();
     renderMusubiBook();
     renderSekkiBook();
+    renderKurashiBook();
     bookDetail.innerHTML = 'ひとつ選ぶと、その神様のことが読めます。';
     document.getElementById('book-hounou').textContent = save.hounouCount > 0
       ? '奉納の舞 ' + save.hounouCount + ' 度　届いた祝詞 ' + save.noritoTotal
@@ -1561,6 +1764,48 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     }
   }
 
+  // 御朱印帳「暮らしの章」（16枠。設えが建つと宿る）
+  function renderKurashiBook() {
+    document.getElementById('kurashi-sachi').textContent =
+      '積もった幸　' + save.sachiTotal + '（手持ち ' + save.sachi + '）';
+    const jinjaLink = document.getElementById('open-jinja-book');
+    jinjaLink.classList.toggle('dim', !canJinja());
+    jinjaLink.textContent = canJinja() ? '宇宙神社へまいる' : 'むすびの神と縁ができると、社がひらきます';
+    const grid = document.getElementById('kurashi-grid');
+    grid.innerHTML = '';
+    for (const c of KURASHI) {
+      const met = (save.counts[c.id] || 0) > 0;
+      const hex = '#' + c.color.toString(16).padStart(6, '0');
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const orb = document.createElement('div');
+      if (met) { orb.className = 'orb met'; orb.style.color = hex; }
+      else { orb.className = 'orb unmet'; orb.textContent = '？'; }
+      const name = document.createElement('div');
+      name.className = 'cell-name' + (met ? '' : ' dim');
+      name.textContent = met ? c.name : '？？？';
+      const shi = document.createElement('div');
+      shi.className = 'cell-pair';
+      shi.textContent = c.shitsurae;
+      cell.appendChild(orb); cell.appendChild(name); cell.appendChild(shi);
+      cell.addEventListener('click', () => showKurashiDetail(c, met));
+      grid.appendChild(cell);
+    }
+    document.getElementById('kurashi-detail').innerHTML = '宇宙神社の設えがととのうと、神様が宿ります。';
+  }
+  function showKurashiDetail(c, met) {
+    const detail = document.getElementById('kurashi-detail');
+    if (met) {
+      const first = save.firstMet[c.id] || '';
+      detail.innerHTML = '<span class="d-name">' + c.name + '（' + c.yomi + '）</span>' + c.story +
+        '<br><span style="color:#8f8fc0;font-size:11px">' + c.shitsurae + 'に宿る' +
+        (first ? '　宿った日は ' + first : '') + '</span>';
+    } else {
+      detail.innerHTML = '<span class="d-name">？？？</span>' +
+        '「' + c.shitsurae + '」がととのうと、宿るという神様。';
+    }
+  }
+
   musubiLink.addEventListener('click', () => {
     if (musubiLink.classList.contains('dim')) return;
     musubiSel = [];
@@ -1715,6 +1960,316 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       o.core.scale.setScalar(2.0 * mu.appear);
       o.halo.material.opacity = (0.45 + prog * 0.3) * mu.appear;
       o.core.material.opacity = 0.9 * mu.appear;
+    }
+  }
+
+  // ===== 宇宙神社（Phase 4.0 はじまりの社・正本は docs/CONCEPT.md）=====
+  // シリウスのほとりの小さな社。参拝者のねがいを、育てた神様へとりつぐ。
+  // 経営シムというより「静かなとりつぎ」— 数字で競わせない・急かさない・責めない
+  const jinjaHud = document.getElementById('jinja-hud');
+  const jinjaWord = document.getElementById('jinja-word');
+  let jinja = null;         // 神社モードの3D一式（入るたび組み、出るとき片づける）
+  let jinjaReturn = 'start';
+  let sanpaisha = null;     // いまの参拝者
+  let sanpaiTimer = 0;      // つぎの参拝者が訪れるまでの秒
+  let toritsugiSel = null;  // とりつぎ先に選んだ神様
+  let jinjaWordTimer = null;
+
+  function canJinja() { return save.born > 0 && MUSUBI.some(m => (save.counts[m.id] || 0) > 0); }
+
+  function metKamiList() {
+    // とりつぎ先: 出会ったすべての神様（守護神・自然・むすび・節気・暮らし）
+    const list = [];
+    if (save.guardian && GUARDIANS[save.guardian]) {
+      const g = GUARDIANS[save.guardian];
+      list.push({ id: 'guardian', name: g.name, color: g.color, story: g.trait });
+    }
+    for (const arr of [KAMI, MUSUBI, SEKKI, KURASHI]) {
+      for (const k of arr) if ((save.counts[k.id] || 0) > 0) list.push(k);
+    }
+    return list;
+  }
+
+  function makeLineObj(pairs, color, opacity) {
+    const pts = [];
+    for (const [a, b] of pairs) { pts.push(new THREE.Vector3(...a), new THREE.Vector3(...b)); }
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    const mat = new THREE.LineBasicMaterial({
+      color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    return new THREE.LineSegments(geo, mat);
+  }
+
+  function makeJinja() {
+    const group = new THREE.Group();
+    group.position.set(0, -7, -2);
+    // シリウス（おおいぬ座・夜空でいちばん明るい恒星。青白い光）
+    const sirius = new THREE.Group();
+    sirius.position.set(0, 20, -16);
+    const sHalo = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: softGlow, color: 0xa8c8ff, transparent: true, opacity: 0.55,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    sHalo.scale.setScalar(18);
+    sirius.add(sHalo);
+    const sCore = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: softGlow, color: 0xffffff, transparent: true, opacity: 0.95,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    sCore.scale.setScalar(3.2);
+    sirius.add(sCore);
+    group.add(sirius);
+    // 鳥居（光の線画）
+    const torii = makeLineObj([
+      [[-2.6, 0, 0], [-2.6, 4.2, 0]], [[2.6, 0, 0], [2.6, 4.2, 0]],
+      [[-3.6, 4.2, 0], [3.6, 4.2, 0]], [[-3.9, 4.7, 0], [3.9, 4.7, 0]],
+      [[-3.1, 3.3, 0], [3.1, 3.3, 0]], [[0, 3.3, 0], [0, 4.2, 0]],
+    ], 0xc8c0e8, 0.6);
+    group.add(torii);
+    // 社（鳥居の奥の小さなお社）
+    const yashiro = makeLineObj([
+      [[-1.6, 0, 0], [1.6, 0, 0]],
+      [[-1.4, 0, 0], [-1.4, 1.5, 0]], [[1.4, 0, 0], [1.4, 1.5, 0]],
+      [[-1.9, 1.5, 0], [1.9, 1.5, 0]],
+      [[-1.9, 1.5, 0], [0, 2.6, 0]], [[1.9, 1.5, 0], [0, 2.6, 0]],
+      [[0, 2.6, 0], [-0.5, 3.3, 0]], [[0, 2.6, 0], [0.5, 3.3, 0]],
+    ], 0xd8c8b8, 0.5);
+    yashiro.position.set(0, 0.2, -5);
+    group.add(yashiro);
+    // 建った設えの灯り（参道の両脇に、柱の色で）
+    const lights = [];
+    save.shitsurae.forEach((id, i) => {
+      const c = KURASHI.find(k => k.id === id);
+      if (c) lights.push(addShitsuraeLightTo(group, c, i));
+    });
+    scene.add(group);
+    jinja = { group, sirius: sHalo, lights };
+  }
+  function addShitsuraeLightTo(group, c, i) {
+    const lamp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: softGlow, color: c.color, transparent: true, opacity: 0.5,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    lamp.position.set((i % 2 === 0 ? -3.4 : 3.4), 0.7, 1 + Math.floor(i / 2) * 1.3);
+    lamp.scale.setScalar(1.7);
+    group.add(lamp);
+    return { sprite: lamp, phase: Math.random() * Math.PI * 2 };
+  }
+  function cleanupJinjaScene() {
+    if (jinja) { scene.remove(jinja.group); jinja = null; }
+    if (sanpaisha) { scene.remove(sanpaisha.group); sanpaisha = null; }
+    jinjaHud.classList.remove('on');
+    jinjaWord.style.opacity = '0';
+    clearTimeout(jinjaWordTimer);
+  }
+
+  // 参拝者（小さな光の玉。待たせても消えない・急かさない）
+  function spawnSanpaisha() {
+    const group = new THREE.Group();
+    const side = Math.random() < 0.5 ? -1 : 1;
+    group.position.set(side * 24, -2 + Math.random() * 5, 3);
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: softGlow, color: 0xf0ead8, transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    halo.scale.setScalar(3.4);
+    group.add(halo);
+    const core = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: softGlow, color: 0xffffff, transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    core.scale.setScalar(1.1);
+    group.add(core);
+    scene.add(group);
+    sanpaisha = {
+      group, halo, core, state: 'coming', t: 0,
+      negai: NEGAI[Math.floor(Math.random() * NEGAI.length)],
+      target: new THREE.Vector3(0, -4.2, 5),  // 社の前（鳥居のすこし手前）
+      bless: null,
+    };
+  }
+  function showJinjaWord(text, holdSec, andThen) {
+    jinjaWord.textContent = text;
+    jinjaWord.style.opacity = '1';
+    clearTimeout(jinjaWordTimer);
+    jinjaWordTimer = setTimeout(() => {
+      jinjaWord.style.opacity = '0';
+      if (andThen) jinjaWordTimer = setTimeout(andThen, 1000);
+    }, holdSec * 1000);
+  }
+
+  // 神社モードの出入り
+  function openJinja(from) {
+    jinjaReturn = from;
+    ensureAudio();
+    if (!soundOn) setSound(true);
+    if (save.seenJinjaIntro) startJinja();
+    else { state = 'jinja-intro'; showOverlay('jinja-intro'); }
+  }
+  function startJinja() {
+    state = 'jinja';
+    showOverlay(null);
+    if (!jinja) makeJinja();
+    updateJinjaHud();
+    jinjaHud.classList.add('on');
+    if (!sanpaisha) sanpaiTimer = 2.5;  // 入ってすこしで、最初の参拝者
+    playSho(3.0);
+    setHint('シリウスのほとり、はじまりの社');
+    setTimeout(() => { if (state === 'jinja' && (!sanpaisha || sanpaisha.state !== 'waiting')) setHint(''); }, 4000);
+  }
+  function leaveJinja() {
+    cleanupJinjaScene();
+    setHint('');
+    if (jinjaReturn === 'after') { state = 'after'; showOverlay('after'); }
+    else if (jinjaReturn === 'book') { openBook(bookReturn); }
+    else { populateWelcome(); state = 'title'; showOverlay('start'); }
+  }
+  function updateJinjaHud() {
+    document.getElementById('j-sachi').textContent = '幸　' + save.sachi;
+    const link = document.getElementById('open-shitsurae');
+    const next = KURASHI.find(c => !save.shitsurae.includes(c.id));
+    link.textContent = next ? '設えをととのえる' : '設えは、すべてととのいました';
+  }
+
+  // ねがいのとりつぎ
+  function openToritsugi() {
+    state = 'toritsugi';
+    toritsugiSel = null;
+    document.getElementById('negai-text').textContent = '「' + sanpaisha.negai + '」';
+    renderToritsugiGrid();
+    showOverlay('toritsugi');
+    setHint('');
+  }
+  function renderToritsugiGrid() {
+    const grid = document.getElementById('t-grid');
+    grid.innerHTML = '';
+    for (const k of metKamiList()) {
+      const cell = document.createElement('div');
+      cell.className = 't-cell' + (toritsugiSel && toritsugiSel.id === k.id ? ' sel' : '');
+      const orb = document.createElement('div');
+      orb.className = 't-orb';
+      orb.style.color = '#' + k.color.toString(16).padStart(6, '0');
+      const name = document.createElement('div');
+      name.className = 't-name';
+      name.textContent = k.name;
+      cell.appendChild(orb); cell.appendChild(name);
+      cell.addEventListener('click', () => { toritsugiSel = k; renderToritsugiGrid(); });
+      grid.appendChild(cell);
+    }
+    document.getElementById('toritsugi-go').classList.toggle('dim', !toritsugiSel);
+  }
+  function doToritsugi() {
+    if (!toritsugiSel || !sanpaisha) return;
+    const k = toritsugiSel;
+    save.sachi++;
+    save.sachiTotal++;
+    save.toritsugiCount++;
+    persist();
+    state = 'jinja';
+    showOverlay(null);
+    sanpaisha.state = 'blessed';
+    sanpaisha.t = 0;
+    sanpaisha.bless = k.color;
+    sanpaisha.halo.material.color.setHex(k.color);
+    playSuzu(false);
+    updateJinjaHud();
+    showJinjaWord(k.name + 'が、ねがいをうけとりました', 2.6, () => {
+      if (state === 'jinja' || state === 'shitsurae' || state === 'toritsugi') {
+        showJinjaWord(TORITSUGI_WORDS[Math.floor(Math.random() * TORITSUGI_WORDS.length)], 3.0);
+      }
+    });
+  }
+
+  // 設えをととのえる（建つと、暮らしの柱が宿る）
+  function openShitsurae() {
+    state = 'shitsurae';
+    renderShitsurae();
+    showOverlay('shitsurae');
+  }
+  function renderShitsurae() {
+    const body = document.getElementById('s-body');
+    const buildBtn = document.getElementById('shitsurae-build');
+    const next = KURASHI.find(c => !save.shitsurae.includes(c.id));
+    if (!next) {
+      body.innerHTML = '設えは、すべてととのいました。<br>十六柱が、この社に宿っています。';
+      buildBtn.style.display = 'none';
+      return;
+    }
+    buildBtn.style.display = '';
+    const cost = shitsuraeCost(save.shitsurae.length);
+    body.innerHTML = 'つぎの設えは<br><span class="s-name">' + next.shitsurae + '</span><br>' +
+      'ととのえると、神様がひと柱、宿るといいます<br>' +
+      '<span class="s-sachi">かかる幸　' + cost + '　／　手持ちの幸　' + save.sachi + '</span>';
+    buildBtn.classList.toggle('dim', save.sachi < cost);
+  }
+  function buildShitsurae() {
+    const next = KURASHI.find(c => !save.shitsurae.includes(c.id));
+    if (!next) return;
+    const cost = shitsuraeCost(save.shitsurae.length);
+    if (save.sachi < cost) return;
+    save.sachi -= cost;
+    save.shitsurae.push(next.id);
+    save.born++;
+    save.counts[next.id] = (save.counts[next.id] || 0) + 1;
+    if (!save.firstMet[next.id]) save.firstMet[next.id] = localDate();
+    persist();
+    counterEl.textContent = 'STARS BORN ' + String(save.born).padStart(5, '0');
+    if (jinja) jinja.lights.push(addShitsuraeLightTo(jinja.group, next, save.shitsurae.length - 1));
+    state = 'jinja';
+    showOverlay(null);
+    updateJinjaHud();
+    showBirthCard({ name: '暮らしの縁', color: '#e8d8b0' }, next, false);
+    playBirthChime(false);
+  }
+
+  // 神社のたたずまい（メインループから毎フレーム）
+  function updateJinja(dt, bs) {
+    if (!jinja) return;
+    jinja.sirius.scale.setScalar(18 * (1 + Math.sin(clockTime * 0.5) * 0.05 + bs.value * 0.05));
+    for (const l of jinja.lights) {
+      l.sprite.material.opacity = 0.42 + Math.sin(clockTime * 0.7 + l.phase) * 0.14;
+    }
+    const inJinja = (state === 'jinja' || state === 'toritsugi' || state === 'shitsurae');
+    if (!inJinja) return;
+    // つぎの参拝者
+    if (!sanpaisha) {
+      sanpaiTimer -= dt;
+      if (sanpaiTimer <= 0) spawnSanpaisha();
+      return;
+    }
+    const s = sanpaisha;
+    s.t += dt;
+    const appear = Math.min(s.t / 2, 1);
+    if (s.state === 'coming') {
+      s.group.position.lerp(s.target, Math.min(dt * 0.8, 1));
+      s.halo.material.opacity = 0.5 * appear;
+      s.core.material.opacity = 0.85 * appear;
+      if (s.group.position.distanceTo(s.target) < 0.5) {
+        s.state = 'waiting';
+        if (state === 'jinja') setHint('光にふれると、ねがいが聞こえます');
+      }
+    } else if (s.state === 'waiting') {
+      s.group.position.y = s.target.y + Math.sin(clockTime * 1.3) * 0.25;
+      const breathe = 1 + Math.sin(clockTime * 1.6) * 0.08;
+      s.halo.scale.setScalar(3.4 * breathe);
+      s.halo.material.opacity = 0.55;
+      s.core.material.opacity = 0.9;
+    } else if (s.state === 'blessed') {
+      // とりついだ神様の色に満ちて、星空へ帰ってゆく
+      const p = Math.min(s.t / 1.6, 1);
+      s.halo.scale.setScalar(3.4 * (1 + p * 0.9));
+      s.halo.material.opacity = 0.55 + p * 0.25;
+      if (p >= 1) { s.state = 'rising'; s.t = 0; }
+    } else if (s.state === 'rising') {
+      s.group.position.y += dt * 1.9;
+      const fade = Math.max(1 - s.t / 6, 0);
+      s.halo.material.opacity = 0.8 * fade;
+      s.core.material.opacity = 0.9 * fade;
+      if (s.group.position.y > 15 || fade <= 0) {
+        scene.remove(s.group);
+        sanpaisha = null;
+        sanpaiTimer = 9 + Math.random() * 9;  // 急かさない間隔で、つぎの参拝者
+      }
     }
   }
 
@@ -2090,6 +2645,39 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     setHint('画面にふれると、もうひと巡りはじまります');
   });
 
+  // 宇宙神社への入り口と出口（Phase 4.0）
+  document.getElementById('open-jinja-start').addEventListener('click', () => openJinja('start'));
+  document.getElementById('btn-jinja').addEventListener('click', () => openJinja('after'));
+  document.getElementById('open-jinja-book').addEventListener('click', function () {
+    if (this.classList.contains('dim')) return;
+    openJinja('book');
+  });
+  document.getElementById('jinja-intro-start').addEventListener('click', () => {
+    save.seenJinjaIntro = true;
+    persist();
+    startJinja();
+  });
+  document.getElementById('jinja-intro-cancel').addEventListener('click', leaveJinja);
+  document.getElementById('jinja-leave').addEventListener('click', leaveJinja);
+  document.getElementById('open-shitsurae').addEventListener('click', openShitsurae);
+  document.getElementById('shitsurae-cancel').addEventListener('click', () => {
+    state = 'jinja';
+    showOverlay(null);
+  });
+  document.getElementById('shitsurae-build').addEventListener('click', function () {
+    if (this.classList.contains('dim')) return;
+    buildShitsurae();
+  });
+  document.getElementById('toritsugi-cancel').addEventListener('click', () => {
+    state = 'jinja';   // 参拝者は、待っていてくれる
+    showOverlay(null);
+    setHint('光にふれると、ねがいが聞こえます');
+  });
+  document.getElementById('toritsugi-go').addEventListener('click', function () {
+    if (this.classList.contains('dim')) return;
+    doToritsugi();
+  });
+
   // ===== メインループ =====
   let clockTime = 0;        // 全体時計（神様の漂い用・止めない）
   let lastT = performance.now() / 1000;
@@ -2233,6 +2821,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
     // 奉納の舞（closing中のフェードも含む）
     if (hounou) updateHounou(dt);
+    // 宇宙神社（参拝者の訪れと、設えの灯り）
+    updateJinja(dt, bs);
     // 彩りの靄（奉納のあとも空間に残り、ゆっくり明滅する）
     for (const m of colorMists) {
       m.sprite.material.opacity = 0.07 + Math.sin(clockTime * 0.4 + m.phase) * 0.035;
@@ -2262,6 +2852,11 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     pick: (i) => pickKami(RARITY[i || 0]).id, // テスト用: おみくじ抽選だけ確認
     musubiSkip: () => { if (musubi && !musubi.done) finishMusubi(); }, // テスト用: むすびの呼吸を飛ばす
     musubiState: () => musubi && { id: musubi.m.id, holdTime: musubi.holdTime, done: musubi.done }, // テスト用: 進行確認
+    jinjaState: () => ({ state, sachi: save.sachi, sachiTotal: save.sachiTotal, shitsurae: save.shitsurae.length, sanpaisha: sanpaisha && sanpaisha.state, negai: sanpaisha && sanpaisha.negai, timer: sanpaiTimer, pos: sanpaisha ? sanpaisha.group.position.toArray().map(v => Math.round(v * 100) / 100) : null, t: sanpaisha ? Math.round(sanpaisha.t * 10) / 10 : null }), // テスト用: 神社の進行確認
+    sanpaiNow: () => { if (!sanpaisha) sanpaiTimer = 0.01; }, // テスト用: 参拝者をすぐ呼ぶ
+    sanpaiWait: () => { if (sanpaisha) { sanpaisha.state = 'waiting'; sanpaisha.group.position.copy(sanpaisha.target); } }, // テスト用: 参拝者を待機状態へ
+    sachi: (n) => { save.sachi = n; persist(); if (jinja) updateJinjaHud(); }, // テスト用: 幸の手持ちを設定
+    meetMusubi: () => { save.counts['musubi-hi-kaze'] = save.counts['musubi-hi-kaze'] || 1; persist(); }, // テスト用: むすびの神と1柱縁を結んだ状態に
   };
 })();
 </script>
