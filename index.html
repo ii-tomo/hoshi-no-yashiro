@@ -4,6 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>八百万の神々 — 星の社</title>
+<meta name="description" content="呼吸で星を生む3D瞑想。八十八柱の神々と縁をむすぶ、小さな宇宙の社。">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#060618">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="星の社">
+<meta property="og:title" content="八百万の神々 — 星の社">
+<meta property="og:description" content="呼吸で星を生む3D瞑想。八十八柱の神々と縁をむすぶ、小さな宇宙の社。">
+<meta property="og:image" content="https://hoshi-no-yashiro.pages.dev/ogp.png">
+<meta property="og:url" content="https://hoshi-no-yashiro.pages.dev/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
@@ -352,6 +366,11 @@
   #goshuincho .musubi-grid .cell-name { font-size: 10px; }
   #goshuincho .musubi-grid .cell-pair { font-size: 9px; color: #77779f; letter-spacing: .12em; margin-top: 2px; }
   #goshuincho .cell-pair.now { color: #ffe9a8; }
+  #goshuincho .share-link {
+    font-size: 11px; color: #9a9ac8; letter-spacing: .18em; margin-top: 10px;
+    cursor: pointer; text-decoration: underline dotted rgba(150,150,200,.5); text-underline-offset: 4px;
+  }
+  #goshuincho .share-link:hover { color: #d8d8f2; }
 
   /* 縁むすび: 二柱えらび */
   #musubi-select .m-lead { font-size: clamp(11.5px, 2.2vw, 13px); line-height: 2.2; letter-spacing: .12em; color: #b8b8dd; text-align: center; margin-bottom: 12px; }
@@ -582,6 +601,7 @@
   <div class="book-grid musubi-grid" id="kurashi-grid"></div>
   <div class="book-detail" id="kurashi-detail"></div>
   <div class="book-hounou" id="book-hounou"></div>
+  <div class="musubi-link" id="share-book">御朱印帳を、わけあう</div>
   <div class="book-note">八柱すべてと縁を結ぶと、龍神様が姿を現す。</div>
   <button id="book-close">とじる</button>
 </div>
@@ -1586,7 +1606,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       const first = save.firstMet[k.id] || '';
       bookDetail.innerHTML = '<span class="d-name">' + k.name + '</span>' + k.story +
         '<br><span style="color:#8f8fc0;font-size:11px">これまで ' + cnt + ' 度の縁' +
-        (first ? '　はじまりは ' + first : '') + '</span>';
+        (first ? '　はじまりは ' + first : '') + '</span>' + shareLinkHtml('kami', k.id);
     } else if (k.hidden) {
       bookDetail.innerHTML = '<span class="d-name" style="color:#7fffd4">龍神様</span>' +
         '八柱すべてと縁を結んだ者の前にだけ、その姿を現すという。';
@@ -1669,7 +1689,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       const first = save.firstMet[m.id] || '';
       musubiDetail.innerHTML = '<span class="d-name">' + m.name + '（' + m.yomi + '）</span>' + m.story +
         '<br><span style="color:#8f8fc0;font-size:11px">' + parents + 'の縁　これまで ' + cnt + ' 度' +
-        (first ? '　はじまりは ' + first : '') + '</span>';
+        (first ? '　はじまりは ' + first : '') + '</span>' + shareLinkHtml('musubi', m.id);
     } else {
       musubiDetail.innerHTML = '<span class="d-name">？？？</span>' +
         parents + 'のあいだに、まだ見ぬ縁がある。';
@@ -1755,7 +1775,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       const cnt = save.counts[s.id] || 0;
       detail.innerHTML = '<span class="d-name">' + s.name + '（' + s.yomi + '）</span>' + s.story +
         '<br><span style="color:#8f8fc0;font-size:11px">これまで ' + cnt + ' 度の縁' +
-        (save.firstMet[s.id] ? '　はじまりは ' + save.firstMet[s.id] : '') + '</span>';
+        (save.firstMet[s.id] ? '　はじまりは ' + save.firstMet[s.id] : '') + '</span>' + shareLinkHtml('sekki', s.id);
     } else {
       const [mo, da] = s.start.split('-').map(Number);
       detail.innerHTML = '<span class="d-name">' + s.name + '</span>' +
@@ -1799,12 +1819,168 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       const first = save.firstMet[c.id] || '';
       detail.innerHTML = '<span class="d-name">' + c.name + '（' + c.yomi + '）</span>' + c.story +
         '<br><span style="color:#8f8fc0;font-size:11px">' + c.shitsurae + 'に宿る' +
-        (first ? '　宿った日は ' + first : '') + '</span>';
+        (first ? '　宿った日は ' + first : '') + '</span>' + shareLinkHtml('kurashi', c.id);
     } else {
       detail.innerHTML = '<span class="d-name">？？？</span>' +
         '「' + c.shitsurae + '」がととのうと、宿るという神様。';
     }
   }
+
+  // ===== わけあう（シェア・遊びを広げる入口。正本は Project の 販売・拡散戦略.md）=====
+  const SHARE_URL = 'https://hoshi-no-yashiro.pages.dev';
+  const SHARE_SERIF = '"Hiragino Mincho ProN", "Yu Mincho", YuMincho, "MS PMincho", serif';
+
+  function rgbaOf(colorNum, a) {
+    return 'rgba(' + ((colorNum >> 16) & 255) + ',' + ((colorNum >> 8) & 255) + ',' + (colorNum & 255) + ',' + a + ')';
+  }
+  function shareBg(ctx, W, H, seed) {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#0d0d2e');
+    g.addColorStop(1, '#060618');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    let s = seed;
+    const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+    ctx.fillStyle = '#e6e6fa';
+    for (let i = 0; i < 170; i++) {
+      ctx.globalAlpha = 0.2 + rnd() * 0.55;
+      const r = 0.6 + rnd() * 1.8;
+      ctx.beginPath();
+      ctx.arc(rnd() * W, rnd() * H, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function shareGlow(ctx, x, y, radius, colorNum) {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    g.addColorStop(0, 'rgba(255,250,244,0.95)');
+    g.addColorStop(0.22, rgbaOf(colorNum, 0.85));
+    g.addColorStop(1, rgbaOf(colorNum, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+  }
+  function shareFooter(ctx, W, H) {
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#9a9ac8';
+    ctx.font = '30px ' + SHARE_SERIF;
+    ctx.fillText('星の社 ── 八百万の神々', W / 2, H - 96);
+    ctx.fillStyle = '#77779f';
+    ctx.font = '26px ' + SHARE_SERIF;
+    ctx.fillText('hoshi-no-yashiro.pages.dev', W / 2, H - 52);
+  }
+  function wrapJp(ctx, text, maxW) {
+    const lines = [];
+    let line = '';
+    for (const ch of text) {
+      if (line && ctx.measureText(line + ch).width > maxW) { lines.push(line); line = ch; }
+      else line += ch;
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+  function drawKamiCard(k) {
+    const cv = document.createElement('canvas');
+    cv.width = 1080; cv.height = 1080;
+    const ctx = cv.getContext('2d');
+    shareBg(ctx, 1080, 1080, 42);
+    shareGlow(ctx, 540, 320, 290, k.color);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#e8e4f8';
+    ctx.font = '84px ' + SHARE_SERIF;
+    ctx.fillText(k.name, 540, 624);
+    let y = 700;
+    if (k.yomi) {
+      ctx.fillStyle = '#b0aed0';
+      ctx.font = '34px ' + SHARE_SERIF;
+      ctx.fillText('― ' + k.yomi + ' ―', 540, 690);
+      y = 766;
+    }
+    ctx.fillStyle = '#c8c8e8';
+    ctx.font = '38px ' + SHARE_SERIF;
+    for (const ln of wrapJp(ctx, k.story, 860)) { ctx.fillText(ln, 540, y); y += 62; }
+    shareFooter(ctx, 1080, 1080);
+    return cv;
+  }
+  function drawBookCard() {
+    const cv = document.createElement('canvas');
+    cv.width = 1080; cv.height = 1080;
+    const ctx = cv.getContext('2d');
+    shareBg(ctx, 1080, 1080, 7);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#e8e4f8';
+    ctx.font = '64px ' + SHARE_SERIF;
+    ctx.fillText('御朱印帳', 540, 150);
+    // 出会った神々の星空（自然+龍神・むすび・節気・暮らし = 77の光点）
+    const all = [...KAMI, ...MUSUBI, ...SEKKI, ...KURASHI];
+    const cols = 11, gapX = 88, gapY = 76;
+    const x0 = 540 - (cols - 1) * gapX / 2;
+    all.forEach((k, i) => {
+      const x = x0 + (i % cols) * gapX;
+      const y = 268 + Math.floor(i / cols) * gapY;
+      const met = (save.counts[k.id] || 0) > 0;
+      if (met) {
+        ctx.shadowColor = rgbaOf(k.color, 0.9);
+        ctx.shadowBlur = 22;
+        ctx.fillStyle = rgbaOf(k.color, 1);
+        ctx.beginPath();
+        ctx.arc(x, y, 15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.strokeStyle = 'rgba(120,120,170,0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(x, y, 9, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    });
+    const met = Object.keys(save.counts).filter(id => save.counts[id] > 0).length;
+    ctx.fillStyle = '#c8c8e8';
+    ctx.font = '40px ' + SHARE_SERIF;
+    ctx.fillText(met + ' 柱の神々と、縁をむすびました', 540, 856);
+    ctx.fillStyle = '#9a9ac8';
+    ctx.font = '30px ' + SHARE_SERIF;
+    ctx.fillText('これまでに生まれた星　' + save.born, 540, 912);
+    shareFooter(ctx, 1080, 1080);
+    return cv;
+  }
+  async function shareCanvas(cv, text) {
+    const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+    if (!blob) return;
+    const file = new File([blob], 'hoshi-no-yashiro.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], text: text + '\n#星の社\n' + SHARE_URL });
+        return;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;  // 本人がやめただけ（責めない）
+      }
+    }
+    // 共有が使えない環境（PCなど）は、画像を手もとに保存
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'hoshi-no-yashiro.png';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+  }
+  function shareLinkHtml(kind, id) {
+    return '<div class="share-link" data-kind="' + kind + '" data-id="' + id + '">この縁を、わけあう</div>';
+  }
+  document.getElementById('goshuincho').addEventListener('click', (e) => {
+    const el = e.target.closest && e.target.closest('.share-link');
+    if (!el) return;
+    const arrMap = { kami: KAMI, musubi: MUSUBI, sekki: SEKKI, kurashi: KURASHI };
+    const k = (arrMap[el.dataset.kind] || []).find(x => x.id === el.dataset.id);
+    if (k) shareCanvas(drawKamiCard(k), '「' + k.name + '」と縁をむすびました ─ 星の社');
+  });
+  document.getElementById('share-book').addEventListener('click', () => {
+    const met = Object.keys(save.counts).filter(id => save.counts[id] > 0).length;
+    shareCanvas(drawBookCard(), met + '柱の神々と縁をむすんでいます ─ 星の社');
+  });
 
   musubiLink.addEventListener('click', () => {
     if (musubiLink.classList.contains('dim')) return;
@@ -2857,7 +3033,23 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     sanpaiWait: () => { if (sanpaisha) { sanpaisha.state = 'waiting'; sanpaisha.group.position.copy(sanpaisha.target); } }, // テスト用: 参拝者を待機状態へ
     sachi: (n) => { save.sachi = n; persist(); if (jinja) updateJinjaHud(); }, // テスト用: 幸の手持ちを設定
     meetMusubi: () => { save.counts['musubi-hi-kaze'] = save.counts['musubi-hi-kaze'] || 1; persist(); }, // テスト用: むすびの神と1柱縁を結んだ状態に
+    shareCardPreview: (kind, id) => { // テスト用: わけあう画像の縮小プレビュー(dataURL)
+      const arrMap = { kami: KAMI, musubi: MUSUBI, sekki: SEKKI, kurashi: KURASHI };
+      const cv = kind === 'book' ? drawBookCard() : drawKamiCard(arrMap[kind].find(x => x.id === id));
+      const small = document.createElement('canvas');
+      small.width = 270; small.height = 270;
+      small.getContext('2d').drawImage(cv, 0, 0, 270, 270);
+      return small.toDataURL('image/jpeg', 0.75);
+    },
   };
+
+  // PWA: Service Worker 登録（https/localhostのみ。file://で直接開いても壊れない）
+  if ('serviceWorker' in navigator &&
+      (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
 })();
 </script>
 </body>
