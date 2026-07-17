@@ -2288,6 +2288,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     if (!jinja) makeJinja();
     updateJinjaHud();
     jinjaHud.classList.add('on');
+    counterEl.style.opacity = '0';  // 画面下部はHUDにゆずる（星の数・縁ドットと重ならない）
+    dotsEl.style.opacity = '0';
     if (!sanpaisha) sanpaiTimer = 2.5;  // 入ってすこしで、最初の参拝者
     playSho(3.0);
     setHint('シリウスのほとり、はじまりの社');
@@ -2295,6 +2297,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
   function leaveJinja() {
     cleanupJinjaScene();
+    counterEl.style.opacity = '';
+    dotsEl.style.opacity = '';
     setHint('');
     if (jinjaReturn === 'after') { state = 'after'; showOverlay('after'); }
     else if (jinjaReturn === 'book') { openBook(bookReturn); }
