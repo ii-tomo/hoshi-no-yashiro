@@ -1,0 +1,10 @@
+# hoshi-kansou — 星の社 感想帳の受け口（Cloudflare Worker）
+# デプロイ: このフォルダで `npx wrangler deploy`
+# 感想の閲覧: `npx wrangler kv key list --namespace-id d850e18e4a3545078b4a0d1120f58cb8 --remote`
+name = "hoshi-kansou"
+main = "src/index.js"
+compatibility_date = "2026-07-01"
+
+[[kv_namespaces]]
+binding = "KANSOU"
+id = "d850e18e4a3545078b4a0d1120f58cb8"
