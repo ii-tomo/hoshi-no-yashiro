@@ -40,8 +40,10 @@ self.addEventListener('fetch', (e) => {
   if (url.origin === location.origin) {
     e.respondWith(
       fetch(e.request).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy));
+        if (res.status === 200) { // 部分応答(206・音声のRange取得など)はキャッシュできない
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+        }
         return res;
       }).catch(() => caches.match(e.request, { ignoreSearch: true }))
     );

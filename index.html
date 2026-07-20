@@ -207,6 +207,42 @@
     user-select: none; -webkit-user-select: none;
   }
   #opening.lift { background: rgba(4,4,20,.55); } /* 闇が薄れ、後ろの星空が透けてくる */
+  /* 社の戸（オープニングの入口。音の再生はブラウザの決まりでタップが要る） */
+  #op-gate {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 18px;
+    transition: opacity 1.4s;
+    cursor: pointer;
+  }
+  #op-gate.gone { opacity: 0; pointer-events: none; }
+  #op-gate .gate-ask {
+    font-size: clamp(14px, 3.2vw, 18px);
+    letter-spacing: .4em; text-indent: .4em;
+    color: #d8d8f2;
+    text-shadow: 0 0 18px rgba(160,160,255,.4);
+    animation: gate-breath 4s ease-in-out infinite alternate;
+  }
+  @keyframes gate-breath { from { opacity: .5; } to { opacity: 1; } }
+  #op-gate .gate-note {
+    font-size: 11px; letter-spacing: .25em; text-indent: .25em;
+    color: #8888bb;
+  }
+  #op-gate .gate-silent {
+    margin-top: 28px;
+    font-size: 11px; letter-spacing: .2em;
+    color: #66668f;
+    border-bottom: 1px solid rgba(120,120,160,.35);
+    padding-bottom: 2px;
+  }
+  #op-gate .gate-silent:hover { color: #b8b8dd; }
+  #op-gate .gate-credit {
+    position: absolute; bottom: 14px; left: 0; right: 0;
+    text-align: center;
+    font-size: 9.5px; letter-spacing: .15em;
+    color: #4e4e72;
+  }
   #op-text {
     font-size: clamp(13px, 3vw, 17px);
     line-height: 3;
@@ -542,8 +578,14 @@
 </div>
 <button id="sound-btn" title="音のON/OFF">🔇</button>
 
-<!-- オープニング（初回のみ。物語をひと幕ずつ語る。表示はCSSの op-first が制御） -->
+<!-- オープニング（初回のみ。社の戸→語りつきの物語。表示はCSSの op-first が制御） -->
 <div class="overlay" id="opening">
+  <div id="op-gate">
+    <div class="gate-ask">ふれて、社の戸をひらく</div>
+    <div class="gate-note">静かな語りとともに、物語がはじまります</div>
+    <div class="gate-silent" id="op-silent">音なしで はじめる</div>
+    <div class="gate-credit">語り: VOICEVOX 青山龍星</div>
+  </div>
   <div id="op-text"></div>
   <div id="op-title">
     <div class="op-sub">八百万の神々</div>
@@ -1658,12 +1700,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     (returning && canJinja()) ? '' : 'none';  // むすびの神と縁ができると、社がひらく
   if (returning) populateWelcome();
 
-  // ===== オープニング（初回のみ。物語をひと幕ずつ・タップで先へ）=====
+  // ===== オープニング（初回のみ。社の戸→語りつきの物語→タイトル）=====
   // 出すかどうかは<head>の同期スクリプトが決める（完全初回かつ動きを減らす設定でないとき）
   if (document.documentElement.classList.contains('op-first')) runOpening();
 
   function runOpening() {
     const op = document.getElementById('opening');
+    const gate = document.getElementById('op-gate');
     const textEl = document.getElementById('op-text');
     const MAKU = [
       ['むかし、宇宙は', '八百万の神々の光で　満ちていた。'],
@@ -1671,11 +1714,17 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       ['けれど——', '人が空を見上げなくなったとき、', '神々はひとり、またひとりと', '深いねむりについた。'],
       ['——いま、', 'あなたの呼吸だけが、', '神々を呼びさますことができる。'],
     ];
+    // 語り（VOICEVOX:青山龍星）。再生成は audio/generate_narration.py
+    const NARRATION = MAKU.map((_, i) => {
+      const a = new Audio('audio/op' + (i + 1) + '.mp3');
+      a.preload = 'auto';
+      a.volume = 0.9;
+      return a;
+    });
     document.getElementById('start-story').style.display = 'none'; // 物語はこの幕が語るので重ねない
     op.classList.add('on');
     overlays.start.classList.add('hidden');
     document.documentElement.classList.remove('op-first'); // ここからはJSが表示を持つ
-    requestAnimationFrame(() => op.classList.add('ready'));
 
     let timer = 0, tapNext = null;
     op.addEventListener('click', () => {
@@ -1685,17 +1734,44 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       tapNext = res;
       timer = setTimeout(() => { tapNext = null; res(); }, ms);
     });
+    // 幕の長さ = 語りの終わり + 余韻。語りが流れないときは行数から。タップでいつでも先へ
+    const waitMaku = (a, fallbackMs) => new Promise(res => {
+      const timers = [];
+      const done = () => {
+        timers.forEach(clearTimeout);
+        tapNext = null;
+        if (a) { a.onended = null; if (!a.paused) a.pause(); }
+        res();
+      };
+      tapNext = done;
+      if (a) {
+        a.onended = () => timers.push(setTimeout(done, 1400));
+        a.play().then(() => {
+          const sec = (isFinite(a.duration) && a.duration > 0) ? a.duration : 12;
+          timers.push(setTimeout(done, sec * 1000 + 5000)); // endedが来ないときの保険
+        }).catch(() => timers.push(setTimeout(done, fallbackMs)));
+      } else {
+        timers.push(setTimeout(done, fallbackMs));
+      }
+    });
 
-    (async () => {
-      await wait(900); // 闇の間
+    async function play(withSound) {
+      if (withSound) {
+        // 戸のタップの中で一度触れておくと、あとの再生がスマホでも許される（音の解錠）
+        NARRATION.forEach(a => { a.play().catch(() => {}); a.pause(); a.currentTime = 0; });
+      }
+      gate.classList.add('gone');
+      op.classList.add('ready');
+      await wait(1200); // 闇の間
       for (let i = 0; i < MAKU.length; i++) {
         const lines = MAKU[i];
         textEl.classList.remove('show', 'gone');
         textEl.innerHTML = lines.map((l, j) =>
           '<span style="transition-delay:' + (j * .7) + 's">' + l + '</span>').join('');
         if (i === MAKU.length - 1) op.classList.add('lift'); // 「あなたの呼吸だけが」で闇が薄れ、星が見えてくる
-        requestAnimationFrame(() => requestAnimationFrame(() => textEl.classList.add('show')));
-        await wait(2000 + lines.length * 1000);
+        void textEl.offsetWidth; // リフローを挟み、次のclass付与でフェードを確実に効かせる
+        textEl.classList.add('show');
+        await waitMaku(withSound ? NARRATION[i] : null, 2000 + lines.length * 1000);
         textEl.classList.add('gone');
         await wait(1100);
       }
@@ -1705,7 +1781,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       await wait(6000);
       op.classList.add('hidden');
       showOverlay('start');
-    })();
+    }
+
+    // 社の戸: タップで語りつき、下のリンクは音なし
+    tapNext = () => play(true);
+    document.getElementById('op-silent').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (tapNext) { tapNext = null; play(false); }
+    });
   }
 
   // ===== 御朱印帳（図鑑）=====
