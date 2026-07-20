@@ -9,8 +9,10 @@
 <meta name="theme-color" content="#060618">
 <script>
   // 完全初回だけオープニングを出す。module読み込み前に判定して、モード選択画面のチラつきを防ぐ
+  // ?hajimari 付きURL（はじまりのリンク）なら、遊んだことがある人にももう一度流す
   try {
-    if (!localStorage.getItem('hoshi-no-yashiro') &&
+    if ((location.search.indexOf('hajimari') !== -1 ||
+         !localStorage.getItem('hoshi-no-yashiro')) &&
         !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       document.documentElement.classList.add('op-first');
     }
