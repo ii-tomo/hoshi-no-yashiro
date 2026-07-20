@@ -207,6 +207,24 @@
     user-select: none; -webkit-user-select: none;
   }
   #opening.lift { background: rgba(4,4,20,.55); } /* 闇が薄れ、後ろの星空が透けてくる */
+  #opening.lift2 { background: rgba(4,4,20,.35); } /* 社の名とともに、空がもうひとつひらく */
+
+  /* 星屑あつめ（タイトルの場所へ光の粒が吸い込まれていく） */
+  #op-gather { position: absolute; inset: 0; pointer-events: none; display: none; }
+  #op-gather.go { display: block; }
+  #op-gather span {
+    position: absolute; left: 50%; top: 50%;
+    width: 3px; height: 3px; border-radius: 50%;
+    background: #ffe09e;
+    box-shadow: 0 0 8px 2px rgba(255,224,158,.6);
+    opacity: 0;
+  }
+  #op-gather.go span { animation: op-gather-in var(--dur) ease-in var(--delay) forwards; }
+  @keyframes op-gather-in {
+    0%   { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1); }
+    20%  { opacity: .9; }
+    100% { opacity: 0; transform: translate(0, 0) scale(.3); }
+  }
   /* 社の戸（オープニングの入口。音の再生はブラウザの決まりでタップが要る） */
   #op-gate {
     position: absolute; inset: 0;
@@ -263,19 +281,38 @@
     position: absolute;
     text-align: center;
     opacity: 0; transform: scale(1.05);
-    transition: opacity 3s ease, transform 7s ease;
+    transition: opacity 2s ease, transform 7s ease;
   }
   #op-title.show { opacity: 1; transform: scale(1); }
+  #op-title::before { /* 後光。名の背後で、光の輪がゆっくりひろがる */
+    content: '';
+    position: absolute; left: 50%; top: 50%;
+    width: min(70vw, 380px); height: min(70vw, 380px);
+    border-radius: 50%;
+    transform: translate(-50%, -52%) scale(.4);
+    background: radial-gradient(circle, rgba(255,224,158,.18), rgba(255,224,158,.06) 45%, transparent 70%);
+    opacity: 0;
+    transition: opacity 3.5s ease, transform 7s ease;
+    pointer-events: none;
+  }
+  #op-title.show::before { opacity: 1; transform: translate(-50%, -52%) scale(1.5); }
   #op-title .op-sub {
     font-size: clamp(12px, 2.6vw, 15px);
     letter-spacing: .55em; text-indent: .55em;
     color: #b8b8dd; margin-bottom: 16px;
   }
+  #op-title .op-sub, #op-title .op-yomi { opacity: 0; transition: opacity 2.5s ease; }
+  #op-title.show .op-sub { transition-delay: 2.2s; opacity: 1; }
+  #op-title.show .op-yomi { transition-delay: 2.6s; opacity: 1; }
   #op-title .op-main {
     font-size: clamp(34px, 10vw, 56px);
     letter-spacing: .3em; text-indent: .3em;
     color: #ffe09e;
   }
+  #op-title .op-main span { opacity: 0; transition: opacity 1.6s ease; } /* 一文字ずつ灯る */
+  #op-title.show .op-main span:nth-child(1) { transition-delay: .2s; opacity: 1; }
+  #op-title.show .op-main span:nth-child(2) { transition-delay: .8s; opacity: 1; }
+  #op-title.show .op-main span:nth-child(3) { transition-delay: 1.4s; opacity: 1; }
   #op-title.show .op-main { animation: op-breath 5s ease-in-out infinite alternate; }
   @keyframes op-breath { /* タイトルもまた、呼吸をしている */
     from { text-shadow: 0 0 26px rgba(255,224,158,.45), 0 0 60px rgba(255,224,158,.18); }
@@ -587,9 +624,10 @@
     <div class="gate-credit">語り: VOICEVOX 青山龍星</div>
   </div>
   <div id="op-text"></div>
+  <div id="op-gather"></div>
   <div id="op-title">
     <div class="op-sub">八百万の神々</div>
-    <div class="op-main">星の社</div>
+    <div class="op-main"><span>星</span><span>の</span><span>社</span></div>
     <div class="op-yomi">ほしのやしろ</div>
   </div>
   <div id="op-skip">タップで すすむ</div>
@@ -1776,11 +1814,43 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
         await wait(1100);
       }
       textEl.style.display = 'none';
+      // 星屑が社の名の場所へあつまり、鈴の音とともに一文字ずつ灯る
+      const gather = document.getElementById('op-gather');
+      for (let j = 0; j < 32; j++) {
+        const s = document.createElement('span');
+        s.style.setProperty('--dx', ((Math.random() - .5) * 90) + 'vw');
+        s.style.setProperty('--dy', ((Math.random() - .5) * 80) + 'vh');
+        s.style.setProperty('--dur', (1.2 + Math.random() * .9) + 's');
+        s.style.setProperty('--delay', (Math.random() * .5) + 's');
+        gather.appendChild(s);
+      }
+      gather.classList.add('go');
+      await wait(2100);
+      gather.style.display = 'none';
+      if (withSound) bell();
+      op.classList.add('lift2'); // 空がもうひとつひらく
       document.getElementById('op-title').classList.add('show');
       document.getElementById('op-skip').textContent = 'タップで はじめる';
-      await wait(6000);
+      await wait(7500);
       op.classList.add('hidden');
       showOverlay('start');
+    }
+
+    // 参拝の鈴（Web Audio生成・音声ファイルなし）
+    function bell() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const t0 = ctx.currentTime;
+        [[1660, .10], [2490, .05], [4150, .03]].forEach(([f, v]) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = 'sine'; o.frequency.value = f;
+          g.gain.setValueAtTime(0, t0);
+          g.gain.linearRampToValueAtTime(v, t0 + .012);
+          g.gain.exponentialRampToValueAtTime(.0001, t0 + 2.8);
+          o.connect(g); g.connect(ctx.destination);
+          o.start(t0); o.stop(t0 + 3);
+        });
+      } catch (e) {}
     }
 
     // 社の戸: タップで語りつき、下のリンクは音なし
