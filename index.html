@@ -333,6 +333,51 @@
   }
   #opening.ready #op-skip { opacity: 1; }
 
+  /* 鳥居くぐり（宇宙神社への入場演出。浮かびあがる→光のとばりがひらく→くぐる） */
+  #torii-pass {
+    position: fixed; inset: 0; z-index: 50;
+    background: #020210;
+    display: none;
+    align-items: center; justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+    transition: opacity .8s;
+  }
+  #torii-pass.on { display: flex; }
+  #torii-pass.done { opacity: 0; pointer-events: none; }
+  #tp-zoom {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 2.4s cubic-bezier(.55, 0, .9, .6);
+  }
+  #torii-pass.pass #tp-zoom { transform: scale(3.4) translateY(14%); } /* 鳥居をくぐる */
+  #tp-torii {
+    width: min(86vw, 78vh);
+    mix-blend-mode: screen; /* 黒背景を光として宇宙に溶かす */
+    opacity: 0; transform: scale(.88);
+    transition: opacity 2s ease, transform 2.6s ease;
+  }
+  #torii-pass.rise #tp-torii { opacity: 1; transform: scale(1); }
+  #tp-veil { /* 鳥居の中の、光のとばり */
+    position: absolute; left: 50%; top: 56%;
+    width: 4%; height: 34%;
+    transform: translate(-50%, -50%) scaleX(0);
+    background: radial-gradient(ellipse at center, rgba(255,236,190,.95), rgba(255,220,150,.5) 55%, transparent 78%);
+    border-radius: 50%;
+    filter: blur(2px);
+    mix-blend-mode: screen;
+    transition: transform 1.4s ease;
+  }
+  #torii-pass.open #tp-veil { transform: translate(-50%, -50%) scaleX(15); } /* 左右にひらく */
+  #tp-flash {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 56%, #fff7e0, #ffe09e 40%, transparent 100%);
+    opacity: 0;
+    transition: opacity .9s ease;
+    pointer-events: none;
+  }
+  #torii-pass.pass #tp-flash { opacity: 1; } /* くぐった先の光 */
+
   #start .story {
     font-size: clamp(12px, 2.4vw, 15px);
     line-height: 2.6;
@@ -633,6 +678,15 @@
     <div class="op-yomi">ほしのやしろ</div>
   </div>
   <div id="op-skip">タップで すすむ</div>
+</div>
+
+<!-- 鳥居くぐり（宇宙神社への入場。画像はimg/torii-hikari.webp・タップで先へ） -->
+<div id="torii-pass">
+  <div id="tp-zoom">
+    <img id="tp-torii" src="img/torii-hikari.webp" alt="">
+    <div id="tp-veil"></div>
+  </div>
+  <div id="tp-flash"></div>
 </div>
 
 <!-- はじまり -->
@@ -2638,17 +2692,43 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     else { state = 'jinja-intro'; showOverlay('jinja-intro'); }
   }
   function startJinja() {
-    state = 'jinja';
-    showOverlay(null);
-    if (!jinja) makeJinja();
-    updateJinjaHud();
-    jinjaHud.classList.add('on');
-    counterEl.style.opacity = '0';  // 画面下部はHUDにゆずる（星の数・縁ドットと重ならない）
-    dotsEl.style.opacity = '0';
-    if (!sanpaisha) sanpaiTimer = 2.5;  // 入ってすこしで、最初の参拝者
-    playSho(3.0);
-    setHint('シリウスのほとり、はじまりの社');
-    setTimeout(() => { if (state === 'jinja' && (!sanpaisha || sanpaisha.state !== 'waiting')) setHint(''); }, 4000);
+    runToriiPass(() => {
+      state = 'jinja';
+      showOverlay(null);
+      if (!jinja) makeJinja();
+      updateJinjaHud();
+      jinjaHud.classList.add('on');
+      counterEl.style.opacity = '0';  // 画面下部はHUDにゆずる（星の数・縁ドットと重ならない）
+      dotsEl.style.opacity = '0';
+      if (!sanpaisha) sanpaiTimer = 2.5;  // 入ってすこしで、最初の参拝者
+      playSho(3.0);
+      setHint('シリウスのほとり、はじまりの社');
+      setTimeout(() => { if (state === 'jinja' && (!sanpaisha || sanpaisha.state !== 'waiting')) setHint(''); }, 4000);
+    });
+  }
+  // 鳥居くぐり: 光の鳥居が浮かびあがり、とばりがひらき、くぐった先が社（タップで先へ）
+  const toriiPassEl = document.getElementById('torii-pass');
+  let tpSkip = null;
+  toriiPassEl.addEventListener('click', () => {
+    if (tpSkip) { const go = tpSkip; tpSkip = null; go(); }
+  });
+  function runToriiPass(done) {
+    const el = toriiPassEl;
+    let timers = [];
+    const finish = () => {
+      timers.forEach(clearTimeout);
+      tpSkip = null;
+      done();                                   // 先に社を出してから
+      el.classList.add('done');                 // 幕をフェードで引く（クロスフェード）
+      timers = [setTimeout(() => { el.className = ''; }, 900)];
+    };
+    tpSkip = finish;
+    el.className = 'on';
+    void el.offsetWidth;                        // リフローを挟んでtransitionを確実に
+    el.classList.add('rise');                                       // 鳥居が浮かびあがる
+    timers.push(setTimeout(() => el.classList.add('open'), 2000));  // 光のとばりがひらく
+    timers.push(setTimeout(() => el.classList.add('pass'), 3300));  // くぐる
+    timers.push(setTimeout(finish, 5500));                          // 社へ
   }
   function leaveJinja() {
     cleanupJinjaScene();
