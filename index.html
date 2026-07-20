@@ -2520,6 +2520,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     return new THREE.LineSegments(geo, mat);
   }
 
+  let toriiTexture = null;  // 星々の鳥居のテクスチャ（初回入場時に読み、以後使い回す）
   function makeJinja() {
     const group = new THREE.Group();
     group.position.set(0, -7, -2);
@@ -2539,54 +2540,20 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     sCore.scale.setScalar(3.2);
     sirius.add(sCore);
     group.add(sirius);
-    // 鳥居（明神鳥居・朱の気配・二重の光。設計はCONCEPT.md「鳥居を立派にする」）
-    const arcPairs = (x0, x1, y, rise, seg) => {
-      // 両端が上へ反り上がる弧（笠木・島木のそり）を線分で近似
-      const pts = [];
-      for (let i = 0; i <= seg; i++) {
-        const t = i / seg;
-        const x = x0 + (x1 - x0) * t;
-        pts.push([x, y + rise * Math.pow(Math.abs(t - 0.5) * 2, 2), 0]);
-      }
-      const pairs = [];
-      for (let i = 0; i < seg; i++) pairs.push([pts[i], pts[i + 1]]);
-      return pairs;
-    };
-    const TORII_SHAPE = [
-      // 柱（わずかに内転び）＋亀腹（柱脚の台）
-      [[-2.65, 0.18, 0], [-2.5, 4.15, 0]], [[2.65, 0.18, 0], [2.5, 4.15, 0]],
-      [[-2.95, 0.18, 0], [-2.35, 0.18, 0]], [[2.35, 0.18, 0], [2.95, 0.18, 0]],
-      [[-2.9, 0.02, 0], [-2.4, 0.02, 0]], [[2.4, 0.02, 0], [2.9, 0.02, 0]],
-      // 台輪（柱の上の短い水平）
-      [[-2.75, 4.15, 0], [-2.25, 4.15, 0]], [[2.25, 4.15, 0], [2.75, 4.15, 0]],
-      // 島木（そり小）と笠木（そり大・いちばん上）
-      ...arcPairs(-3.6, 3.6, 4.3, 0.22, 8),
-      ...arcPairs(-3.95, 3.95, 4.62, 0.38, 10),
-      // 島木と笠木の両端をつなぐ木口
-      [[-3.6, 4.3, 0], [-3.95, 4.62, 0]], [[3.6, 4.3, 0], [3.95, 4.62, 0]],
-      // 貫（柱を突き抜ける横木）
-      [[-3.1, 3.3, 0], [3.1, 3.3, 0]],
-      // 額束と扁額（中央の名札）
-      [[0, 3.3, 0], [0, 4.3, 0]],
-      [[-0.42, 3.52, 0], [0.42, 3.52, 0]], [[-0.42, 4.08, 0], [0.42, 4.08, 0]],
-      [[-0.42, 3.52, 0], [-0.42, 4.08, 0]], [[0.42, 3.52, 0], [0.42, 4.08, 0]],
-    ];
-    const torii = makeLineObj(TORII_SHAPE, 0xe87860, 0.85);       // 朱のコア
+    // 鳥居（星々の鳥居。空間にはこちらを立てる・本人選定=入場は光の鳥居/空間は星々の鳥居）
+    if (!toriiTexture) {
+      toriiTexture = new THREE.TextureLoader().load('img/torii-hoshi.webp');
+      toriiTexture.colorSpace = THREE.SRGBColorSpace;
+    }
+    const torii = new THREE.Mesh(
+      new THREE.PlaneGeometry(13, 13),
+      new THREE.MeshBasicMaterial({
+        map: toriiTexture, transparent: true, opacity: 0.95,
+        blending: THREE.AdditiveBlending, depthWrite: false, // 黒背景は加算合成で宇宙に溶ける
+      })
+    );
+    torii.position.set(0, 3.4, 0); // 画像下部の星の雲海が、ちょうど参道の足もとに来る高さ
     group.add(torii);
-    for (const dz of [-0.07, 0.07]) {                              // 前後の薄い金でにじませる（二重の光）
-      const halo = makeLineObj(TORII_SHAPE, 0xffd9a0, 0.16);
-      halo.position.z = dz;
-      group.add(halo);
-    }
-    // 柱脚と笠木両端の光点
-    for (const [px, py, ps] of [[-2.65, 0.2, 1.1], [2.65, 0.2, 1.1], [-3.95, 4.65, 0.9], [3.95, 4.65, 0.9]]) {
-      const p = new THREE.Sprite(new THREE.SpriteMaterial({
-        map: softGlow, color: 0xffc890, transparent: true, opacity: 0.35,
-        depthWrite: false, blending: THREE.AdditiveBlending,
-      }));
-      p.position.set(px, py, 0); p.scale.setScalar(ps);
-      group.add(p);
-    }
     // 石灯篭2基（参道の両脇。火袋の火は設えの灯りと同じゆらぎに乗せる）
     const touroPairs = (sx) => [
       [[sx - 0.45, 0, 0], [sx + 0.45, 0, 0]],                       // 基礎
@@ -2607,8 +2574,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       [[-1.9, 1.5, 0], [1.9, 1.5, 0]],
       [[-1.9, 1.5, 0], [0, 2.6, 0]], [[1.9, 1.5, 0], [0, 2.6, 0]],
       [[0, 2.6, 0], [-0.5, 3.3, 0]], [[0, 2.6, 0], [0.5, 3.3, 0]],
-    ], 0xd8c8b8, 0.5);
-    yashiro.position.set(0, 0.2, -5);
+    ], 0xd8c8b8, 0.32); // 星々の鳥居が主役なので、社は遠くに小さく淡く
+    yashiro.position.set(0, 0.1, -7);
+    yashiro.scale.setScalar(0.75);
     group.add(yashiro);
     // 建った設えの灯り（参道の両脇に、柱の色で）
     const lights = [];
