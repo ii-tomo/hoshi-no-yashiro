@@ -354,15 +354,16 @@
   #tp-torii {
     width: min(86vw, 78vh);
     mix-blend-mode: screen; /* 黒背景を光として宇宙に溶かす */
+    filter: brightness(.62); /* 夜の目にやさしい明るさに（本人指摘「眩しすぎ」→2段階減光） */
     opacity: 0; transform: scale(.88);
     transition: opacity 2s ease, transform 2.6s ease;
   }
-  #torii-pass.rise #tp-torii { opacity: 1; transform: scale(1); }
+  #torii-pass.rise #tp-torii { opacity: .82; transform: scale(1); }
   #tp-veil { /* 鳥居の中の、光のとばり */
     position: absolute; left: 50%; top: 56%;
     width: 4%; height: 34%;
     transform: translate(-50%, -50%) scaleX(0);
-    background: radial-gradient(ellipse at center, rgba(255,236,190,.95), rgba(255,220,150,.5) 55%, transparent 78%);
+    background: radial-gradient(ellipse at center, rgba(255,236,190,.5), rgba(255,220,150,.24) 55%, transparent 78%);
     border-radius: 50%;
     filter: blur(2px);
     mix-blend-mode: screen;
@@ -371,12 +372,12 @@
   #torii-pass.open #tp-veil { transform: translate(-50%, -50%) scaleX(15); } /* 左右にひらく */
   #tp-flash {
     position: absolute; inset: 0;
-    background: radial-gradient(circle at 50% 56%, #fff7e0, #ffe09e 40%, transparent 100%);
+    background: radial-gradient(circle at 50% 56%, #f2e2c4, #decba0 40%, transparent 100%);
     opacity: 0;
     transition: opacity .9s ease;
     pointer-events: none;
   }
-  #torii-pass.pass #tp-flash { opacity: 1; } /* くぐった先の光 */
+  #torii-pass.pass #tp-flash { opacity: .4; } /* くぐった先の光（まぶしくない程度に） */
 
   #start .story {
     font-size: clamp(12px, 2.4vw, 15px);
@@ -2567,17 +2568,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     const touro = makeLineObj([...touroPairs(-4.8), ...touroPairs(4.8)], 0xb8b8c8, 0.45);
     touro.position.z = 1.5;
     group.add(touro);
-    // 社（鳥居の奥の小さなお社）
-    const yashiro = makeLineObj([
-      [[-1.6, 0, 0], [1.6, 0, 0]],
-      [[-1.4, 0, 0], [-1.4, 1.5, 0]], [[1.4, 0, 0], [1.4, 1.5, 0]],
-      [[-1.9, 1.5, 0], [1.9, 1.5, 0]],
-      [[-1.9, 1.5, 0], [0, 2.6, 0]], [[1.9, 1.5, 0], [0, 2.6, 0]],
-      [[0, 2.6, 0], [-0.5, 3.3, 0]], [[0, 2.6, 0], [0.5, 3.3, 0]],
-    ], 0xd8c8b8, 0.32); // 星々の鳥居が主役なので、社は遠くに小さく淡く
-    yashiro.position.set(0, 0.1, -7);
-    yashiro.scale.setScalar(0.75);
-    group.add(yashiro);
+    // 社の線画は廃止（2026-07-20 本人指示。星々の鳥居の光の道の先の灯りが、社の気配を担う）
     // 建った設えの灯り（参道の両脇に、柱の色で）
     const lights = [];
     save.shitsurae.forEach((id, i) => {
