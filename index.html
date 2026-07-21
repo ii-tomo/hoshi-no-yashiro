@@ -124,6 +124,7 @@
     transition: opacity 1.5s;
     opacity: 0;
   }
+  #hint.lower { top: auto; bottom: 64px; } /* 宇宙神社では鳥居に被らない下の余白へ */
 
   #sound-btn {
     position: fixed; top: 4%; right: 4%;
@@ -1746,6 +1747,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   function setHint(text) {
     hintEl.textContent = text;
     hintEl.style.opacity = text ? '1' : '0';
+    // 宇宙神社では鳥居に文字が被らないよう、画面下の余白に置く
+    hintEl.classList.toggle('lower', state === 'jinja' || state === 'toritsugi' || state === 'shitsurae');
   }
 
   // 縁ドット（八柱＋龍神様）
@@ -2555,20 +2558,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     );
     torii.position.set(0, 3.4, 0); // 画像下部の星の雲海が、ちょうど参道の足もとに来る高さ
     group.add(torii);
-    // 石灯篭2基（参道の両脇。火袋の火は設えの灯りと同じゆらぎに乗せる）
-    const touroPairs = (sx) => [
-      [[sx - 0.45, 0, 0], [sx + 0.45, 0, 0]],                       // 基礎
-      [[sx, 0, 0], [sx, 0.55, 0]],                                  // 竿
-      [[sx - 0.3, 0.55, 0], [sx + 0.3, 0.55, 0]],                   // 中台
-      [[sx - 0.26, 0.55, 0], [sx - 0.26, 1.05, 0]], [[sx + 0.26, 0.55, 0], [sx + 0.26, 1.05, 0]], // 火袋
-      [[sx - 0.4, 1.05, 0], [sx + 0.4, 1.05, 0]],                   // 笠
-      [[sx - 0.4, 1.05, 0], [sx, 1.42, 0]], [[sx + 0.4, 1.05, 0], [sx, 1.42, 0]],
-      [[sx, 1.42, 0], [sx, 1.56, 0]],                               // 宝珠
-    ];
-    const touro = makeLineObj([...touroPairs(-4.8), ...touroPairs(4.8)], 0xb8b8c8, 0.45);
-    touro.position.z = 1.5;
-    group.add(touro);
-    // 社の線画は廃止（2026-07-20 本人指示。星々の鳥居の光の道の先の灯りが、社の気配を担う）
+    // 石灯篭・社の線画は廃止（2026-07-20 本人指示。画像の鳥居と線画は質感が合わない）
+    // 参道の灯りは、両脇にともる火の玉だけで表す（下の lights で追加）
     // 建った設えの灯り（参道の両脇に、柱の色で）
     const lights = [];
     save.shitsurae.forEach((id, i) => {
