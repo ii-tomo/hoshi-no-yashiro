@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>八百万の神々 — 星の社</title>
 <meta name="description" content="呼吸で星を生む3D瞑想。八十八柱の神々と縁をむすぶ、小さな宇宙の社。">
 <link rel="manifest" href="manifest.webmanifest">
@@ -35,12 +35,13 @@
     width: 100%; height: 100%;
     overflow: hidden;
     background: #060618;
-    touch-action: none;
+    overscroll-behavior: none;      /* 引っ張って更新・端のバウンドを止める */
     font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
     user-select: none;
     -webkit-user-select: none;
   }
-  #canvas { display: block; width: 100%; height: 100%; }
+  /* 3D空間だけブラウザのジェスチャを切る。ここ以外（読む画面）はピンチで拡大できる＝目にやさしく */
+  #canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 
   .ui { position: fixed; color: #c8c8e8; text-align: center; pointer-events: none; z-index: 10; }
 
@@ -81,14 +82,14 @@
   }
   #breath-count {
     position: absolute; left: 0; right: 0; bottom: -26px;
-    font-size: 11px; letter-spacing: .3em;
+    font-size: 12.5px; letter-spacing: .3em;
     color: #8888bb;
   }
 
   /* 吐くときのことば */
   #cue {
     bottom: 27%; left: 8%; right: 8%;
-    font-size: clamp(11px, 2vw, 14px);
+    font-size: clamp(12.5px, 2vw, 14px);
     letter-spacing: .2em;
     line-height: 1.9;
     color: #9a9ac8;
@@ -98,9 +99,9 @@
 
   #counter {
     bottom: 6.5%; left: 0; right: 0;
-    font-size: clamp(10px, 1.8vw, 13px);
+    font-size: clamp(12px, 1.8vw, 13px);
     letter-spacing: 0.45em;
-    color: #7d7daa;
+    color: #9494bd;
   }
 
   /* 八柱＋龍神様の縁ドット */
@@ -118,7 +119,7 @@
 
   #hint {
     top: 56%; left: 0; right: 0;
-    font-size: clamp(11px, 2vw, 14px);
+    font-size: clamp(12.5px, 2vw, 14px);
     letter-spacing: 0.35em;
     color: #9a9ac8;
     transition: opacity 1.5s;
@@ -194,7 +195,7 @@
     line-height: 1.7;
   }
   .overlay button:hover { background: rgba(40,40,90,.7); box-shadow: 0 0 16px rgba(140,140,255,.3); }
-  .overlay button small { display: block; font-size: 10px; color: #8888bb; letter-spacing: .1em; }
+  .overlay button small { display: block; font-size: 12px; color: #8888bb; letter-spacing: .1em; }
 
   /* オープニング（初回のみ。物語をひと幕ずつ・タップで先へ）
      出し分けは<head>の同期スクリプトが html に op-first を付けて行う（チラつき防止）。
@@ -247,13 +248,13 @@
   }
   @keyframes gate-breath { from { opacity: .5; } to { opacity: 1; } }
   #op-gate .gate-note {
-    font-size: 11px; letter-spacing: .25em; text-indent: .25em;
+    font-size: 12.5px; letter-spacing: .25em; text-indent: .25em;
     color: #8888bb;
   }
   #op-gate .gate-silent {
     margin-top: 28px;
-    font-size: 11px; letter-spacing: .2em;
-    color: #66668f;
+    font-size: 12.5px; letter-spacing: .2em;
+    color: #9a9ac2;
     border-bottom: 1px solid rgba(120,120,160,.35);
     padding-bottom: 2px;
   }
@@ -261,8 +262,8 @@
   #op-gate .gate-credit {
     position: absolute; bottom: 14px; left: 0; right: 0;
     text-align: center;
-    font-size: 9.5px; letter-spacing: .15em;
-    color: #4e4e72;
+    font-size: 11.5px; letter-spacing: .15em;
+    color: #8888ac;
   }
   #op-text {
     font-size: clamp(13px, 3vw, 17px);
@@ -322,14 +323,14 @@
     to   { text-shadow: 0 0 36px rgba(255,224,158,.75), 0 0 90px rgba(255,224,158,.35); }
   }
   #op-title .op-yomi {
-    font-size: 10.5px; letter-spacing: .5em; text-indent: .5em;
+    font-size: 12px; letter-spacing: .5em; text-indent: .5em;
     color: #8888bb; margin-top: 14px;
   }
   #op-skip {
     position: absolute; bottom: 32px; left: 0; right: 0;
     text-align: center;
-    font-size: 10.5px; letter-spacing: .3em; text-indent: .3em;
-    color: #66668f;
+    font-size: 12px; letter-spacing: .3em; text-indent: .3em;
+    color: #9a9ac2;
     opacity: 0; transition: opacity 1.8s;
   }
   #opening.ready #op-skip { opacity: 1; }
@@ -394,7 +395,7 @@
     margin-bottom: 22px;
   }
   #start .modes { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
-  #start .note { margin-top: 20px; font-size: 10.5px; color: #77779f; letter-spacing: .15em; }
+  #start .note { margin-top: 20px; font-size: 12px; color: #a0a0c8; letter-spacing: .15em; }
 
   /* 呼吸のこころえ・奉納のこころえ・縁むすび */
   #howto h2, #hounou-intro h2, #musubi-select h2, #jinja-intro h2, #toritsugi h2, #shitsurae h2 {
@@ -419,10 +420,10 @@
   }
   #howto label {
     display: flex; align-items: center; gap: 8px;
-    font-size: 11.5px; color: #8888bb; letter-spacing: .1em;
+    font-size: 12.5px; color: #8888bb; letter-spacing: .1em;
     margin-bottom: 24px; cursor: pointer;
   }
-  #howto input[type="checkbox"] { accent-color: #7d7daa; }
+  #howto input[type="checkbox"] { accent-color: #9494bd; }
 
   /* お参りのあと・締め・奉納のあと */
   #after .q, #finish .msg, #hounou-end .msg {
@@ -440,7 +441,7 @@
 
   /* 御朱印帳: 奉納の記録 */
   #goshuincho .book-hounou {
-    font-size: 11.5px; color: #c8b078; letter-spacing: .18em;
+    font-size: 12.5px; color: #c8b078; letter-spacing: .18em;
     margin-top: 14px; text-align: center;
   }
 
@@ -470,7 +471,7 @@
   }
   #start .progress-card .streak { font-size: 12px; color: #b0b0d6; letter-spacing: .12em; line-height: 2; }
   #start .progress-card .streak b { color: #ffe09e; font-size: 18px; font-weight: normal; }
-  #start .progress-card .collected { font-size: 11.5px; color: #9a9ac8; letter-spacing: .12em; margin: 8px 0 10px; }
+  #start .progress-card .collected { font-size: 12.5px; color: #9a9ac8; letter-spacing: .12em; margin: 8px 0 10px; }
   #start .mini-dots { display: flex; justify-content: center; gap: 6px; }
   #start .mini-dots span { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(120,120,160,.6); }
   #start .mini-dots span.on { box-shadow: 0 0 7px currentColor; background: currentColor; border-color: transparent; }
@@ -495,14 +496,14 @@
   #goshuincho .orb.unmet {
     border: 1px dashed rgba(90,90,130,.8);
     display: flex; align-items: center; justify-content: center;
-    color: #55557a; font-size: 18px;
+    color: #8f8fb4; font-size: 18px;
   }
   #goshuincho .orb.locked {
     border: 1px solid #7fffd4; color: #7fffd4;
     display: flex; align-items: center; justify-content: center; font-size: 17px;
   }
-  #goshuincho .cell-name { font-size: 11px; color: #c8c8e8; letter-spacing: .1em; }
-  #goshuincho .cell-name.dim { color: #666690; }
+  #goshuincho .cell-name { font-size: 13px; color: #c8c8e8; letter-spacing: .1em; }
+  #goshuincho .cell-name.dim { color: #9494b8; }
   #goshuincho .cell-name.dragon { color: #7fffd4; }
   #goshuincho .book-detail {
     min-height: 70px; width: min(86vw, 360px);
@@ -514,12 +515,12 @@
     display: block; margin-bottom: 6px;
   }
   #goshuincho .book-note {
-    font-size: 11px; color: #8f8fc0; letter-spacing: .1em;
+    font-size: 12.5px; color: #8f8fc0; letter-spacing: .1em;
     line-height: 1.9; text-align: center; margin-bottom: 24px;
   }
 
   /* 御朱印帳を縦スクロール可能に（守護神セクションで背が高くなるため） */
-  #goshuincho { justify-content: flex-start; overflow-y: auto; padding-top: 40px; touch-action: pan-y; }
+  #goshuincho { justify-content: flex-start; overflow-y: auto; padding-top: 40px; touch-action: pan-y pinch-zoom; }
   #goshuincho .book-subhead {
     font-size: 12px; color: #9a9ac8; letter-spacing: .3em; text-indent: .3em; margin-bottom: 16px;
   }
@@ -539,10 +540,10 @@
   #goshuincho .g-inputs input::-webkit-outer-spin-button,
   #goshuincho .g-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   #goshuincho #g-divine { display: block; margin: 0 auto; }
-  #goshuincho .g-label { font-size: 11px; color: #9a9ac8; letter-spacing: .3em; text-indent: .3em; text-align: center; margin-bottom: 12px; }
+  #goshuincho .g-label { font-size: 12.5px; color: #9a9ac8; letter-spacing: .3em; text-indent: .3em; text-align: center; margin-bottom: 12px; }
   #goshuincho .g-orb { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 10px; }
   #goshuincho .g-name { font-size: 18px; color: #ececff; letter-spacing: .2em; text-indent: .2em; text-align: center; margin-bottom: 4px; text-shadow: 0 0 14px rgba(180,180,255,.6); }
-  #goshuincho .g-yomi { font-size: 10.5px; color: #8f8fc0; letter-spacing: .15em; text-align: center; margin-bottom: 12px; }
+  #goshuincho .g-yomi { font-size: 12px; color: #8f8fc0; letter-spacing: .15em; text-align: center; margin-bottom: 12px; }
   #goshuincho .g-trait { font-size: 12px; color: #b8b8dd; line-height: 2; text-align: center; }
 
   /* 御朱印帳: むすびの章 */
@@ -559,17 +560,17 @@
   #goshuincho .musubi-grid { grid-template-columns: repeat(4, 1fr); gap: 16px 10px; }
   #goshuincho .musubi-grid .orb { width: 36px; height: 36px; }
   #goshuincho .musubi-grid .orb.unmet { font-size: 14px; }
-  #goshuincho .musubi-grid .cell-name { font-size: 10px; }
-  #goshuincho .musubi-grid .cell-pair { font-size: 9px; color: #77779f; letter-spacing: .12em; margin-top: 2px; }
+  #goshuincho .musubi-grid .cell-name { font-size: 12px; }
+  #goshuincho .musubi-grid .cell-pair { font-size: 11px; color: #a0a0c8; letter-spacing: .12em; margin-top: 2px; }
   #goshuincho .cell-pair.now { color: #ffe9a8; }
   #goshuincho .share-link {
-    font-size: 11px; color: #9a9ac8; letter-spacing: .18em; margin-top: 10px;
+    font-size: 12.5px; color: #9a9ac8; letter-spacing: .18em; margin-top: 10px;
     cursor: pointer; text-decoration: underline dotted rgba(150,150,200,.5); text-underline-offset: 4px;
   }
   #goshuincho .share-link:hover { color: #d8d8f2; }
 
   /* 縁むすび: 二柱えらび */
-  #musubi-select .m-lead { font-size: clamp(11.5px, 2.2vw, 13px); line-height: 2.2; letter-spacing: .12em; color: #b8b8dd; text-align: center; margin-bottom: 12px; }
+  #musubi-select .m-lead { font-size: clamp(12.5px, 2.2vw, 13px); line-height: 2.2; letter-spacing: .12em; color: #b8b8dd; text-align: center; margin-bottom: 12px; }
   #musubi-select .m-norito { font-size: 12px; color: #ffe9a8; letter-spacing: .2em; margin-bottom: 24px; }
   #musubi-select .m-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 24px; margin-bottom: 22px; }
   #musubi-select .m-cell { text-align: center; cursor: pointer; }
@@ -581,14 +582,14 @@
   #musubi-select .m-cell.off { cursor: default; }
   #musubi-select .m-cell.off .m-orb {
     background: transparent; box-shadow: none;
-    border: 1px dashed rgba(90,90,130,.8); color: #55557a;
+    border: 1px dashed rgba(90,90,130,.8); color: #8f8fb4;
     display: flex; align-items: center; justify-content: center; font-size: 16px;
   }
   #musubi-select .m-cell.sel .m-orb { transform: scale(1.16); box-shadow: 0 0 20px currentColor, 0 0 0 2px rgba(255,255,255,.75); }
-  #musubi-select .m-name { font-size: 10.5px; color: #c8c8e8; letter-spacing: .08em; }
-  #musubi-select .m-cell.off .m-name { color: #666690; }
+  #musubi-select .m-name { font-size: 12px; color: #c8c8e8; letter-spacing: .08em; }
+  #musubi-select .m-cell.off .m-name { color: #9494b8; }
   #musubi-select .m-chosen { font-size: 12.5px; color: #d8d8f2; letter-spacing: .15em; min-height: 44px; text-align: center; line-height: 1.9; margin-bottom: 16px; }
-  #musubi-select .m-chosen small { display: block; font-size: 10.5px; color: #8f8fc0; }
+  #musubi-select .m-chosen small { display: block; font-size: 12px; color: #8f8fc0; }
   #musubi-select .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
   #musubi-select button.dim { opacity: .4; cursor: default; }
   #musubi-select button.dim:hover { background: rgba(20,20,50,.6); box-shadow: none; }
@@ -609,12 +610,12 @@
     color: #e8e0c8; text-shadow: 0 0 18px rgba(232,224,200,.5);
     opacity: 0; transition: opacity .9s; white-space: nowrap; pointer-events: none;
   }
-  #toritsugi { justify-content: flex-start; overflow-y: auto; padding-top: 46px; touch-action: pan-y; }
+  #toritsugi { justify-content: flex-start; overflow-y: auto; padding-top: 46px; touch-action: pan-y pinch-zoom; }
   #toritsugi .negai {
     font-size: clamp(13px, 2.8vw, 16px); line-height: 2.2; letter-spacing: .18em;
     color: #e8e0c8; text-align: center; margin-bottom: 16px;
   }
-  #toritsugi .t-lead { font-size: 11.5px; color: #9a9ac8; letter-spacing: .18em; margin-bottom: 20px; }
+  #toritsugi .t-lead { font-size: 12.5px; color: #9a9ac8; letter-spacing: .18em; margin-bottom: 20px; }
   #toritsugi .t-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 22px; margin-bottom: 24px; width: min(86vw, 380px); }
   #toritsugi .t-cell { text-align: center; cursor: pointer; opacity: .82; }
   #toritsugi .t-cell .t-orb {
@@ -624,7 +625,7 @@
   }
   #toritsugi .t-cell.sel { opacity: 1; }
   #toritsugi .t-cell.sel .t-orb { transform: scale(1.22); box-shadow: 0 0 22px currentColor, 0 0 44px currentColor; }
-  #toritsugi .t-cell .t-name { font-size: 10px; letter-spacing: .1em; color: #c8c8e8; }
+  #toritsugi .t-cell .t-name { font-size: 12px; letter-spacing: .1em; color: #c8c8e8; }
   #toritsugi .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; padding-bottom: 34px; }
   #toritsugi button.dim { opacity: .4; cursor: default; }
   #toritsugi button.dim:hover { background: rgba(20,20,50,.6); box-shadow: none; }
@@ -1953,7 +1954,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       const cnt = save.counts[k.id] || 0;
       const first = save.firstMet[k.id] || '';
       bookDetail.innerHTML = '<span class="d-name">' + k.name + '</span>' + k.story +
-        '<br><span style="color:#8f8fc0;font-size:11px">これまで ' + cnt + ' 度の縁' +
+        '<br><span style="color:#8f8fc0;font-size:12.5px">これまで ' + cnt + ' 度の縁' +
         (first ? '　はじまりは ' + first : '') + '</span>' + shareLinkHtml('kami', k.id);
     } else if (k.hidden) {
       bookDetail.innerHTML = '<span class="d-name" style="color:#7fffd4">龍神様</span>' +
@@ -2036,7 +2037,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       const cnt = save.counts[m.id] || 0;
       const first = save.firstMet[m.id] || '';
       musubiDetail.innerHTML = '<span class="d-name">' + m.name + '（' + m.yomi + '）</span>' + m.story +
-        '<br><span style="color:#8f8fc0;font-size:11px">' + parents + 'の縁　これまで ' + cnt + ' 度' +
+        '<br><span style="color:#8f8fc0;font-size:12.5px">' + parents + 'の縁　これまで ' + cnt + ' 度' +
         (first ? '　はじまりは ' + first : '') + '</span>' + shareLinkHtml('musubi', m.id);
     } else {
       musubiDetail.innerHTML = '<span class="d-name">？？？</span>' +
@@ -2122,7 +2123,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     if (met) {
       const cnt = save.counts[s.id] || 0;
       detail.innerHTML = '<span class="d-name">' + s.name + '（' + s.yomi + '）</span>' + s.story +
-        '<br><span style="color:#8f8fc0;font-size:11px">これまで ' + cnt + ' 度の縁' +
+        '<br><span style="color:#8f8fc0;font-size:12.5px">これまで ' + cnt + ' 度の縁' +
         (save.firstMet[s.id] ? '　はじまりは ' + save.firstMet[s.id] : '') + '</span>' + shareLinkHtml('sekki', s.id);
     } else {
       const [mo, da] = s.start.split('-').map(Number);
@@ -2166,7 +2167,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     if (met) {
       const first = save.firstMet[c.id] || '';
       detail.innerHTML = '<span class="d-name">' + c.name + '（' + c.yomi + '）</span>' + c.story +
-        '<br><span style="color:#8f8fc0;font-size:11px">' + c.shitsurae + 'に宿る' +
+        '<br><span style="color:#8f8fc0;font-size:12.5px">' + c.shitsurae + 'に宿る' +
         (first ? '　宿った日は ' + first : '') + '</span>' + shareLinkHtml('kurashi', c.id);
     } else {
       detail.innerHTML = '<span class="d-name">？？？</span>' +
