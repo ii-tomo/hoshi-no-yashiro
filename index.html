@@ -1010,7 +1010,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       story: '暑さが本気を出しはじめるころの神。無理をしない、が夏の作法。' },
     { id: 'sekki-taisho',    name: '大暑の神', yomi: 'たいしょ',   start: '07-23', color: 0xff9880,
       story: '一年でもっとも暑いころの神。とけるような日は、とけていい。' },
-    { id: 'sekki-risshuu',   name: '立秋の神', yomi: 'りっしゅう', start: '08-08', color: 0xe8c890,
+    { id: 'sekki-risshuu',   name: '立秋の神', yomi: 'りっしゅう', start: '08-07', color: 0xe8c890,
       story: '暦の上で秋が立つ日の神。風の中に、ひとすじの涼を見つける名人。' },
     { id: 'sekki-shosho',    name: '処暑の神', yomi: 'しょしょ',   start: '08-23', color: 0xd8b8a0,
       story: '暑さがおさまるころの神。がんばった夏に、そっと幕を引いてくれる。' },
@@ -2216,11 +2216,17 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     ctx.font = '26px ' + SHARE_SERIF;
     ctx.fillText('hoshi-no-yashiro.pages.dev', W / 2, H - 52);
   }
+  const KINSOKU_HEAD = '、。，．・：；？！ー…‥）」』】〕〉》”';  // 行頭に置かない字（ぶら下げる）
+  const KINSOKU_TAIL = '（「『【〔〈《“';                        // 行末に置かない字（次の行へ連れて折る）
   function wrapJp(ctx, text, maxW) {
     const lines = [];
     let line = '';
     for (const ch of text) {
-      if (line && ctx.measureText(line + ch).width > maxW) { lines.push(line); line = ch; }
+      if (line && ctx.measureText(line + ch).width > maxW) {
+        if (KINSOKU_HEAD.includes(ch)) { lines.push(line + ch); line = ''; }
+        else if (KINSOKU_TAIL.includes(line[line.length - 1])) { lines.push(line.slice(0, -1)); line = line[line.length - 1] + ch; }
+        else { lines.push(line); line = ch; }
+      }
       else line += ch;
     }
     if (line) lines.push(line);
@@ -3424,6 +3430,11 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     sanpaiWait: () => { if (sanpaisha) { sanpaisha.state = 'waiting'; sanpaisha.group.position.copy(sanpaisha.target); } }, // テスト用: 参拝者を待機状態へ
     sachi: (n) => { save.sachi = n; persist(); if (jinja) updateJinjaHud(); }, // テスト用: 幸の手持ちを設定
     meetMusubi: () => { save.counts['musubi-hi-kaze'] = save.counts['musubi-hi-kaze'] || 1; persist(); }, // テスト用: むすびの神と1柱縁を結んだ状態に
+    shareCardFull: (kind, id) => { // テスト用: わけあう画像の原寸PNG(dataURL)。SNS用カードの取り出しに使う
+      const arrMap = { kami: KAMI, musubi: MUSUBI, sekki: SEKKI, kurashi: KURASHI };
+      const cv = kind === 'book' ? drawBookCard() : drawKamiCard(arrMap[kind].find(x => x.id === id));
+      return cv.toDataURL('image/png');
+    },
     shareCardPreview: (kind, id) => { // テスト用: わけあう画像の縮小プレビュー(dataURL)
       const arrMap = { kami: KAMI, musubi: MUSUBI, sekki: SEKKI, kurashi: KURASHI };
       const cv = kind === 'book' ? drawBookCard() : drawKamiCard(arrMap[kind].find(x => x.id === id));
