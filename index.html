@@ -574,6 +574,13 @@
     cursor: pointer; text-decoration: underline dotted rgba(150,150,200,.5); text-underline-offset: 4px;
   }
   #goshuincho .share-link:hover { color: #d8d8f2; }
+  /* はじめかたガイドへの導線（初回の人の目に入らないよう、御朱印帳のいちばん下に控えめに） */
+  #goshuincho .guide-link {
+    display: block; font-size: 12.5px; color: #9a9ac8; letter-spacing: .18em;
+    margin-bottom: 24px; text-decoration: underline dotted rgba(150,150,200,.5);
+    text-underline-offset: 4px;
+  }
+  #goshuincho .guide-link:hover { color: #d8d8f2; }
 
   /* 縁むすび: 二柱えらび */
   #musubi-select .m-lead { font-size: clamp(12.5px, 2.2vw, 13px); line-height: 2.2; letter-spacing: .12em; color: #b8b8dd; text-align: center; margin-bottom: 12px; }
@@ -836,6 +843,7 @@
   <div class="book-hounou" id="book-hounou"></div>
   <div class="musubi-link" id="share-book">御朱印帳を、わけあう</div>
   <div class="book-note">八柱すべてと縁を結ぶと、龍神様が姿を現す。</div>
+  <a class="guide-link" href="./guide.html">はじめかたガイドを、ひらく</a>
   <button id="book-close">とじる</button>
 </div>
 
