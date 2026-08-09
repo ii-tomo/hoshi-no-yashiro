@@ -524,6 +524,8 @@
     font-size: 12.5px; color: #8f8fc0; letter-spacing: .1em;
     line-height: 1.9; text-align: center; margin-bottom: 24px;
   }
+  #goshuincho .book-note small { display: block; font-size: 12px; color: #8f8fc0; }
+  #goshuincho .book-note b { color: #7fffd4; font-weight: normal; font-size: 15px; }
 
   /* 御朱印帳を縦スクロール可能に（守護神セクションで背が高くなるため） */
   #goshuincho { justify-content: flex-start; overflow-y: auto; padding-top: 40px; touch-action: pan-y pinch-zoom; }
@@ -842,7 +844,7 @@
   <div class="book-detail" id="kurashi-detail"></div>
   <div class="book-hounou" id="book-hounou"></div>
   <div class="musubi-link" id="share-book">御朱印帳を、わけあう</div>
-  <div class="book-note">八柱すべてと縁を結ぶと、龍神様が姿を現す。</div>
+  <div class="book-note" id="book-note">八柱すべてと縁を結ぶと、龍神様が姿を現す。</div>
   <a class="guide-link" href="./guide.html">はじめかたガイドを、ひらく</a>
   <button id="book-close">とじる</button>
 </div>
@@ -931,6 +933,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     { name: '大吉',   rate: 0.13, scale: 1.55, color: '#ffe09e' },
     { name: '大大吉', rate: 0.02, scale: 2.0,  color: '#7fffd4' }, // 龍神様
   ];
+  const RYUJIN_CERTAIN = 30;   // 八柱そろってから、この回数のお参りで龍神様が必ず現れる
+  const RYUJIN_PER_DAY = 3;    // 歩みに数えるお参りは、一日に三度まで
 
   // ===== むすびの二十八柱（Phase 3 縁結び・正本は docs/CONCEPT.md）=====
   // id は musubi-親1-親2（KAMI配列順の早い方が先）。28すべてに神がいる（どの縁も尊い・ハズレなし）
@@ -1250,6 +1254,17 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   save.shitsurae = save.shitsurae || [];           // 建てた設えのid配列（KURASHI配列順）
   save.toritsugiCount = save.toritsugiCount || 0;  // とりついだ願いの累計
   save.seenJinjaIntro = save.seenJinjaIntro || false;  // とりつぎのこころえを見たか
+  // 龍神様への歩み: 八柱そろってからお参りを重ねると、いつか必ず現れる（2%の抽選も並行して生きている）
+  save.ryujinDay = save.ryujinDay || '';        // 歩みを数えた最後の日
+  save.ryujinToday = save.ryujinToday || 0;     // その日すでに数えた回数（RYUJIN_PER_DAY まで）
+  // 導入前からお参りしていた人へ、これまでの歩みを一度だけ引き継ぐ。
+  // おみくじで生まれるのは八柱と節気の神だけなので、その記録の合計が今までのお参り回数にあたる
+  if (save.ryujinSteps == null) {
+    let past = 0;
+    for (const k of KAMI) if (!k.hidden) past += (save.counts[k.id] || 0);
+    for (const s of SEKKI) past += (save.counts[s.id] || 0);
+    save.ryujinSteps = past;
+  }
   function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch {} }
   function allEightMet() { return KAMI.filter(k => !k.hidden).every(k => (save.counts[k.id] || 0) > 0); }
   function localDate(d) { return (d || new Date()).toLocaleDateString('sv-SE'); }
@@ -1369,7 +1384,23 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     }
     return RARITY[0];
   }
+  // ===== 龍神様への歩み =====
+  // 八柱そろってからのお参りを数え、満ちたら必ず現れる。すでに縁を結んだ人は数えない（以降は2%の抽選のみ）
+  function ryujinWalking() { return allEightMet() && (save.counts.ryujin || 0) === 0; }
+  function ryujinReady() { return ryujinWalking() && save.ryujinSteps >= RYUJIN_CERTAIN; }
+  function ryujinRemain() { return Math.max(0, RYUJIN_CERTAIN - save.ryujinSteps); }
+  function stepRyujin() {
+    if (!ryujinWalking()) return;
+    const today = localDate();
+    if (save.ryujinDay !== today) { save.ryujinDay = today; save.ryujinToday = 0; }
+    if (save.ryujinToday >= RYUJIN_PER_DAY) return;   // 一日に数えるのは三度まで
+    save.ryujinToday++;
+    save.ryujinSteps++;
+  }
+
   function rollOmikuji(boost) {
+    // 歩みが満ちたなら、おみくじを待たずに龍神様が現れる（続けた人には、かならず届く）
+    if (ryujinReady()) return RARITY[3];
     // その日最初の一柱は2回引いて良い方（今日の初縁）
     if (!boost) return rollOnce();
     const a = rollOnce(), b = rollOnce();
@@ -1412,6 +1443,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       firstOfDay = true;
     }
 
+    stepRyujin();   // このお参りを、龍神様への歩みに数える
     const rarity = rollOmikuji(firstOfDay);
     const kami = pickKami(rarity);
 
@@ -1944,7 +1976,23 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   const bookDetail = document.getElementById('book-detail');
   let bookReturn = 'start';
 
+  // 龍神様の一行。歩みの途中なら、あと何度で現れるかを添える
+  function renderBookNote() {
+    const el = document.getElementById('book-note');
+    if ((save.counts.ryujin || 0) > 0) {
+      el.innerHTML = '龍神様と、縁が結ばれている。';
+    } else if (!allEightMet()) {
+      el.innerHTML = '八柱すべてと縁を結ぶと、龍神様が姿を現す。';
+    } else if (ryujinRemain() === 0) {
+      el.innerHTML = '次のお参りで、龍神様が姿を現す。';
+    } else {
+      el.innerHTML = 'あと <b>' + ryujinRemain() + '</b> 度のお参りで、龍神様が姿を現す。' +
+        '<small>歩みに数えるのは、一日に三度まで</small>';
+    }
+  }
+
   function renderBook() {
+    renderBookNote();
     bookGrid.innerHTML = '';
     for (const k of KAMI) {
       const met = (save.counts[k.id] || 0) > 0;
@@ -3448,6 +3496,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     sanpaiWait: () => { if (sanpaisha) { sanpaisha.state = 'waiting'; sanpaisha.group.position.copy(sanpaisha.target); } }, // テスト用: 参拝者を待機状態へ
     sachi: (n) => { save.sachi = n; persist(); if (jinja) updateJinjaHud(); }, // テスト用: 幸の手持ちを設定
     meetMusubi: () => { save.counts['musubi-hi-kaze'] = save.counts['musubi-hi-kaze'] || 1; persist(); }, // テスト用: むすびの神と1柱縁を結んだ状態に
+    ryujin: () => ({ steps: save.ryujinSteps, remain: ryujinRemain(), today: save.ryujinToday, day: save.ryujinDay, walking: ryujinWalking(), ready: ryujinReady() }), // テスト用: 龍神様への歩みを確認
+    ryujinSteps: (n) => { save.ryujinSteps = n; persist(); }, // テスト用: 歩みの数を設定
+    ryujinStep: () => { stepRyujin(); persist(); return save.ryujinSteps; }, // テスト用: 歩みを一度すすめる（一日三度の上限も効く）
+    roll: (boost) => rollOmikuji(!!boost).name, // テスト用: おみくじを一度引く（歩みの確定も反映される）
     shareCardFull: (kind, id) => { // テスト用: わけあう画像の原寸PNG(dataURL)。SNS用カードの取り出しに使う
       const arrMap = { kami: KAMI, musubi: MUSUBI, sekki: SEKKI, kurashi: KURASHI };
       const cv = kind === 'book' ? drawBookCard() : drawKamiCard(arrMap[kind].find(x => x.id === id));
