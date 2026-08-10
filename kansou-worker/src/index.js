@@ -27,6 +27,21 @@ export default {
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...cors, 'Content-Type': 'application/json' } });
     }
     const clip = (v, n) => String(v == null ? '' : v).slice(0, n);
+    const num = (v, max) => Math.max(0, Math.min(Math.floor(Number(v) || 0), max));
+
+    // 龍神様に会った記録。数を知るためだけのもので、名前も本文も受け取らない
+    if (data.kind === 'ryujin') {
+      const r = {
+        at: new Date().toISOString(),
+        how: data.how === 'certain' ? 'certain' : 'omikuji',  // 歩みが満ちて / おみくじで
+        steps: num(data.steps, 9999),    // 八柱そろってから何度目のお参りだったか
+        born: num(data.born, 99999),     // その人がこれまでに生んだ星の数
+        streak: num(data.streak, 9999),  // 連続で通った日数
+      };
+      await env.KANSOU.put('ryujin:' + r.at + ':' + Math.random().toString(36).slice(2, 8), JSON.stringify(r));
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...cors, 'Content-Type': 'application/json' } });
+    }
+
     const rec = {
       name: clip(data.name, 40),          // ペンネーム（任意）
       device: clip(data.device, 20),      // iPhone / Android / その他・PC

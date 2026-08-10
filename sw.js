@@ -25,6 +25,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
+  // 動画はブラウザに任せる。途中から取る要求(Range)が混ざるので、ここで横取りすると再生が壊れる
+  if (url.pathname.endsWith('.mp4')) return;
   // three.js はバージョン固定のCDNなのでキャッシュ優先
   if (url.hostname === 'cdn.jsdelivr.net') {
     e.respondWith(
