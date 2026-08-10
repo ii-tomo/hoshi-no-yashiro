@@ -1733,7 +1733,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   const ryujinVideo = document.getElementById('ryujin-video');
   let ryujinVideoAsked = false;
   function preloadRyujinVideo() {
-    if (ryujinVideoAsked || !ryujinWalking() || ryujinRemain() > 3) return;
+    if (ryujinVideoAsked || !allEightMet()) return;
+    // まだ会っていない人は、歩みが残りわずかになってから。
+    // 一度会った人は歩みが止まっていて、あとは2%だけ。いつ当たるか分からないので用意しておく
+    if (ryujinWalking() && ryujinRemain() > 3) return;
     ryujinVideoAsked = true;
     ryujinVideo.src = './video/ryujin.mp4';
     ryujinVideo.load();
