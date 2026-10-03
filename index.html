@@ -188,6 +188,8 @@
     font-size: 14px; line-height: 2;
     color: #b8b8dd;
   }
+  /* 大祓の三日間、めぐりの橋をわたってきた神のときだけ添える */
+  #birth-story .bridge { margin-top: 6px; font-size: 13px; letter-spacing: .12em; color: #ffe09e; }
 
   /* オーバーレイ共通 */
   .overlay {
@@ -503,6 +505,16 @@
   #start .mini-dots { display: flex; justify-content: center; gap: 6px; }
   #start .mini-dots span { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(120,120,160,.6); }
   #start .mini-dots span.on { box-shadow: 0 0 7px currentColor; background: currentColor; border-color: transparent; }
+  /* 大祓の三日間だけ出る知らせ（はじめての人にも出す。お祭りなので） */
+  #start .oharae {
+    text-align: center; margin-bottom: 28px;
+    font-size: 13.5px; line-height: 1.9; letter-spacing: .1em; color: #c8c8e8;
+  }
+  #start .oharae .o-name {
+    font-size: 16px; letter-spacing: .3em; text-indent: .3em; color: #ffe09e;
+    text-shadow: 0 0 12px rgba(255,224,158,.45); margin-bottom: 4px;
+  }
+  #start .oharae small { display: block; font-size: 12.5px; color: #9a9ac8; margin-top: 2px; }
   #start .book-link {
     margin-top: 26px; font-size: 14px; color: #9a9ac8; letter-spacing: .18em;
     cursor: pointer; border-bottom: 1px solid rgba(150,150,200,.3); padding-bottom: 2px;
@@ -765,6 +777,7 @@
       <div class="mini-dots" id="w-dots"></div>
     </div>
   </div>
+  <div class="oharae" id="oharae-note" style="display:none;"></div>
   <div class="ask">今日は、どんな時間にする？</div>
   <div class="modes">
     <button data-mode="totonoeru">整える<small>4-4呼吸（日中の瞑想に）</small></button>
@@ -1095,13 +1108,35 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     { id: 'sekki-daikan',    name: '大寒の神', yomi: 'だいかん',   start: '01-20', color: 0x88a8c8, hours: [23,0,1,2,3], when: '冷えきった夜',
       story: '一年でもっとも寒いころの神。いちばん冷えた朝の空が、いちばん澄んでいる。' },
   ];
+  // 暦にかかわる判定（節気・大祓・おみくじの刻）が見る「いま」。ふだんは端末の時計そのもの。
+  // 開発用フックで差し替えると、祭事の日を待たずに確かめられる
+  let clockOverride = null;
+  function nowDate() { return clockOverride ? new Date(clockOverride) : new Date(); }
   function sekkiNow(d) {
     // いまの節気 = 開始日が今日以前でいちばん遅いもの。年明け〜小寒前は前年の冬至
-    const md = localDate(d).slice(5);
+    const md = localDate(d || nowDate()).slice(5);
     let cur = null;
     for (const s of SEKKI) if (s.start <= md && (!cur || s.start > cur.start)) cur = s;
     if (!cur) for (const s of SEKKI) if (!cur || s.start > cur.start) cur = s;
     return cur;
+  }
+
+  // ===== 大祓（おおはらえ・年2回の祭事・正本は docs/CONCEPT.md）=====
+  // 三日のあいだ「めぐりの橋」が架かり、出会い損ねた節気の神が全員おみくじに混ざる。
+  // 端末の日付で開くので、毎年かってに巡ってくる。お祭りなので、誰にでも開く
+  const OHARAE = [
+    { id: 'nagoshi',    name: '夏越の大祓', from: '06-28', to: '06-30' },
+    { id: 'toshikoshi', name: '年越の大祓', from: '12-29', to: '12-31' },
+  ];
+  function oharaeNow(d) {
+    const md = localDate(d || nowDate()).slice(5);
+    return OHARAE.find(o => o.from <= md && md <= o.to) || null;
+  }
+  // めぐりの橋をわたってくる神 = まだ会っていない節気の神（いまの節気の神は、ふだんどおり混ざっている）
+  function bridgeSekki(d) {
+    if (!oharaeNow(d)) return [];
+    const cur = sekkiNow(d);
+    return SEKKI.filter(s => s !== cur && !(save.counts[s.id] > 0));
   }
 
   // ===== 暮らしの十六柱（Phase 4.0・正本は docs/CONCEPT.md）=====
@@ -1447,11 +1482,17 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
   function pickKami(rarity) {
     if (rarity.name === '大大吉') return KAMI.find(k => k.id === 'ryujin');
-    const hour = new Date().getHours();
+    const now = nowDate();
+    const hour = now.getHours();
     const pool = KAMI.filter(k => !k.hidden);
-    const sekki = sekkiNow();
+    const sekki = sekkiNow(now);
     if (sekki) pool.push(sekki);   // いまの節気の神だけ、おみくじに混ざる
+    // 大祓の三日間は、めぐりの橋をわたって、出会い損ねた節気の神もやってくる
+    const bridge = bridgeSekki(now);
+    pool.push(...bridge);
     const weights = pool.map(k => {
+      // 橋をわたってくる神は一律に重み1。季節はもう過ぎているので「ふさわしい刻」は待たない
+      if (bridge.includes(k)) return 1;
       let w = 1;
       // 時間帯とモードは「らしさ」の香りづけにとどめる。ここを強くすると、
       // いつも同じ時間に来る人へ同じ神ばかり出てしまう。おみくじはその日その日の運勢であってほしい
@@ -1491,6 +1532,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     const byCertain = ryujinReady();   // 歩みが満ちての顕現か、おみくじを引き当てたのか
     const rarity = rollOmikuji(firstOfDay);
     const kami = pickKami(rarity);
+    const viaBridge = bridgeSekki().includes(kami);   // 縁を記録する前に見る（記録すると橋の名簿から外れる）
     if (kami.id === 'ryujin') reportRyujin(byCertain ? 'certain' : 'omikuji');
 
     let dragonWithVideo = false;
@@ -1540,7 +1582,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       dragonCardTimer = setTimeout(() => showBirthCard(rarity, kami, firstOfDay), T.card * 1000);
       return T.done;   // 「縁が結ばれました」まで待たせる秒数
     }
-    showBirthCard(rarity, kami, firstOfDay);
+    showBirthCard(rarity, kami, firstOfDay, viaBridge);
     playBirthChime(false);
     return 5;
   }
@@ -2116,6 +2158,22 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     (returning && canJinja()) ? '' : 'none';  // むすびの神と縁ができると、社がひらく
   if (returning) populateWelcome();
 
+  // 大祓の三日間は、スタート画面で知らせる
+  function populateOharae() {
+    const el = document.getElementById('oharae-note');
+    const o = oharaeNow();
+    el.style.display = o ? '' : 'none';
+    if (!o) return;
+    const [mo, da] = o.to.split('-').map(Number);
+    el.innerHTML = '<div class="o-name">' + o.name + '</div>' +
+      'めぐりの橋が架かっています<br>' +
+      (bridgeSekki().length > 0
+        ? 'まだ会えていない節気の神も<br>おみくじに混ざります'
+        : '節気の神とは、すべて縁を結んでいます') +
+      '<small>' + mo + '月' + da + '日まで</small>';
+  }
+  populateOharae();
+
   // ===== オープニング（初回のみ。社の戸→語りつきの物語→タイトル）=====
   // 出すかどうかは<head>の同期スクリプトが決める（完全初回かつ動きを減らす設定でないとき）
   if (document.documentElement.classList.contains('op-first')) runOpening();
@@ -2316,7 +2374,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
   function closeBook() {
     if (bookReturn === 'finish') { state = 'finish'; showOverlay('finish'); }
-    else { populateWelcome(); state = 'title'; showOverlay('start'); }
+    else { populateWelcome(); populateOharae(); state = 'title'; showOverlay('start'); }
   }
   document.getElementById('open-book-start').addEventListener('click', () => openBook('start'));
   document.getElementById('open-book-finish').addEventListener('click', () => openBook('finish'));
@@ -2452,11 +2510,15 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       grid.appendChild(cell);
     }
     // いまの神と、その神がいちばん現れやすい刻を教える（知らなければ、時刻を選ぶ意味がないので）
-    document.getElementById('sekki-detail').innerHTML = now
+    const o = oharaeNow();
+    document.getElementById('sekki-detail').innerHTML = (o
+      ? '<b style="color:#ffe9a8;font-weight:normal;white-space:nowrap">' + o.name + '</b>の三日間は、めぐりの橋が架かります。' +
+        'まだ会っていない節気の神も、おみくじに混ざります。<br><br>'
+      : '') + (now
       ? 'いまは <b style="color:#ffe9a8;font-weight:normal">' + now.name + '</b>。' +
         '<b style="color:#ffe9a8;font-weight:normal">' + now.when + '</b>のお参りで、いっそう会いやすくなります。' +
         '<br><span style="color:#8f8fc0;font-size:12.5px">ほかの刻でも会えます。急がなくてだいじょうぶ</span>'
-      : 'いまの節気の神だけが、おみくじに混ざります。';
+      : 'いまの節気の神だけが、おみくじに混ざります。');
   }
   function showSekkiDetail(s, met, now) {
     const detail = document.getElementById('sekki-detail');
@@ -2473,6 +2535,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
         (here
           ? 'いまなら、お参りで出会えるかもしれません。<br>' +
             '<span style="color:#ffe9a8">' + s.when + '</span>が、この神のいちばん現れやすい刻。'
+          : oharaeNow()
+          ? 'いまは<span style="color:#ffe9a8;white-space:nowrap">' + oharaeNow().name + '</span>。めぐりの橋をわたって、会いにきてくれるかもしれません。'
           : '<span style="color:#8f8fc0">' + s.when + '</span>に現れる神。出会い損ねても、来年また巡ってきます。');
     }
   }
@@ -3040,7 +3104,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     setHint('');
     if (jinjaReturn === 'after') { state = 'after'; showOverlay('after'); }
     else if (jinjaReturn === 'book') { openBook(bookReturn); }
-    else { populateWelcome(); state = 'title'; showOverlay('start'); }
+    else { populateWelcome(); populateOharae(); state = 'title'; showOverlay('start'); }
   }
   function updateJinjaHud() {
     document.getElementById('j-sachi').textContent = '幸　' + save.sachi;
@@ -3245,12 +3309,18 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   });
 
   let cardTimer = null;
-  function showBirthCard(rarity, kami, firstOfDay) {
+  function showBirthCard(rarity, kami, firstOfDay, viaBridge) {
     birthCard.classList.toggle('ryujin', kami.id === 'ryujin');
     birthRarity.textContent = '— ' + rarity.name + (firstOfDay ? '（今日の初縁）' : '') + ' —';
     birthRarity.style.color = rarity.color;
     birthName.textContent = kami.name;
     birthStory.textContent = kami.story;
+    if (viaBridge) {
+      const note = document.createElement('div');
+      note.className = 'bridge';
+      note.innerHTML = 'めぐりの橋をわたって<br>会いにきてくれました';
+      birthStory.appendChild(note);
+    }
     birthCard.style.opacity = '1';
     clearTimeout(cardTimer);
     cardTimer = setTimeout(() => { birthCard.style.opacity = '0'; }, 8000);
@@ -3791,6 +3861,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     norito: (n) => { save.noritoHeld = n; persist(); }, // テスト用: 祝詞の手持ちを設定
     sekki: (d) => { const s = sekkiNow(d ? new Date(d) : undefined); return s && s.id; }, // テスト用: いまの節気
     pick: (i) => pickKami(RARITY[i || 0]).id, // テスト用: おみくじ抽選だけ確認
+    clock: (iso) => { clockOverride = iso || null; populateOharae(); return nowDate().toString(); }, // テスト用: 暦の「いま」を差し替える（節気・大祓・おみくじの刻）。引数なしで元に戻す
+    oharae: () => { const o = oharaeNow(); return o && { id: o.id, bridge: bridgeSekki().map(s => s.id) }; }, // テスト用: 大祓と、橋をわたってくる神
+    pickMany: (n) => { const c = {}; for (let i = 0; i < (n || 1000); i++) { const id = pickKami(RARITY[0]).id; c[id] = (c[id] || 0) + 1; } return c; }, // テスト用: おみくじの出方をまとめて見る
     musubiSkip: () => { if (musubi && !musubi.done) finishMusubi(); }, // テスト用: むすびの呼吸を飛ばす
     musubiState: () => musubi && { id: musubi.m.id, holdTime: musubi.holdTime, done: musubi.done }, // テスト用: 進行確認
     jinjaState: () => ({ state, sachi: save.sachi, sachiTotal: save.sachiTotal, shitsurae: save.shitsurae.length, sanpaisha: sanpaisha && sanpaisha.state, negai: sanpaisha && sanpaisha.negai, timer: sanpaiTimer, pos: sanpaisha ? sanpaisha.group.position.toArray().map(v => Math.round(v * 100) / 100) : null, t: sanpaisha ? Math.round(sanpaisha.t * 10) / 10 : null }), // テスト用: 神社の進行確認
