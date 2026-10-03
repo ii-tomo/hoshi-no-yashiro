@@ -3828,6 +3828,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   // 診断済みなら、起動時に守護神を空間へ呼び出す
   if (save.guardian && GUARDIANS[save.guardian]) spawnGuardian(save.guardian);
 
+  // ローカルでの確認用: ?oharae を付けて開くと、年越の大祓の日（12/29の夜）として動く。?oharae=nagoshi で夏越（6/28）。
+  // 本番（pages.dev）では動かない ― 祭りの日を好きに呼べると、年2回の意味がなくなるため
+  const oharaeTest = new URLSearchParams(location.search).get('oharae');
+  if (oharaeTest !== null && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+    clockOverride = new Date().getFullYear() + (oharaeTest === 'nagoshi' ? '-06-28T12:00' : '-12-29T22:00');
+    populateOharae();
+  }
+
   // ローカルでの確認用: ?ryujin を付けて開くと、顕現だけをすぐ見られる。
   // 本番（pages.dev）では動かない ― 誰でも見られると、待った人のためのものでなくなるため
   if (new URLSearchParams(location.search).has('ryujin') &&
