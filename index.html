@@ -196,6 +196,12 @@
     text-shadow: 0 0 10px rgba(255,224,158,.5);
   }
   #birth-card.via-bridge #birth-bridge { display: block; }
+  /* 橋をわたってきた神のカードは、金の縁と、その神の色の淡い光（ふだんのカードと見分けがつくように・本人指摘） */
+  #birth-card.via-bridge {
+    border-color: rgba(255,224,158,.55);
+    background: linear-gradient(180deg, rgba(var(--kc), .24), rgba(10,10,35,.62) 72%);
+    box-shadow: 0 0 26px rgba(255,224,158,.16), inset 0 0 18px rgba(255,224,158,.08);
+  }
 
   /* オーバーレイ共通 */
   .overlay {
@@ -1566,13 +1572,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       group.add(core);
 
       scene.add(group);
+      if (viaBridge) birthBridge(position, kami.color);   // 遠くの空から橋が架かり、神の光がわたってくる
       kamis.push({
         group, halo, core,
         base: position.clone(),
         phase: Math.random() * Math.PI * 2,
         speed: 0.15 + Math.random() * 0.2,
         drift: new THREE.Vector3((Math.random()-.5)*.15, (Math.random()-.5)*.1, 0),
-        bornAt: clockTime,
+        bornAt: clockTime + (viaBridge ? BRIDGE.arrive : 0),   // 橋のときは、わたりきった刹那に生まれる
         haloBase: 7 * rarity.scale,
         coreBase: 2.2 * Math.min(rarity.scale, 1.4),
       });
@@ -1599,11 +1606,102 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       dragonCardTimer = setTimeout(() => showBirthCard(rarity, kami, firstOfDay), T.card * 1000);
       return T.done;   // 「縁が結ばれました」まで待たせる秒数
     }
-    showBirthCard(rarity, kami, firstOfDay, viaBridge);
+    if (viaBridge) {
+      // 橋がかかり、神の光がわたりきってから名乗る
+      playBridgeChime();
+      clearTimeout(bridgeCardTimer);
+      bridgeCardTimer = setTimeout(() => {
+        showBirthCard(rarity, kami, firstOfDay, true);
+        playBirthChime(false);
+      }, BRIDGE.arrive * 1000);
+      return BRIDGE.arrive + 8;   // カードを見せきってから「縁が結ばれました」へ（カードが消えるのと同じ8秒）
+    }
+    showBirthCard(rarity, kami, firstOfDay, false);
     playBirthChime(false);
-    return viaBridge ? 8 : 5;   // 橋のときはカードを長めに見せる（カードが消えるのと同じ8秒）
+    return 5;
   }
   let dragonCardTimer = null;
+  let bridgeCardTimer = null;
+
+  // ===== めぐりの橋（大祓の三日間、橋をわたってきた神の誕生）=====
+  // 遠くの空から光の粒で橋が架かり、神の光がそれをわたって、着いたところで生まれる。
+  // 龍神様ほど大きくはしない（静かな祭り）。でも、ふだんのおみくじとは違うと分かるように（本人「同じに見えちゃった」）
+  const BRIDGE = {
+    draw: 1.6,     // 橋が架かりきるまで
+    cross: 1.0,    // 神の光がわたりはじめる
+    arrive: 3.4,   // わたりきって、生まれる（カードもここで出る）
+    fade: 3.0,     // 着いてから橋が消えるまで
+    dots: 90,      // 橋の光の粒
+  };
+  const BRIDGE_GOLD = new THREE.Color(0xffe09e);
+  const bridges = [];
+  function bridgeSprite(color, opacity) {
+    return new THREE.Sprite(new THREE.SpriteMaterial({
+      map: softGlow, color, transparent: true, opacity,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+  }
+  function birthBridge(end, color) {
+    // 橋のたもとは画面の端（神の生まれる場所と反対側）。弓なりに画面を横切って降りてくる。
+    // 画面の大きさから決める（縦長のスマホでも、たもとから着くまでが見えるように）
+    const dist = camera.position.z - end.z;
+    const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * dist;
+    const halfW = halfH * camera.aspect;
+    const side = Math.abs(end.x) > halfW * 0.15 ? -Math.sign(end.x) : (Math.random() < 0.5 ? -1 : 1);
+    const startY = Math.min(end.y + halfH * 0.45, halfH * 0.75);
+    const start = new THREE.Vector3(side * halfW * 1.08, startY, end.z - 3);
+    const ctrl = new THREE.Vector3((start.x + end.x) / 2, Math.max(startY, end.y) + halfH * 0.5, end.z - 1.5);
+    const curve = new THREE.QuadraticBezierCurve3(start, ctrl, end);
+    const kc = new THREE.Color(color);
+    const dots = [];
+    for (let i = 0; i < BRIDGE.dots; i++) {
+      const t = i / (BRIDGE.dots - 1);
+      const sp = bridgeSprite(BRIDGE_GOLD.clone().lerp(kc, t), 0);   // たもとは金、神のそばほど神の色
+      sp.position.copy(curve.getPoint(t)).add(new THREE.Vector3(
+        (Math.random() - .5) * .6, (Math.random() - .5) * .6, (Math.random() - .5) * .6));
+      sp.scale.setScalar(1.1 + Math.random() * 0.8);
+      scene.add(sp);
+      dots.push({ sp, t, tw: Math.random() * Math.PI * 2 });
+    }
+    const traveler = bridgeSprite(kc, 0);
+    traveler.scale.setScalar(4.6);
+    const travelerCore = bridgeSprite(0xffffff, 0);
+    travelerCore.scale.setScalar(1.5);
+    const burst = bridgeSprite(kc, 0);
+    burst.position.copy(end);
+    scene.add(traveler, travelerCore, burst);
+    bridges.push({ curve, dots, traveler, travelerCore, burst, bornAt: clockTime });
+  }
+  function updateBridges() {
+    for (let b = bridges.length - 1; b >= 0; b--) {
+      const br = bridges[b];
+      const age = clockTime - br.bornAt;
+      // 架かる: たもとから順に灯り、先端はやわらかく
+      const drawn = Math.min(age / BRIDGE.draw, 1);
+      const life = 1 - Math.min(Math.max((age - BRIDGE.arrive) / BRIDGE.fade, 0), 1);
+      for (const d of br.dots) {
+        const on = Math.min(Math.max((drawn - d.t) / 0.08, 0), 1);
+        d.sp.material.opacity = 0.75 * on * life * (0.75 + 0.25 * Math.sin(clockTime * 3 + d.tw));
+      }
+      // わたる: 神の光が、たもとから神の生まれる場所へ
+      const ct = Math.min(Math.max((age - BRIDGE.cross) / (BRIDGE.arrive - BRIDGE.cross), 0), 1);
+      const p = br.curve.getPoint(ct * ct * (3 - 2 * ct));
+      br.traveler.position.copy(p);
+      br.travelerCore.position.copy(p);
+      const tOp = (age < BRIDGE.cross || ct >= 1) ? 0 : Math.min((age - BRIDGE.cross) / 0.3, 1);
+      br.traveler.material.opacity = 0.85 * tOp;
+      br.travelerCore.material.opacity = 0.9 * tOp;
+      // 着いた刹那、ふわりと光がひろがる
+      const bt = (age - BRIDGE.arrive) / 1.4;
+      br.burst.material.opacity = (bt >= 0 && bt <= 1) ? 0.5 * (1 - bt) : 0;
+      if (bt >= 0 && bt <= 1) br.burst.scale.setScalar(4 + bt * 16);
+      if (life <= 0 && bt > 1) {
+        for (const d of br.dots) { scene.remove(d.sp); d.sp.material.dispose(); }
+        for (const s of [br.traveler, br.travelerCore, br.burst]) { scene.remove(s); s.material.dispose(); }
+        bridges.splice(b, 1);
+      }
+    }
+  }
 
   // ===== 龍神様（粒子の龍）=====
   // 霧の奥からうねって近づき、目の前をかすめて、旋回しながら見守る位置に落ち着く。
@@ -1937,6 +2035,23 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.5);
       o.connect(g); g.connect(audioCtx.destination);
       o.start(t0); o.stop(t0 + 2.6);
+    });
+  }
+
+  // めぐりの橋が架かる音。たもとから一音ずつ、のぼっていく（ふだんの鈴は和音で一度に鳴る）
+  function playBridgeChime() {
+    if (!audioCtx || !soundOn) return;
+    [1047, 1175, 1319, 1568, 1760].forEach((f, i) => {
+      const o = audioCtx.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f;
+      const g = audioCtx.createGain();
+      const t0 = audioCtx.currentTime + i * (BRIDGE.draw / 5);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.05, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.8);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0); o.stop(t0 + 1.9);
     });
   }
 
@@ -3334,6 +3449,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     birthName.textContent = kami.name;
     birthStory.textContent = kami.story;
     birthCard.classList.toggle('via-bridge', !!viaBridge);
+    const c = kami.color || 0xffffff;   // 16進のまま分ける（THREE.Color は線形に直すので、CSSの色とずれる）
+    birthCard.style.setProperty('--kc', [(c >> 16) & 255, (c >> 8) & 255, c & 255].join(','));
     birthCard.style.opacity = '1';
     clearTimeout(cardTimer);
     cardTimer = setTimeout(() => { birthCard.style.opacity = '0'; }, 8000);
@@ -3794,7 +3911,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     // 神様たちの漂い
     for (const k of kamis) {
       const age = clockTime - k.bornAt;
-      const appear = Math.min(age / 2, 1);
+      const appear = Math.max(0, Math.min(age / 2, 1));   // 橋をわたってくる神は、着くまで0のまま
       k.phase += dt * k.speed;
       k.group.position.x = k.base.x + Math.sin(k.phase) * 2.5 + k.drift.x * age;
       k.group.position.y = k.base.y + Math.sin(k.phase * 0.7) * 1.5 + k.drift.y * age;
@@ -3833,6 +3950,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     }
 
     updateDragons();
+    updateBridges();
 
     renderer.render(scene, camera);
   }
