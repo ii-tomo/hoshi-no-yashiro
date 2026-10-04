@@ -1480,7 +1480,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     return RARITY.indexOf(a) >= RARITY.indexOf(b) ? a : b;
   }
 
-  function pickKami(rarity) {
+  function pickKami(rarity, firstOfDay) {
     if (rarity.name === '大大吉') return KAMI.find(k => k.id === 'ryujin');
     const now = nowDate();
     const hour = now.getHours();
@@ -1489,6 +1489,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     if (sekki) pool.push(sekki);   // いまの節気の神だけ、おみくじに混ざる
     // 大祓の三日間は、めぐりの橋をわたって、出会い損ねた節気の神もやってくる
     const bridge = bridgeSekki(now);
+    // その日最初のお参りには、かならず橋をわたってくる（半々の運だと、2回つづけて会えない人が4人に1人いた・本人指摘）
+    if (firstOfDay && bridge.length) return bridge[Math.floor(Math.random() * bridge.length)];
     pool.push(...bridge);
     const weights = pool.map(k => {
       // 橋をわたってくる神は一律に重み1。季節はもう過ぎているので「ふさわしい刻」は待たない
@@ -1518,10 +1520,11 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   const kamis = [];
   function birthKami(position) {
     // その日最初の誕生なら streak 更新＋初縁ブースト
-    const today = localDate();
+    // 「今日」は暦の「いま」で数える（ふだんは端末の時計そのもの。?oharae の確認でも初縁が正しく立つように）
+    const today = localDate(nowDate());
     let firstOfDay = false;
     if (save.lastDay !== today) {
-      const yesterday = localDate(new Date(Date.now() - 86400000));
+      const yesterday = localDate(new Date(nowDate().getTime() - 86400000));
       save.streak = (save.lastDay === yesterday) ? save.streak + 1 : 1;
       save.lastDay = today;
       save.bornToday = 0;
@@ -1531,7 +1534,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     stepRyujin();   // このお参りを、龍神様への歩みに数える
     const byCertain = ryujinReady();   // 歩みが満ちての顕現か、おみくじを引き当てたのか
     const rarity = rollOmikuji(firstOfDay);
-    const kami = pickKami(rarity);
+    const kami = pickKami(rarity, firstOfDay);
     const viaBridge = bridgeSekki().includes(kami);   // 縁を記録する前に見る（記録すると橋の名簿から外れる）
     if (kami.id === 'ryujin') reportRyujin(byCertain ? 'certain' : 'omikuji');
 
