@@ -147,6 +147,46 @@
   }
   #ryujin-video.on { display: block; }
 
+  /* 守護神の顕現。光が灯り、その中から姿が浮かび、名乗る（タップで先へ／もう一度で閉じる）
+     誕生日を入れた直後に一度。すでに入れている人には、お札が入ってから初めて開いたときに一度 */
+  #guardian-reveal {
+    position: fixed; inset: 0; z-index: 60; display: none; overflow: hidden; cursor: pointer;
+    background: #04040f; --gc: 255,224,158;
+    opacity: 1; transition: opacity .9s;
+  }
+  #guardian-reveal.on { display: block; }
+  #guardian-reveal.closing { opacity: 0; }
+  #gr-glow {
+    position: absolute; left: 50%; top: 32%; width: 22vmin; height: 22vmin; border-radius: 50%;
+    transform: translate(-50%, -50%) scale(.15); opacity: 0;
+    background: radial-gradient(circle, rgba(255,250,240,.95), rgba(var(--gc),.6) 32%, rgba(var(--gc),0) 70%);
+    transition: transform 2.2s ease-out, opacity 1.1s;
+  }
+  #guardian-reveal.s1 #gr-glow { opacity: 1; transform: translate(-50%, -50%) scale(5); }
+  #guardian-reveal.s2 #gr-glow { opacity: 0; transition: transform 2.2s ease-out, opacity 2.4s; }
+  #gr-img {
+    position: absolute; left: 50%; top: 0; height: 80%; transform: translateX(-50%) scale(1.08);
+    opacity: 0; filter: blur(16px) brightness(1.9);
+    transition: opacity 2.4s, filter 3s, transform 5s ease-out;
+    -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+            mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+  }
+  #guardian-reveal.s2 #gr-img { opacity: 1; filter: blur(0) brightness(1); transform: translateX(-50%) scale(1); }
+  #gr-text {
+    position: absolute; left: 0; right: 0; bottom: 5%; padding: 0 20px; text-align: center;
+    opacity: 0; transition: opacity 1.6s;
+  }
+  #guardian-reveal.s3 #gr-text { opacity: 1; }
+  #gr-text .gr-lead { font-size: 13.5px; letter-spacing: .25em; text-indent: .25em; color: #ffe09e; margin-bottom: 10px; }
+  #gr-text .gr-name {
+    font-size: clamp(20px, 6vw, 26px); letter-spacing: .3em; text-indent: .3em; color: #f4f2ff;
+    text-shadow: 0 0 16px rgba(var(--gc), .85);
+  }
+  #gr-text .gr-name.long { letter-spacing: .1em; text-indent: .1em; }  /* 伊邪那岐命・伊邪那美命 */
+  #gr-text .gr-yomi { font-size: 12.5px; color: #9a9ac8; letter-spacing: .15em; margin: 4px 0 12px; }
+  #gr-text .gr-trait { font-size: 14px; line-height: 2; color: #c8c8e8; max-width: 26em; margin: 0 auto; text-wrap: balance; word-break: auto-phrase; }  /* 「を与える。」だけが落ちない・「バラ／ンス」と語の途中で割らない */
+  #gr-text .gr-tap { margin-top: 16px; font-size: 12.5px; color: #8f8fc0; letter-spacing: .2em; }
+
   /* 龍神様が目の前をかすめる刹那、光があふれる */
   #dragon-flash {
     position: fixed; inset: 0; z-index: 15; pointer-events: none;
@@ -608,10 +648,21 @@
   #goshuincho .g-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   #goshuincho #g-divine { display: block; margin: 0 auto; }
   #goshuincho .g-label { font-size: 12.5px; color: #9a9ac8; letter-spacing: .3em; text-indent: .3em; text-align: center; margin-bottom: 12px; }
-  #goshuincho .g-orb { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 10px; }
-  #goshuincho .g-name { font-size: 18px; color: #ececff; letter-spacing: .2em; text-indent: .2em; text-align: center; margin-bottom: 4px; text-shadow: 0 0 14px rgba(180,180,255,.6); }
-  #goshuincho .g-yomi { font-size: 12px; color: #8f8fc0; letter-spacing: .15em; text-align: center; margin-bottom: 12px; }
-  #goshuincho .g-trait { font-size: 14px; color: #b8b8dd; line-height: 2; text-align: center; }
+  /* 守護神のお札（絵がなければ、その神の色の光だけで成り立つ） */
+  #goshuincho .g-ofuda {
+    --gc: 255,224,158;
+    position: relative; width: min(66vw, 240px); aspect-ratio: 3 / 4; margin: 0 auto 14px;
+    border: 1px solid rgba(var(--gc), .5); border-radius: 8px; overflow: hidden; cursor: pointer;
+    background: radial-gradient(circle at 50% 34%, rgba(var(--gc), .55), rgba(var(--gc), 0) 58%), #0a0a22;
+    background-size: cover; background-position: 50% 30%;
+    box-shadow: 0 0 22px rgba(var(--gc), .22);
+    display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 12px;
+  }
+  #goshuincho .g-name { font-size: 18px; color: #ececff; letter-spacing: .2em; text-indent: .2em; text-align: center; margin-bottom: 4px; text-shadow: 0 0 14px rgba(var(--gc, 180,180,255), .8), 0 1px 3px #000; }
+  #goshuincho .g-name.long { font-size: 15px; letter-spacing: .06em; text-indent: .06em; }
+  #goshuincho .g-yomi { font-size: 12px; color: #c8c8e8; letter-spacing: .15em; text-align: center; text-shadow: 0 1px 3px #000; }
+  #goshuincho .g-trait { font-size: 14px; color: #b8b8dd; line-height: 2; text-align: center; text-wrap: balance; word-break: auto-phrase; }
+  #goshuincho #g-share { text-align: center; }
 
   /* 御朱印帳: むすびの章 */
   #goshuincho .musubi-head { margin-top: 8px; }
@@ -773,6 +824,19 @@
 <video id="ryujin-video" playsinline preload="none"></video>
 <div id="dragon-flash"></div>
 
+<!-- 守護神の顕現（絵は img/guardian-<番号>.webp・AI生成） -->
+<div id="guardian-reveal">
+  <div id="gr-glow"></div>
+  <img id="gr-img" alt="">
+  <div id="gr-text">
+    <div class="gr-lead">あなたの守護神が、姿をあらわしました</div>
+    <div class="gr-name" id="gr-name"></div>
+    <div class="gr-yomi" id="gr-yomi"></div>
+    <div class="gr-trait" id="gr-trait"></div>
+    <div class="gr-tap">ふれると、御朱印帳におさまります</div>
+  </div>
+</div>
+
 <!-- はじまり -->
 <div class="overlay" id="start">
   <div class="story" id="start-story">
@@ -884,10 +948,13 @@
     </div>
     <div id="guardian-result" style="display:none;">
       <div class="g-label">あなたの守護神</div>
-      <div class="g-orb" id="g-orb"></div>
-      <div class="g-name" id="g-name"></div>
-      <div class="g-yomi" id="g-yomi"></div>
+      <!-- お札: 絵の上に名を置く。ふれると、もう一度姿をあらわす -->
+      <div class="g-ofuda" id="g-ofuda">
+        <div class="g-name" id="g-name"></div>
+        <div class="g-yomi" id="g-yomi"></div>
+      </div>
       <div class="g-trait" id="g-trait"></div>
+      <div class="share-link" id="g-share">この縁を、わけあう</div>
     </div>
   </div>
   <div class="book-subhead">出会った神々</div>
@@ -1329,6 +1396,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   save.hideHowto = save.hideHowto || false;
   save.firstMet = save.firstMet || {};  // 神様ごとに初めて出会った日
   save.guardian = save.guardian || null;  // 守護神の番号（診断済みなら 1〜9/11/22/33）
+  save.guardianShown = save.guardianShown || false;  // 守護神の顕現（お札の絵）を見たか。すでに診断済みの人にも一度見せる
   save.hounouCount = save.hounouCount || 0;    // 奉納の舞をささげた回数
   save.noritoTotal = save.noritoTotal || 0;    // 届いた祝詞の累計（記録用・減らさない）
   save.seenHounouIntro = save.seenHounouIntro || false;  // 奉納のこころえを見たか
@@ -1968,7 +2036,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
 
   window.addEventListener('pointerdown', (e) => {
-    if (e.target.closest && e.target.closest('button, .overlay, label, #jinja-hud')) return;
+    if (e.target.closest && e.target.closest('button, .overlay, label, #jinja-hud, #guardian-reveal')) return;
     if (state === 'summon') {
       holding = true;
       updateHoldTarget(e.clientX, e.clientY);
@@ -2774,6 +2842,19 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     if (line) lines.push(line);
     return lines;
   }
+  // おしえ（守護神の一文）は、まん中にいちばん近い「、」「。」のあとで2行に折る
+  // （一字ずつだと「バラ／ンス」と語の途中で割れ、語ごとだと「洞察／で」と助詞が行頭に来る）。収まらなければ一字ずつ
+  function wrapTrait(ctx, text, maxW) {
+    if (ctx.measureText(text).width <= maxW) return [text];
+    let best = null;
+    for (let i = 1; i < text.length; i++) {
+      if (!'、。'.includes(text[i - 1])) continue;
+      const a = text.slice(0, i), b = text.slice(i);
+      const wa = ctx.measureText(a).width, wb = ctx.measureText(b).width;
+      if (wa <= maxW && wb <= maxW && (!best || Math.abs(wa - wb) < best.d)) best = { lines: [a, b], d: Math.abs(wa - wb) };
+    }
+    return best ? best.lines : wrapJp(ctx, text, maxW);
+  }
   function drawKamiCard(k) {
     const cv = document.createElement('canvas');
     cv.width = 1080; cv.height = 1080;
@@ -2795,6 +2876,47 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     ctx.font = '38px ' + SHARE_SERIF;
     for (const ln of wrapJp(ctx, k.story, 860)) { ctx.fillText(ln, 540, y); y += 62; }
     shareFooter(ctx, 1080, 1080);
+    return cv;
+  }
+  // 守護神のお札を一枚絵に（縦4:5。インスタの縦長にそのまま載る）。絵が読めなければ光の玉で
+  async function drawGuardianCard(num) {
+    const g = GUARDIANS[num];
+    const W = 1080, H = 1350;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+    shareBg(ctx, W, H, 33);
+    const img = new Image();
+    try {
+      // decode() は画面が隠れていると終わらないことがある（実測）ので、読み込みの知らせで待つ
+      await new Promise((ok, ng) => { img.onload = ok; img.onerror = ng; img.src = guardianImg(num); });
+      ctx.drawImage(img, 0, -40, W, W * img.height / img.width);   // 幅いっぱい、上から
+      const fade = ctx.createLinearGradient(0, 560, 0, 960);         // 下へ向かって夜空に溶かす
+      fade.addColorStop(0, 'rgba(6,6,24,0)');
+      fade.addColorStop(1, 'rgba(6,6,24,0.95)');
+      ctx.fillStyle = fade;
+      ctx.fillRect(0, 560, W, H - 560);
+    } catch (e) {
+      shareGlow(ctx, W / 2, 420, 330, g.color);
+    }
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0,0,0,.8)';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = '#ffe09e';
+    ctx.font = '34px ' + SHARE_SERIF;
+    ctx.fillText('誕生日でみちびく、わたしの守護神', W / 2, 900);
+    ctx.fillStyle = '#f4f2ff';
+    ctx.font = (g.name.length > 7 ? '62px ' : '80px ') + SHARE_SERIF;
+    ctx.fillText(g.name, W / 2, 1000);
+    ctx.fillStyle = '#b0aed0';
+    ctx.font = '32px ' + SHARE_SERIF;
+    ctx.fillText('― ' + g.yomi + ' ―', W / 2, 1056);
+    ctx.fillStyle = '#c8c8e8';
+    ctx.font = '34px ' + SHARE_SERIF;
+    let y = 1116;
+    for (const ln of wrapTrait(ctx, g.trait, 880)) { ctx.fillText(ln, W / 2, y); y += 54; }
+    ctx.shadowBlur = 0;
+    shareFooter(ctx, W, H);
     return cv;
   }
   function drawBookCard() {
@@ -3416,15 +3538,68 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     document.getElementById('guardian-result').style.display = has ? '' : 'none';
     if (has) {
       const g = GUARDIANS[save.guardian];
-      const hex = '#' + g.color.toString(16).padStart(6, '0');
-      const orb = document.getElementById('g-orb');
-      orb.style.background = hex;
-      orb.style.boxShadow = '0 0 22px ' + hex;
+      const ofuda = document.getElementById('g-ofuda');
+      ofuda.style.setProperty('--gc', rgbOf(g.color));
+      // 絵の下ほど暗くして名を読ませる。絵が読めなければ、その神の色の光だけが残る
+      ofuda.style.backgroundImage =
+        'linear-gradient(rgba(6,6,24,0) 52%, rgba(6,6,24,.88) 92%), url("' + guardianImg(save.guardian) + '"), ' +
+        'radial-gradient(circle at 50% 34%, rgba(' + rgbOf(g.color) + ', .55), rgba(' + rgbOf(g.color) + ', 0) 58%)';
       document.getElementById('g-name').textContent = g.name;
+      document.getElementById('g-name').classList.toggle('long', g.name.length > 7);
       document.getElementById('g-yomi').textContent = g.yomi;
       document.getElementById('g-trait').textContent = g.trait;
     }
   }
+
+  // ===== 守護神の顕現（お札の絵が、光の中から浮かぶ）=====
+  // 誕生日を入れた直後に一度。すでに入れている人には、お札が入ってから初めて開いたときに一度
+  // （本人「もう設定してる人はそういう演出が見れないんだよね」）。御朱印帳のお札にふれると、いつでももう一度
+  function rgbOf(c) { return [(c >> 16) & 255, (c >> 8) & 255, c & 255].join(','); }
+  function guardianImg(num) { return 'img/guardian-' + num + '.webp'; }
+  const grEl = document.getElementById('guardian-reveal');
+  let grTimers = [];
+  let grDone = false;   // 名乗りまで見せきったか（見せきる前のタップは、先へ進めるだけ）
+  function showGuardianReveal(num) {
+    const g = GUARDIANS[num];
+    if (!g) return;
+    grTimers.forEach(clearTimeout);
+    grTimers = [];
+    grDone = false;
+    grEl.style.setProperty('--gc', rgbOf(g.color));
+    const img = document.getElementById('gr-img');
+    img.style.visibility = '';
+    img.onerror = () => { img.style.visibility = 'hidden'; };   // 絵が読めなくても、光と名乗りで成り立つ
+    img.src = guardianImg(num);
+    document.getElementById('gr-name').textContent = g.name;
+    document.getElementById('gr-name').classList.toggle('long', g.name.length > 7);
+    document.getElementById('gr-yomi').textContent = g.yomi;
+    document.getElementById('gr-trait').textContent = g.trait;
+    grEl.className = 'on';
+    void grEl.offsetWidth;   // 表示してから段を進める（いきなり最後の状態にならないように）
+    grTimers.push(setTimeout(() => grEl.classList.add('s1'), 80));               // 光が灯る
+    grTimers.push(setTimeout(() => grEl.classList.add('s2'), 1700));             // 光の中から姿が浮かぶ
+    grTimers.push(setTimeout(() => { grEl.classList.add('s3'); grDone = true; }, 3900));  // 名乗る
+    playBirthChime(true);
+  }
+  grEl.addEventListener('click', () => {
+    if (!grDone) {
+      grTimers.forEach(clearTimeout);
+      grEl.classList.add('s1', 's2', 's3');
+      grDone = true;
+      return;
+    }
+    grEl.classList.add('closing');
+    grTimers.push(setTimeout(() => { grEl.className = ''; }, 900));
+    if (!save.guardianShown) { save.guardianShown = true; persist(); }
+  });
+  document.getElementById('g-ofuda').addEventListener('click', () => {
+    if (save.guardian) showGuardianReveal(save.guardian);
+  });
+  document.getElementById('g-share').addEventListener('click', async () => {
+    const g = GUARDIANS[save.guardian];
+    if (!g) return;
+    shareCanvas(await drawGuardianCard(save.guardian), 'わたしの守護神は「' + g.name + '」でした ─ 星の社');
+  });
   document.getElementById('g-divine').addEventListener('click', () => {
     const y = parseInt(document.getElementById('g-year').value, 10);
     const m = parseInt(document.getElementById('g-month').value, 10);
@@ -3438,7 +3613,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     persist();
     renderGuardian();
     spawnGuardian(save.guardian);
-    playBirthChime(false);
+    showGuardianReveal(save.guardian);   // 誕生日を入れた直後に、姿をあらわす（閉じたとき guardianShown）
   });
 
   let cardTimer = null;
@@ -3958,6 +4133,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
   // 診断済みなら、起動時に守護神を空間へ呼び出す
   if (save.guardian && GUARDIANS[save.guardian]) spawnGuardian(save.guardian);
+  // すでに誕生日を入れている人には、お札が入ってから初めて開いたときに一度だけ姿をあらわす
+  if (save.guardian && GUARDIANS[save.guardian] && !save.guardianShown) showGuardianReveal(save.guardian);
 
   // ローカルでの確認用: ?oharae を付けて開くと、年越の大祓の日（12/29の夜）として動く。?oharae=nagoshi で夏越（6/28）。
   // 本番（pages.dev）では動かない ― 祭りの日を好きに呼べると、年2回の意味がなくなるため
@@ -4000,6 +4177,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     norito: (n) => { save.noritoHeld = n; persist(); }, // テスト用: 祝詞の手持ちを設定
     sekki: (d) => { const s = sekkiNow(d ? new Date(d) : undefined); return s && s.id; }, // テスト用: いまの節気
     pick: (i) => pickKami(RARITY[i || 0]).id, // テスト用: おみくじ抽選だけ確認
+    guardian: (n) => { save.guardian = n; save.guardianShown = false; persist(); renderGuardian(); spawnGuardian(n); showGuardianReveal(n); }, // テスト用: 守護神を設定して顕現を見る
+    guardianCard: async (n) => (await drawGuardianCard(n || save.guardian)).toDataURL('image/jpeg', 0.85), // テスト用: 守護神のわけあう画像
     clock: (iso) => { clockOverride = iso || null; populateOharae(); return nowDate().toString(); }, // テスト用: 暦の「いま」を差し替える（節気・大祓・おみくじの刻）。引数なしで元に戻す
     oharae: () => { const o = oharaeNow(); return o && { id: o.id, bridge: bridgeSekki().map(s => s.id) }; }, // テスト用: 大祓と、橋をわたってくる神
     pickMany: (n) => { const c = {}; for (let i = 0; i < (n || 1000); i++) { const id = pickKami(RARITY[0]).id; c[id] = (c[id] || 0) + 1; } return c; }, // テスト用: おみくじの出方をまとめて見る
