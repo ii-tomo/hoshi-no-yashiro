@@ -188,8 +188,14 @@
     font-size: 14px; line-height: 2;
     color: #b8b8dd;
   }
-  /* 大祓の三日間、めぐりの橋をわたってきた神のときだけ添える */
-  #birth-story .bridge { margin-top: 6px; font-size: 13px; letter-spacing: .12em; color: #ffe09e; }
+  /* 大祓の三日間、めぐりの橋をわたってきた神のときだけ、カードのいちばん上に出す
+     （下に置くと、読みきる前に「縁が結ばれました」の画面に覆われていた・本人指摘） */
+  #birth-bridge {
+    display: none; margin-bottom: 8px;
+    font-size: 14px; letter-spacing: .3em; text-indent: .3em; color: #ffe09e;
+    text-shadow: 0 0 10px rgba(255,224,158,.5);
+  }
+  #birth-card.via-bridge #birth-bridge { display: block; }
 
   /* オーバーレイ共通 */
   .overlay {
@@ -717,6 +723,7 @@
 <div class="ui" id="counter">STARS BORN 00000</div>
 <div class="ui" id="en-dots"></div>
 <div class="ui" id="birth-card">
+  <div id="birth-bridge">めぐりの橋をわたって</div>
   <div id="birth-rarity"></div>
   <div id="birth-name"></div>
   <div id="birth-story"></div>
@@ -808,7 +815,7 @@
 
 <!-- お参りのあと -->
 <div class="overlay hidden" id="after">
-  <div class="q">新しい神様との縁が、結ばれました。</div>
+  <div class="q" id="after-q">新しい神様との縁が、結ばれました。</div>
   <div class="btns">
     <button id="btn-again">もうひと巡り<small>つづけて呼吸する</small></button>
     <button id="btn-hounou">奉納の舞<small>結んだ縁に、祝詞をささげる</small></button>
@@ -1578,6 +1585,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     persist();
     counterEl.textContent = 'STARS BORN ' + String(save.born).padStart(5, '0');
     refreshDots();
+    // 橋をわたってきた神は、つぎの画面でも名乗る（カードは数秒で覆われるので、そこだけでは読み落とす・本人指摘）。
+    // 毎回書き直す（龍神様のあとに前の神の名が残らないように）
+    afterQ.innerHTML = viaBridge
+      // 狭い画面では「、」のところで折る（語の途中で割らない）
+      ? 'めぐりの橋をわたって<br><span style="display:inline-block">' + kami.name + 'が、</span>' +
+        '<span style="display:inline-block">会いにきてくれました。</span>'
+      : '新しい神様との縁が、結ばれました。';
     if (kami.id === 'ryujin') {
       // 龍神様は姿を見せきってから名乗る。音は映像か birthDragon が鳴らしている
       const T = dragonWithVideo ? RYUJIN_VIDEO : DRAGON;
@@ -1587,7 +1601,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     }
     showBirthCard(rarity, kami, firstOfDay, viaBridge);
     playBirthChime(false);
-    return 5;
+    return viaBridge ? 8 : 5;   // 橋のときはカードを長めに見せる（カードが消えるのと同じ8秒）
   }
   let dragonCardTimer = null;
 
@@ -2075,6 +2089,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   const birthRarity = document.getElementById('birth-rarity');
   const birthName = document.getElementById('birth-name');
   const birthStory = document.getElementById('birth-story');
+  const afterQ = document.getElementById('after-q');
   const dotsEl = document.getElementById('en-dots');
   const overlays = {
     start: document.getElementById('start'),
@@ -3318,12 +3333,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     birthRarity.style.color = rarity.color;
     birthName.textContent = kami.name;
     birthStory.textContent = kami.story;
-    if (viaBridge) {
-      const note = document.createElement('div');
-      note.className = 'bridge';
-      note.innerHTML = 'めぐりの橋をわたって<br>会いにきてくれました';
-      birthStory.appendChild(note);
-    }
+    birthCard.classList.toggle('via-bridge', !!viaBridge);
     birthCard.style.opacity = '1';
     clearTimeout(cardTimer);
     cardTimer = setTimeout(() => { birthCard.style.opacity = '0'; }, 8000);
