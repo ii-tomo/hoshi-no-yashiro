@@ -4136,6 +4136,16 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   // すでに誕生日を入れている人には、お札が入ってから初めて開いたときに一度だけ姿をあらわす
   if (save.guardian && GUARDIANS[save.guardian] && !save.guardianShown) showGuardianReveal(save.guardian);
 
+  // ファイルから直接開いたとき（file: や、プレビューの data:）は、絵・映像・音・確認の切り替えが効かない。
+  // 2026-10-04 に二度、この開き方で遊んでもらい「出ない」になった（橋が架からない／守護神の絵が出ない）。本番（https）では出ない
+  if (location.protocol === 'file:' || location.protocol === 'data:') {
+    const warn = document.createElement('div');
+    warn.textContent = 'ファイルから開いているため、絵や音が出ません。確認は http://localhost:8936 で';
+    warn.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:100;padding:6px 10px;font-size:12.5px;' +
+      'text-align:center;color:#1a1a2e;background:#ffe09e;pointer-events:none';
+    document.body.appendChild(warn);
+  }
+
   // ローカルでの確認用: ?oharae を付けて開くと、年越の大祓の日（12/29の夜）として動く。?oharae=nagoshi で夏越（6/28）。
   // 本番（pages.dev）では動かない ― 祭りの日を好きに呼べると、年2回の意味がなくなるため
   const oharaeTest = new URLSearchParams(location.search).get('oharae');
