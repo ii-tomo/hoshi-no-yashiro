@@ -236,6 +236,24 @@
     text-shadow: 0 0 10px rgba(255,224,158,.5);
   }
   #birth-card.via-bridge #birth-bridge { display: block; }
+  /* 今日のことば（2回目からの神）。逸話より少し明るく、言葉が主役 */
+  #birth-card.kotoba #birth-story { color: #dcd8f2; font-size: 14.5px; word-break: auto-phrase; text-wrap: balance; }
+  /* 大吉: 金の縁と、カードをゆっくり横切る光（ふだんの吉と見分けがつくように・本人「みんな同じに見えてつまんなかった」） */
+  #birth-card.daikichi {
+    border-color: rgba(255,224,158,.6);
+    box-shadow: 0 0 24px rgba(255,224,158,.2);
+    overflow: hidden;
+  }
+  #birth-card.daikichi #birth-rarity { text-shadow: 0 0 12px rgba(255,224,158,.85); }
+  #birth-card.daikichi::after {
+    content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%;
+    background: linear-gradient(100deg, rgba(255,240,200,0), rgba(255,240,200,.18), rgba(255,240,200,0));
+    animation: daikichi-sweep 2.6s ease-in-out .5s 2 both;
+    pointer-events: none;
+  }
+  @keyframes daikichi-sweep { from { left: -60%; } to { left: 115%; } }
+  /* 幅の狭いスマホ（320px）でも、ことばの一区切り（最長17字）が一行に収まるように */
+  @media (max-width: 360px) { #birth-card { width: 88vw; padding: 16px 12px; } }
   /* 橋をわたってきた神のカードは、金の縁と、その神の色の淡い光（ふだんのカードと見分けがつくように・本人指摘） */
   #birth-card.via-bridge {
     border-color: rgba(255,224,158,.55);
@@ -1058,6 +1076,111 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       story: '八百万の流れを束ねる、大いなる存在。すべての神と縁を結んだ者の前にだけ、その姿を現すという。' },
   ];
 
+  // ===== 今日のことば（2026-10-05 本人OK・下書きは Project の 今日のことば_下書き.md）=====
+  // 八柱と2回目から会うと、逸話のかわりに出る。逸話は御朱印帳でいつでも読める。
+  // 「最近くじを引いてもみんな同じに見えてつまんなかった」（2026-10-04 本人）への手当て。大吉は大吉だけの言葉
+  const KOTOBA = {
+    hi: { ふだん: [
+      'はじめの一歩は、小さいほうがいい。今日はそれで十分です',
+      'カーテンを開けて、光をひとすじ部屋に入れて',
+      '昨日の続きでなくていい。今日は今日から始まります',
+      '誰かに「おはよう」を。返ってこなくても、光は届いています',
+      'やりたいことを、ひとつだけ口に出してみて',
+      '白湯を一杯。体の中にも、朝が来ます',
+    ], 大吉: [
+      '今日のあなたは、まわりを明るくする日。そのままで出かけて',
+      '思いついたことは、今日のうちに始めてよし',
+    ] },
+    kaze: { ふだん: [
+      '止まっていたものが、すこし動きだす日。窓をあけてみて',
+      '迷いは、半分だけ風に預けて。残りの半分で歩けます',
+      'いつもと違う道を、一本だけ',
+      '返事を待っているなら、もう少しだけ。風向きは変わります',
+      '肩に力が入っています。一度、大きく吐いて',
+      '手放してもいいものが、ひとつあります',
+    ], 大吉: [
+      '追い風の日。気になっていた連絡、今日なら届きます',
+      'ふと浮かんだ場所へ。いい出会いが待っています',
+    ] },
+    yama: { ふだん: [
+      '急がなくていい日。ここにいるだけで、もう十分です',
+      '決めかねているなら、今日は決めなくていい',
+      '足の裏を感じて。地面は、ちゃんとあなたを支えています',
+      '人の言葉に揺れたら、自分の呼吸に戻って',
+      '続けてきたことは、見えないところで積もっています',
+      '今日は、いつもの席で、いつもの一杯を',
+    ], 大吉: [
+      'あなたの「いつもどおり」が、誰かの支えになっています',
+      '長く続けてきたことが、実を結ぶ兆しがあります',
+    ] },
+    mizu: { ふだん: [
+      '今日の疲れは、今日のうちに。湯船に少し長めにつかって',
+      '言い過ぎたなと思ったら、水に流して、明日やり直せばいい',
+      'お水を一杯。こころも、すこし澄みます',
+      '流れに逆らわない日。力を抜くほど、うまくいきます',
+      '涙が出そうなら、出していい。水はなにも責めません',
+      '散らかった机を、ひとところだけ拭いてみて',
+    ], 大吉: [
+      'よどんでいたことが、すっと流れはじめる日',
+      'やわらかいほうが強い日。ゆずって、得をします',
+    ] },
+    ho: { ふだん: [
+      '好きだったことを、ひとつ思い出してみて',
+      '小さな火でいい。消さずにいることが、いちばん大事',
+      '温かいものを食べて。胸の熾火も、すこし明るくなります',
+      'やる気が出ない日は、五分だけやってみて。火はそこからつきます',
+      '誰かの頑張りに、ひとこと声をかけて。あなたの火も分けられます',
+      '今日は燃やしすぎないこと。火は、明日も使います',
+    ], 大吉: [
+      '胸の火が強い日。ずっと気になっていたことに、手をつけて',
+      'あなたの熱が伝わる日。言いたいことは、まっすぐに',
+    ] },
+    kaminari: { ふだん: [
+      'ひらめきは、手を止めたときに落ちてきます。少し休んで',
+      'やることを、ひとつに絞って',
+      'メモを手元に。今日は思いつきが光る日です',
+      '通知を切って、十五分だけ',
+      '難しく考えていたことが、ふと簡単に見えてきます',
+      '迷ったら、最初に浮かんだほうへ',
+    ], 大吉: [
+      '一閃の日。今日浮かんだことは、きっと形になります',
+      '集中がよく続く日。大事なことを、今日のうちに',
+    ] },
+    tsuki: { ふだん: [
+      '今夜は早めに灯りを落として。答えは、眠ったあとに来ます',
+      '眠れない夜は、無理に眠ろうとしなくていい。月が見ています',
+      '今日できなかったことは、月にあずけて',
+      '画面を閉じて、ひと呼吸。夜は、あなたのためにあります',
+      '満ちる日も欠ける日もある。今日は欠けていていい日',
+      'おやすみを言う相手がいなければ、月に言って',
+    ], 大吉: [
+      '心がしずかに満ちていく夜。今夜はよく眠れます',
+      'やさしい夢を見る兆し。枕元をととのえて',
+    ] },
+    hoshi: { ふだん: [
+      '願いごとを、ひとつだけ心の中で言ってみて',
+      '遠くに見えることほど、ちゃんと近づいています',
+      '昔のあなたが願ったことを、今のあなたは叶えています',
+      '空を見上げて。見えなくても、星はそこにあります',
+      '急がない願いほど、大きく光ります',
+      '忘れていた約束を、ひとつ思い出す日',
+    ], 大吉: [
+      '願いが届きやすい夜。言葉にして、書いておいて',
+      '預けていた願いが、光になって返ってくる兆しがあります',
+    ] },
+  };
+  // 前回と同じ言葉は、つづけて出さない（save.lastKotoba に神ごとの前回を持つ）
+  function pickKotoba(kami, rarity) {
+    const k = KOTOBA[kami.id];
+    if (!k) return null;
+    const pool = rarity.name === '大吉' ? k.大吉 : k.ふだん;
+    const prev = save.lastKotoba[kami.id];
+    const choices = pool.length > 1 ? pool.filter(w => w !== prev) : pool;
+    const word = choices[Math.floor(Math.random() * choices.length)];
+    save.lastKotoba[kami.id] = word;
+    return word;
+  }
+
   const RARITY = [
     { name: '吉',     rate: 0.60, scale: 1.0,  color: '#a8c8a8' },
     { name: '中吉',   rate: 0.25, scale: 1.25, color: '#9ecfff' },
@@ -1395,6 +1518,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   save.bornToday = save.bornToday || 0;
   save.hideHowto = save.hideHowto || false;
   save.firstMet = save.firstMet || {};  // 神様ごとに初めて出会った日
+  save.lastKotoba = save.lastKotoba || {};  // 神様ごとに、前回の「今日のことば」（つづけて同じ言葉を出さないため）
   save.guardian = save.guardian || null;  // 守護神の番号（診断済みなら 1〜9/11/22/33）
   save.guardianShown = save.guardianShown || false;  // 守護神の顕現（お札の絵）を見たか。すでに診断済みの人にも一度見せる
   save.hounouCount = save.hounouCount || 0;    // 奉納の舞をささげた回数
@@ -1552,7 +1676,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     save.ryujinSteps++;
   }
 
+  let testRarity = null;   // 開発用フック _hoshi.nextRarity で、つぎの一回だけ運勢を決める
   function rollOmikuji(boost) {
+    if (testRarity) { const r = testRarity; testRarity = null; return r; }
     // 歩みが満ちたなら、おみくじを待たずに龍神様が現れる（続けた人には、かならず届く）
     if (ryujinReady()) return RARITY[3];
     // その日最初の一柱は2回引いて良い方（今日の初縁）
@@ -1617,6 +1743,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     const rarity = rollOmikuji(firstOfDay);
     const kami = pickKami(rarity, firstOfDay);
     const viaBridge = bridgeSekki().includes(kami);   // 縁を記録する前に見る（記録すると橋の名簿から外れる）
+    // はじめて会った神は逸話で名乗り、2回目からは「今日のことば」（八柱だけ）
+    const kotoba = (save.counts[kami.id] > 0) ? pickKotoba(kami, rarity) : null;
     if (kami.id === 'ryujin') reportRyujin(byCertain ? 'certain' : 'omikuji');
 
     let dragonWithVideo = false;
@@ -1641,6 +1769,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
       scene.add(group);
       if (viaBridge) birthBridge(position, kami.color);   // 遠くの空から橋が架かり、神の光がわたってくる
+      else if (rarity.name === '大吉') birthSparkle(position);   // 大吉は、金の光の粒が立ちのぼる
       kamis.push({
         group, halo, core,
         base: position.clone(),
@@ -1679,13 +1808,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       playBridgeChime();
       clearTimeout(bridgeCardTimer);
       bridgeCardTimer = setTimeout(() => {
-        showBirthCard(rarity, kami, firstOfDay, true);
+        showBirthCard(rarity, kami, firstOfDay, true, kotoba);
         playBirthChime(false);
       }, BRIDGE.arrive * 1000);
       return BRIDGE.arrive + 8;   // カードを見せきってから「縁が結ばれました」へ（カードが消えるのと同じ8秒）
     }
-    showBirthCard(rarity, kami, firstOfDay, false);
+    showBirthCard(rarity, kami, firstOfDay, false, kotoba);
     playBirthChime(false);
+    if (rarity.name === '大吉') playDaikichiChime();
     return 5;
   }
   let dragonCardTimer = null;
@@ -1767,6 +1897,45 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
         for (const d of br.dots) { scene.remove(d.sp); d.sp.material.dispose(); }
         for (const s of [br.traveler, br.travelerCore, br.burst]) { scene.remove(s); s.material.dispose(); }
         bridges.splice(b, 1);
+      }
+    }
+  }
+
+  // ===== 大吉のきらめき（金の光の粒が、生まれた神のまわりから立ちのぼる）=====
+  // 橋（大祓）や龍神様より小さく。ふだんの吉と見分けがつく程度に（本人「みんな同じに見えてつまんなかった」）
+  const sparkles = [];
+  function birthSparkle(pos) {
+    const dots = [];
+    for (let i = 0; i < 48; i++) {
+      const sp = bridgeSprite(BRIDGE_GOLD, 0);
+      const ang = Math.random() * Math.PI * 2;
+      const r = 2.5 + Math.random() * 4;
+      sp.position.copy(pos);
+      scene.add(sp);
+      dots.push({
+        sp, to: new THREE.Vector3(Math.cos(ang) * r, Math.sin(ang) * r * 0.7, (Math.random() - .5) * 2),
+        rise: 1.2 + Math.random() * 1.6, delay: Math.random() * 0.5, size: 1.0 + Math.random() * 1.1,
+        tw: Math.random() * Math.PI * 2,
+      });
+    }
+    sparkles.push({ dots, pos: pos.clone(), bornAt: clockTime });
+  }
+  function updateSparkles() {
+    for (let k = sparkles.length - 1; k >= 0; k--) {
+      const s = sparkles[k];
+      const age = clockTime - s.bornAt;
+      for (const d of s.dots) {
+        const t = Math.max(0, age - d.delay);
+        const spread = 1 - Math.exp(-t * 1.6);                 // ふわっとひろがり、ゆるむ
+        d.sp.position.copy(s.pos).addScaledVector(d.to, spread);
+        d.sp.position.y += d.rise * t;                          // そのまま、ゆっくり立ちのぼる
+        const life = Math.min(t / 0.25, 1) * Math.max(0, 1 - t / 3.2);
+        d.sp.material.opacity = 0.95 * life * (0.7 + 0.3 * Math.sin(clockTime * 7 + d.tw));
+        d.sp.scale.setScalar(d.size);
+      }
+      if (age > 3.8) {
+        for (const d of s.dots) { scene.remove(d.sp); d.sp.material.dispose(); }
+        sparkles.splice(k, 1);
       }
     }
   }
@@ -2103,6 +2272,23 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.5);
       o.connect(g); g.connect(audioCtx.destination);
       o.start(t0); o.stop(t0 + 2.6);
+    });
+  }
+
+  // 大吉の音。ふだんの和音のあと、高いところから鈴が「しゃらん」とこぼれる
+  function playDaikichiChime() {
+    if (!audioCtx || !soundOn) return;
+    [2637, 2349, 2093, 1760, 1568].forEach((f, i) => {
+      const o = audioCtx.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f;
+      const g = audioCtx.createGain();
+      const t0 = audioCtx.currentTime + 0.35 + i * 0.07;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.035, t0 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.4);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0); o.stop(t0 + 1.5);
     });
   }
 
@@ -3617,13 +3803,28 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   });
 
   let cardTimer = null;
-  function showBirthCard(rarity, kami, firstOfDay, viaBridge) {
+  function showBirthCard(rarity, kami, firstOfDay, viaBridge, kotoba) {
     birthCard.classList.toggle('ryujin', kami.id === 'ryujin');
     birthRarity.textContent = '— ' + rarity.name + (firstOfDay ? '（今日の初縁）' : '') + ' —';
     birthRarity.style.color = rarity.color;
     birthName.textContent = kami.name;
-    birthStory.textContent = kami.story;
+    // 2回目からは今日のことば（逸話は御朱印帳に）。ことばは「、」「。」のところでだけ折る
+    // （「いつもどおり」／が、と助詞が行頭に来ていた）
+    birthStory.textContent = kotoba ? '' : kami.story;
+    if (kotoba) {
+      for (const part of kotoba.match(/[^、。]+[、。]?/g)) {
+        const span = document.createElement('span');
+        span.style.display = 'inline-block';
+        span.textContent = part;
+        birthStory.appendChild(span);
+      }
+    }
+    birthCard.classList.toggle('kotoba', !!kotoba);
     birthCard.classList.toggle('via-bridge', !!viaBridge);
+    // 大吉は、光が横切るカード。付け直して、毎回はじめから流す
+    birthCard.classList.remove('daikichi');
+    void birthCard.offsetWidth;
+    birthCard.classList.toggle('daikichi', rarity.name === '大吉' && kami.id !== 'ryujin');
     const c = kami.color || 0xffffff;   // 16進のまま分ける（THREE.Color は線形に直すので、CSSの色とずれる）
     birthCard.style.setProperty('--kc', [(c >> 16) & 255, (c >> 8) & 255, c & 255].join(','));
     birthCard.style.opacity = '1';
@@ -4126,6 +4327,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
     updateDragons();
     updateBridges();
+    updateSparkles();
 
     renderer.render(scene, camera);
   }
@@ -4187,6 +4389,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     norito: (n) => { save.noritoHeld = n; persist(); }, // テスト用: 祝詞の手持ちを設定
     sekki: (d) => { const s = sekkiNow(d ? new Date(d) : undefined); return s && s.id; }, // テスト用: いまの節気
     pick: (i) => pickKami(RARITY[i || 0]).id, // テスト用: おみくじ抽選だけ確認
+    nextRarity: (i) => { testRarity = RARITY[i]; return testRarity.name; }, // テスト用: つぎの一回の運勢（0吉 1中吉 2大吉）
     guardian: (n) => { save.guardian = n; save.guardianShown = false; persist(); renderGuardian(); spawnGuardian(n); showGuardianReveal(n); }, // テスト用: 守護神を設定して顕現を見る
     guardianCard: async (n) => (await drawGuardianCard(n || save.guardian)).toDataURL('image/jpeg', 0.85), // テスト用: 守護神のわけあう画像
     clock: (iso) => { clockOverride = iso || null; populateOharae(); return nowDate().toString(); }, // テスト用: 暦の「いま」を差し替える（節気・大祓・おみくじの刻）。引数なしで元に戻す
