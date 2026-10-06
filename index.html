@@ -1471,6 +1471,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
         '届かなかった言葉も、いつか伝わりますように',
       ] },
     { id: 'betelgeuse', name: 'ベテルギウス', wamei: '平家星', yomi: 'へいけぼし', seal: '平家星', ly: '500', color: 0xff8a5a, size: 17,
+      torii: 'img/torii-betelgeuse.webp',   // 熾火の鳥居（見本・2026-10-06）
       hint: 'ベテルギウスのほとり、平家星の社', about: 'オリオンの赤い肩。長く燃えて、いまは晩年の星',
       negai: [
         '長くつづけたことを、気持ちよく終えられますように',
@@ -3553,7 +3554,17 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     return new THREE.LineSegments(geo, mat);
   }
 
-  let toriiTexture = null;  // 星々の鳥居のテクスチャ（初回入場時に読み、以後使い回す）
+  // 鳥居のテクスチャ（星ごと。初めてその社に入ったときに読み、以後使い回す）。
+  // 星めぐりの社は、同じ構図で色と質感だけ変えた鳥居（本人「社の絵はそのままだから変わり映えがわからない」）
+  const toriiTextures = {};
+  function toriiTextureFor(h) {
+    const src = h.torii || 'img/torii-hoshi.webp';
+    if (!toriiTextures[src]) {
+      toriiTextures[src] = new THREE.TextureLoader().load(src);
+      toriiTextures[src].colorSpace = THREE.SRGBColorSpace;
+    }
+    return toriiTextures[src];
+  }
 
   // 星ごとの空（同じ社でも、見上げる空が変わる。本人「結局行った先は一緒だよね」）。
   // 新しい絵は使わず、光の粒ともやで描く。返り値は毎フレーム呼ぶ動きの関数の配列
@@ -3687,17 +3698,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     }
     group.add(starGroup);
     // 鳥居（星々の鳥居。空間にはこちらを立てる・本人選定=入場は光の鳥居/空間は星々の鳥居）
-    if (!toriiTexture) {
-      toriiTexture = new THREE.TextureLoader().load('img/torii-hoshi.webp');
-      toriiTexture.colorSpace = THREE.SRGBColorSpace;
-    }
     const torii = new THREE.Mesh(
       new THREE.PlaneGeometry(13, 13),
       new THREE.MeshBasicMaterial({
-        map: toriiTexture, transparent: true, opacity: 0.95,
+        map: toriiTextureFor(hoshi), transparent: true, opacity: 0.95,
         blending: THREE.AdditiveBlending, depthWrite: false, // 黒背景は加算合成で宇宙に溶ける
         // 星めぐりの社では、同じ鳥居をその星の色で淡く染める（新しい絵は作らない）
-        color: new THREE.Color(0xffffff).lerp(new THREE.Color(hoshi.color), hoshi.id === 'sirius' ? 0 : 0.55),
+        // その星の鳥居の絵がまだない星だけ、星の色で染める
+        color: new THREE.Color(0xffffff).lerp(new THREE.Color(hoshi.color), (hoshi.id === 'sirius' || hoshi.torii) ? 0 : 0.55),
       })
     );
     torii.position.set(0, 3.4, 0); // 画像下部の星の雲海が、ちょうど参道の足もとに来る高さ
