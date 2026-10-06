@@ -1602,7 +1602,6 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     'ゆっくりでいい、と言っています',
     'その願いは、もう歩きはじめています',
     '見守っている、と言っています',
-    '今夜は安心して眠るように、と',
     'よく来たね、と言っています',
     '風向きは、わるくないようです',
     'その日まで、そばにいると言っています',
@@ -4059,6 +4058,71 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
 
   // ねがいのとりつぎ
+  // 取り次ぎの返事は、願いの中身に合わせる（2026-10-06 本人「答えがちぐはぐっぽくない？」＝
+  // 「眠れますように」に「見守っている」が返っていた。前はどの願いにも決まり文句から無作為だった）。
+  // 願いのことばで種類を見分ける（上から順に、先に当たったものに決まる）。どれにも当たらなければ、ふだんの返事
+  const KAESHI = [
+    ['仲直り', /ごめん|言いすぎ|とげ|一緒に笑え|けんか|並んで歩け/, [
+      'その気持ちは、もう半分届いています',
+      'ことばは、あとからでも間に合う、と言っています',
+      '相手も、きっと同じ空を見ています',
+    ]],
+    ['大切な人', /父|母|娘|祖母|兄弟|家族|かぞく|友だち|仲間|大切な人|会いたい|会え|みんな|集ま|食卓|ひとりぼっち|顔を見|心はそば/, [
+      '大切な人のところにも、光を送ってくれたそうです',
+      '会える日は、ちゃんと近づいています',
+      '遠くても、心はつながっている、と言っています',
+    ]],
+    ['目覚め', /起きられ|朝の光/, [
+      '明日の朝は、やさしく起こしてくれるそうです',
+      '朝の光を、ひとすじ多めに届けてくれるそうです',
+      'いい目覚めになるよう、見ていてくれるそうです',
+    ]],
+    ['眠り', /眠|夢|枕|夜/, [
+      '今夜は、目を閉じているだけでいい、と言っています',
+      '眠るまで、そばにいると言っています',
+      'こわい夢は、ここで預かる、と言っています',
+    ]],
+    ['忙しさ', /予定|ぶじに終|締め切り|間に合|電車|ひと息|がんばりすぎ|苦手な|自分のこと/, [
+      '今日はもう、十分がんばった、と言っています',
+      'ひと息つくのも、大事な仕事のうち、と',
+      '間に合うように、背中を押しておく、と言っています',
+    ]],
+    ['手放す', /空いた場所|手放|悔や|片づけ|別れ|卒業|見送|古い自分|終えられ|終わったこと|終わりの先/, [
+      '終わったことは、ちゃんと糧になっている、と',
+      '手放した手は、つぎのものを持てる、と言っています',
+      'さみしさも、そのまま抱いていい、と言っています',
+    ]],
+    ['はじめる', /はじめ|始め|新しい|一歩|踏み出|勇気|なじめ|三日坊主|習い|申し込み|続け|身につ|面接|声が出/, [
+      '最初の一歩は、小さくていい、と言っています',
+      'はじめたことは、もう半分できています',
+      'うまくいかない日も、続きのうち、と言っています',
+    ]],
+    ['迷い', /迷|決め|進路|決断|遠回り|道しるべ|帰る場所/, [
+      'どちらを選んでも、見守っている、と言っています',
+      '迷うのは、大事に考えている証、と',
+      '道は、歩いたあとにできる、と言っています',
+    ]],
+    ['待つ・届ける', /返事|手紙|届|待|知らせ|伝わ|伝え|プレゼント|約束/, [
+      '待つ時間も、ちゃんと届く途中です',
+      'その気持ちは、まっすぐ届いています',
+      '知らせは、ちょうどいいときに来る、と言っています',
+    ]],
+    ['育てる', /種|育て|芽|実|咲|伸び/, [
+      '芽が出るまでの暗い土も、育ちのうち、と',
+      'ゆっくり伸びるものほど、根が深い、と言っています',
+      '実るころに、また見に来る、と言っています',
+    ]],
+    ['大切な人', /元気|となりの|笑って/, [
+      '大切な人のところにも、光を送ってくれたそうです',
+      '遠くても、心はつながっている、と言っています',
+      'その笑顔が続くように、見ていてくれるそうです',
+    ]],
+  ];
+  function kaeshiFor(negai) {
+    const hit = KAESHI.find(([, re]) => re.test(negai || ''));
+    const pool = hit ? hit[2] : TORITSUGI_WORDS;   // どれにも当たらない願いは、ふだんの返事
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
   // 参拝者が待っているときのひとこと（常連さんなら、その人が来ていると知らせる）
   function sanpaiHint() {
     const j = sanpaisha && sanpaisha.jouren ? jourenOf(sanpaisha.jouren) : null;
@@ -4126,6 +4190,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     sanpaisha.halo.material.color.setHex(k.color);
     playSuzu(false);
     updateJinjaHud();
+    const negai = sanpaisha.negai;   // 返事は、この願いに合わせる
     // 取り次ぎのあとに続くことば（その星の御朱印／常連さんの3つめ）
     const follow = [];
     if (sealNow) follow.push([h.seal + 'の御朱印を、いただきました', 3.6, true]);
@@ -4136,7 +4201,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     } : null;
     showJinjaWord(k.name + 'が、ねがいをうけとりました', 2.6, () => {
       if (state === 'jinja' || state === 'shitsurae' || state === 'toritsugi' || state === 'meguri') {
-        showJinjaWord(TORITSUGI_WORDS[Math.floor(Math.random() * TORITSUGI_WORDS.length)], 3.0, next(0));
+        showJinjaWord(kaeshiFor(negai), 3.2, next(0));
       }
     });
   }
@@ -4954,6 +5019,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     norito: (n) => { save.noritoHeld = n; persist(); }, // テスト用: 祝詞の手持ちを設定
     sekki: (d) => { const s = sekkiNow(d ? new Date(d) : undefined); return s && s.id; }, // テスト用: いまの節気
     pick: (i) => pickKami(RARITY[i || 0]).id, // テスト用: おみくじ抽選だけ確認
+    kaeshi: (negai) => kaeshiFor(negai), // テスト用: 願いに返る、取り次ぎの返事
     nextRarity: (i) => { testRarity = RARITY[i]; return testRarity.name; }, // テスト用: つぎの一回の運勢（0吉 1中吉 2大吉）
     shitsuraeAll: () => { KURASHI.forEach(c => { if (!save.shitsurae.includes(c.id)) save.shitsurae.push(c.id); save.counts[c.id] = save.counts[c.id] || 1; }); persist(); if (jinja) updateJinjaHud(); }, // テスト用: 設えを16そろえる（星めぐりがひらく）
     meguri: () => JSON.parse(JSON.stringify(save.meguri)), // テスト用: 星めぐりの記録

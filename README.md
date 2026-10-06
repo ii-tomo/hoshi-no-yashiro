@@ -127,6 +127,7 @@
   * 誰なのかは決めない（来かた・持ち物で呼ぶ）。顔ぶれは `JOUREN` の表だけ直せば入れ替わる（本人「ピンとこなかったら変更」）
   * 顔のない参拝者も、光の大きさ・色合い・歩く速さを少しずつ変えた。社のことば（`#jinja-word`）は折り返すようにした（長いお礼や長い神名がはみ出していた）
   * 確かめ方: `_hoshi.nextJouren('nimotsu')` でつぎの参拝者を常連さんに／`_hoshi.jourenSet(id, 段, 日)`／`_hoshi.jouren()`
+  * 取り次ぎの返事を、願いの中身に合わせた（`KAESHI`・10の種類×3）。本人「答えがちぐはぐっぽくない？」（眠りの願いに「見守っている」）。確かめ方: `_hoshi.kaeshi('こんやは、ゆっくり眠れますように')`
 
 * 公開URL: https://hoshi-no-yashiro.pages.dev
 * リポジトリ: https://github.com/ii-tomo/hoshi-no-yashiro（push＝自動デプロイ。pushは本人GO後のみ）
