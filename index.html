@@ -779,6 +779,24 @@
   #shitsurae .s-body .s-name { color: #e8e0c8; font-size: 16px; letter-spacing: .3em; }
   #shitsurae .s-body .s-sachi { color: #ffe9a8; }
   #shitsurae .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  /* 星めぐり */
+  #jinja-hud .j-goshuin { color: #c8c8e8; letter-spacing: .12em; }
+  #meguri h2 { margin-bottom: 18px; }
+  #meguri .m-list { width: min(88vw, 380px); margin-bottom: 22px; }
+  #meguri .m-row {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 10px;
+    border: 1px solid rgba(160,160,220,.3); border-radius: 10px; cursor: pointer;
+  }
+  #meguri .m-row:hover { background: rgba(40,40,90,.4); }
+  #meguri .m-row.here { border-color: rgba(255,224,158,.55); cursor: default; }
+  #meguri .m-row.dim { opacity: .5; cursor: default; }
+  #meguri .m-orb { flex: none; width: 18px; height: 18px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; }
+  #meguri .m-text { flex: 1; text-align: left; }
+  #meguri .m-name { font-size: 15px; color: #e8e4f8; letter-spacing: .12em; }
+  #meguri .m-name small { font-size: 12.5px; color: #9a9ac8; letter-spacing: .08em; margin-left: 6px; }
+  #meguri .m-sub { font-size: 12.5px; color: #9a9ac8; letter-spacing: .06em; margin-top: 2px; }
+  #meguri .m-sub b { color: #ffe9a8; font-weight: normal; }
+  #meguri .m-rest { font-size: 12.5px; color: #8f8fc0; letter-spacing: .12em; text-align: center; margin-top: 4px; }
   #shitsurae button.dim { opacity: .4; cursor: default; }
   #shitsurae button.dim:hover { background: rgba(20,20,50,.6); box-shadow: none; }
 </style>
@@ -807,7 +825,9 @@
 <div id="jinja-word"></div>
 <div id="jinja-hud">
   <span class="j-sachi" id="j-sachi">幸　0</span>
+  <span class="j-goshuin" id="j-goshuin" style="display:none;"></span>
   <span class="j-link" id="open-shitsurae">設えをととのえる</span>
+  <span class="j-link" id="open-meguri" style="display:none;">星をめぐる</span>
   <span class="j-link" id="jinja-leave">社をあとにする</span>
 </div>
 <button id="sound-btn" title="音のON/OFF">🔇</button>
@@ -991,6 +1011,9 @@
   <div class="musubi-link" id="open-jinja-book">宇宙神社へまいる</div>
   <div class="book-grid musubi-grid" id="kurashi-grid"></div>
   <div class="book-detail" id="kurashi-detail"></div>
+  <div class="book-subhead musubi-head">星めぐり</div>
+  <div class="book-grid musubi-grid" id="meguri-grid"></div>
+  <div class="book-detail" id="meguri-detail"></div>
   <div class="book-hounou" id="book-hounou"></div>
   <div class="musubi-link" id="share-book">御朱印帳を、わけあう</div>
   <div class="book-note" id="book-note">八柱すべてと縁を結ぶと、龍神様が姿を現す。</div>
@@ -1048,6 +1071,15 @@
   <div class="btns">
     <button id="shitsurae-build">ととのえる</button>
     <button id="shitsurae-cancel">やめておく</button>
+  </div>
+</div>
+
+<!-- 星めぐり（はじまりの社の設えが16ととのうと、ひらく） -->
+<div class="overlay hidden" id="meguri">
+  <h2>星をめぐる</h2>
+  <div class="m-list" id="m-list"></div>
+  <div class="btns">
+    <button id="meguri-cancel">この社にとどまる</button>
   </div>
 </div>
 
@@ -1381,6 +1413,98 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   // 設えの建立コスト: 幸3からゆるやかに増える（3,3,3,4,4,4,…8）
   function shitsuraeCost(index) { return 3 + Math.floor(index / 3); }
 
+  // ===== 星めぐり（Phase 4.5・正本は docs/CONCEPT.md「星めぐり」）=====
+  // はじまりの社（シリウス）の設えが16ととのうと、夜空の実在の星にひとつずつ社が増えていく。
+  // 新しい神は増やさない（八十八柱はそろっている）。星ごとに変わるのは、景色の色・訪れる願い・星の御朱印
+  // 距離: すばる410・北極星430・ベテルギウス500光年は国立天文台、ほかは一般に使われる値（2026-10-06 確認）
+  const MEGURI_COST = 12;     // つぎの星に社を建てる幸
+  const MEGURI_SEAL = 7;      // この数の願いを取り次ぐと、その星の御朱印
+  const HOSHI = [
+    { id: 'sirius', name: 'シリウス', wamei: '青星', yomi: 'あおぼし', seal: '青星', ly: '8.6', color: 0xa8c8ff, size: 18,
+      hint: 'シリウスのほとり、はじまりの社', about: '夜空でいちばん明るい恒星。青白い光' },
+    { id: 'subaru', name: 'すばる', wamei: '六連星', yomi: 'むつらぼし', seal: 'すばる', ly: '410', color: 0x9fbaff, size: 5, cluster: true,
+      hint: 'すばるのほとり、六連星の社', about: '青い星の群れ。肩を寄せあう仲間の星',
+      negai: [
+        'みんなで、また集まれますように',
+        '久しぶりの友だちと、変わらず笑えますように',
+        '家族の食卓に、今日もみんながそろいますように',
+        '新しいクラスで、ひとりでも話せる人ができますように',
+        'けんかした友だちと、また並んで歩けますように',
+        '遠くに住む兄弟が、元気でいますように',
+        '仲間の頑張りを、ちゃんと応援できますように',
+        'ひとりぼっちの誰かに、気づける私でいられますように',
+      ] },
+    { id: 'hokushin', name: '北極星', wamei: '北辰', yomi: 'ほくしん', seal: '北辰', ly: '430', color: 0xfff0c8, size: 12,
+      hint: '北極星のほとり、北辰の社', about: 'いつも北にあって動かない、道しるべの星',
+      negai: [
+        'どっちに進むか、ちゃんと決められますように',
+        '迷ったときに、帰る場所を思い出せますように',
+        '自分で決めたことを、あとで責めずにいられますように',
+        '道に迷っても、あわてずにいられますように',
+        '進路の相談が、うまくまとまりますように',
+        '大事な決断の日、心が静かでありますように',
+        '遠回りでも、自分の道だと思えますように',
+        '迷っている友だちの、道しるべになれますように',
+      ] },
+    { id: 'vega', name: 'ベガ', wamei: '織姫星', yomi: 'おりひめぼし', seal: '織姫星', ly: '25', color: 0xdfe8ff, size: 15,
+      hint: 'ベガのほとり、織姫星の社', about: '七夕の織姫。天の川の向こうに、彦星がいる',
+      negai: [
+        '離れて暮らす娘が、元気でいますように',
+        '会いたい人に、今年こそ会えますように',
+        '遠くの祖母に、声を届けられますように',
+        '単身赴任の父が、ちゃんと眠れていますように',
+        '次に会う日を、楽しみに待てますように',
+        '会えない時間も、心はそばにありますように',
+        '引っ越していった友だちが、新しい町になじめますように',
+        'もう会えない人に、ありがとうが届きますように',
+      ] },
+    { id: 'altair', name: 'アルタイル', wamei: '彦星', yomi: 'ひこぼし', seal: '彦星', ly: '17', color: 0xf2f2ff, size: 14,
+      hint: 'アルタイルのほとり、彦星の社', about: '七夕の彦星。年に一度の逢瀬を待つ星',
+      negai: [
+        'この手紙が、ちゃんと届きますように',
+        '待っている返事が、やさしいものでありますように',
+        '送ったプレゼントを、喜んでもらえますように',
+        '待つ時間を、そわそわせずに過ごせますように',
+        '伝えたい気持ちが、まっすぐ届きますように',
+        '頼まれた荷物を、ぶじに届けられますように',
+        'ずっと待っている知らせが、もうすぐ来ますように',
+        '届かなかった言葉も、いつか伝わりますように',
+      ] },
+    { id: 'betelgeuse', name: 'ベテルギウス', wamei: '平家星', yomi: 'へいけぼし', seal: '平家星', ly: '500', color: 0xff8a5a, size: 17,
+      hint: 'ベテルギウスのほとり、平家星の社', about: 'オリオンの赤い肩。長く燃えて、いまは晩年の星',
+      negai: [
+        '長くつづけたことを、気持ちよく終えられますように',
+        '片づけられなかったものを、手放せますように',
+        '別れのあいさつを、笑顔で言えますように',
+        '終わったことを、いつまでも悔やまずにいられますように',
+        '古い自分に、ありがとうと言えますように',
+        '卒業の日を、晴れやかな気持ちで迎えられますように',
+        '去っていく季節を、さみしすぎずに見送れますように',
+        '終わりの先に、ちゃんと明日がありますように',
+      ] },
+    { id: 'rigel', name: 'リゲル', wamei: '源氏星', yomi: 'げんじぼし', seal: '源氏星', ly: '860', color: 0xb8d0ff, size: 15,
+      hint: 'リゲルのほとり、源氏星の社', about: 'オリオンの青白い足もと。若く、まぶしい星',
+      negai: [
+        '明日からの新しい仕事に、なじめますように',
+        'はじめての一歩を、こわがらずに踏み出せますように',
+        '習いはじめたことを、楽しく続けられますように',
+        '新しい部屋で、ぐっすり眠れますように',
+        'はじめましての人と、いい縁が結べますように',
+        '思い切って出した申し込みが、通りますように',
+        'やってみたかったことを、今年こそ始められますように',
+        '新しい朝を、わくわくして迎えられますように',
+      ] },
+  ];
+  function hoshiOf(id) { return HOSHI.find(h => h.id === id) || HOSHI[0]; }
+  function currentHoshi() { return hoshiOf(save.meguri.at); }
+  // 星めぐりの道がひらくのは、はじまりの社の設えが16すべてととのってから（はじまりの社を先に味わってもらう）
+  function meguriOpen() { return save.shitsurae.length >= KURASHI.length; }
+  // 御朱印: シリウスは設え16で、ほかの星はその星で7つの願いを取り次いで
+  function hasSeal(id) {
+    return id === 'sirius' ? meguriOpen() : (save.meguri.toritsugi[id] || 0) >= MEGURI_SEAL;
+  }
+  function nextHoshi() { return HOSHI.find(h => !save.meguri.built.includes(h.id)) || null; }
+
   // 参拝者のねがい（小さくて、やさしくて、誰のものでもありうる願い）
   const NEGAI = [
     'あしたの朝、ちゃんと起きられますように',
@@ -1531,6 +1655,12 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   save.sachiTotal = save.sachiTotal || 0;          // 積もった幸の累計（記録用・減らさない）
   save.shitsurae = save.shitsurae || [];           // 建てた設えのid配列（KURASHI配列順）
   save.toritsugiCount = save.toritsugiCount || 0;  // とりついだ願いの累計
+  // 星めぐり（Phase 4.5）: 社のある星・いまいる星・星ごとのとりつぎ数・御朱印をいただいた日
+  save.meguri = save.meguri || {};
+  save.meguri.built = save.meguri.built || ['sirius'];
+  save.meguri.at = save.meguri.at || 'sirius';
+  save.meguri.toritsugi = save.meguri.toritsugi || {};
+  save.meguri.sealDate = save.meguri.sealDate || {};
   save.seenJinjaIntro = save.seenJinjaIntro || false;  // とりつぎのこころえを見たか
   // 龍神様への歩み: 八柱そろってからお参りを重ねると、いつか必ず現れる（2%の抽選も並行して生きている）
   save.ryujinDay = save.ryujinDay || '';        // 歩みを数えた最後の日
@@ -2472,6 +2602,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     'jinja-intro': document.getElementById('jinja-intro'),
     toritsugi: document.getElementById('toritsugi'),
     shitsurae: document.getElementById('shitsurae'),
+    meguri: document.getElementById('meguri'),
   };
   const noritoPop = document.getElementById('norito-pop');
 
@@ -2752,6 +2883,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     renderMusubiBook();
     renderSekkiBook();
     renderKurashiBook();
+    renderMeguriBook();
     bookDetail.innerHTML = 'ひとつ選ぶと、その神様のことが読めます。';
     document.getElementById('book-hounou').textContent = save.hounouCount > 0
       ? '奉納の舞 ' + save.hounouCount + ' 度　届いた祝詞 ' + save.noritoTotal
@@ -2956,6 +3088,47 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       grid.appendChild(cell);
     }
     document.getElementById('kurashi-detail').innerHTML = '宇宙神社の設えがととのうと、神様が宿ります。';
+  }
+  // 御朱印帳「星めぐり」（七つの星の御朱印。星の名は暦と同じく隠さない）
+  function renderMeguriBook() {
+    const grid = document.getElementById('meguri-grid');
+    grid.innerHTML = '';
+    for (const h of HOSHI) {
+      const seal = hasSeal(h.id);
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const orb = document.createElement('div');
+      if (seal) { orb.className = 'orb met'; orb.style.color = '#' + h.color.toString(16).padStart(6, '0'); }
+      else { orb.className = 'orb unmet'; orb.textContent = '？'; }
+      const name = document.createElement('div');
+      name.className = 'cell-name' + (seal ? '' : ' dim');
+      name.textContent = h.name;
+      const wa = document.createElement('div');
+      wa.className = 'cell-pair';
+      wa.textContent = h.wamei;
+      cell.appendChild(orb); cell.appendChild(name); cell.appendChild(wa);
+      cell.addEventListener('click', () => showMeguriDetail(h));
+      grid.appendChild(cell);
+    }
+    const sealed = HOSHI.filter(h => hasSeal(h.id)).length;
+    document.getElementById('meguri-detail').innerHTML = !meguriOpen()
+      ? 'はじまりの社の設えが十六ととのうと、星めぐりがはじまります。'
+      : sealed === HOSHI.length
+        ? '七つの星の御朱印が、そろいました。<br>夜空のどこを見上げても、あなたの社があります。'
+        : sealed + ' つの星で、御朱印をいただきました。';
+  }
+  function showMeguriDetail(h) {
+    const built = save.meguri.built.includes(h.id);
+    const left = MEGURI_SEAL - (save.meguri.toritsugi[h.id] || 0);
+    const date = save.meguri.sealDate[h.id];
+    const status = hasSeal(h.id)
+      ? '御朱印をいただきました' + (date ? '　' + date : '')
+      : built ? 'あと ' + left + ' つのねがいを取り次ぐと、御朱印をいただけます'
+      : 'まだ社のない星';
+    document.getElementById('meguri-detail').innerHTML =
+      '<span class="d-name">' + h.name + '（' + h.wamei + '）</span>' + h.about + '。<br>' +
+      'この光は、およそ ' + h.ly + ' 年前に、この星を出た光。' +
+      '<br><span style="color:#8f8fc0;font-size:12.5px">' + status + '</span>';
   }
   function showKurashiDetail(c, met) {
     const detail = document.getElementById('kurashi-detail');
@@ -3384,22 +3557,33 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   function makeJinja() {
     const group = new THREE.Group();
     group.position.set(0, -7, -2);
-    // シリウス（おおいぬ座・夜空でいちばん明るい恒星。青白い光）
-    const sirius = new THREE.Group();
-    sirius.position.set(0, 20, -16);
-    const sHalo = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: softGlow, color: 0xa8c8ff, transparent: true, opacity: 0.55,
-      depthWrite: false, blending: THREE.AdditiveBlending,
-    }));
-    sHalo.scale.setScalar(18);
-    sirius.add(sHalo);
-    const sCore = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: softGlow, color: 0xffffff, transparent: true, opacity: 0.95,
-      depthWrite: false, blending: THREE.AdditiveBlending,
-    }));
-    sCore.scale.setScalar(3.2);
-    sirius.add(sCore);
-    group.add(sirius);
+    // 社の上に光る星（はじまりはシリウス。星めぐりで、いまいる星に変わる）
+    const hoshi = currentHoshi();
+    const starGroup = new THREE.Group();
+    starGroup.position.set(0, 20, -16);
+    const starHalos = [];
+    // すばるは光の玉ひとつでなく、肩を寄せあう小さな星の群れ（六連星）
+    const spots = hoshi.cluster
+      ? [[-3.2, 1.0], [-1.3, 2.3], [0.6, 1.6], [2.4, 2.8], [1.8, 0.1], [-0.4, -0.5], [3.4, -1.0]]
+      : [[0, 0]];
+    for (const [x, y] of spots) {
+      const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: softGlow, color: hoshi.color, transparent: true, opacity: 0.55,
+        depthWrite: false, blending: THREE.AdditiveBlending,
+      }));
+      halo.position.set(x * 2, y * 2, 0);
+      halo.scale.setScalar(hoshi.size);
+      starGroup.add(halo);
+      starHalos.push({ sprite: halo, base: hoshi.size });
+      const core = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: softGlow, color: 0xffffff, transparent: true, opacity: 0.95,
+        depthWrite: false, blending: THREE.AdditiveBlending,
+      }));
+      core.position.copy(halo.position);
+      core.scale.setScalar(hoshi.cluster ? 1.2 : 3.2);
+      starGroup.add(core);
+    }
+    group.add(starGroup);
     // 鳥居（星々の鳥居。空間にはこちらを立てる・本人選定=入場は光の鳥居/空間は星々の鳥居）
     if (!toriiTexture) {
       toriiTexture = new THREE.TextureLoader().load('img/torii-hoshi.webp');
@@ -3410,6 +3594,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       new THREE.MeshBasicMaterial({
         map: toriiTexture, transparent: true, opacity: 0.95,
         blending: THREE.AdditiveBlending, depthWrite: false, // 黒背景は加算合成で宇宙に溶ける
+        // 星めぐりの社では、同じ鳥居をその星の色で淡く染める（新しい絵は作らない）
+        color: new THREE.Color(0xffffff).lerp(new THREE.Color(hoshi.color), hoshi.id === 'sirius' ? 0 : 0.35),
       })
     );
     torii.position.set(0, 3.4, 0); // 画像下部の星の雲海が、ちょうど参道の足もとに来る高さ
@@ -3418,7 +3604,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     // 参道の灯りは、両脇にともる火の玉だけで表す（下の lights で追加）
     // 建った設えの灯り（参道の両脇に、柱の色で）
     const lights = [];
-    save.shitsurae.forEach((id, i) => {
+    // 設え（暮らしの十六柱）は、はじまりの社だけのもの
+    if (hoshi.id === 'sirius') save.shitsurae.forEach((id, i) => {
       const c = KURASHI.find(k => k.id === id);
       if (c) lights.push(addShitsuraeLightTo(group, c, i));
     });
@@ -3434,7 +3621,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       lights.push({ sprite: hi, phase: Math.random() * Math.PI * 2 });
     }
     scene.add(group);
-    jinja = { group, sirius: sHalo, lights };
+    jinja = { group, starHalos, lights, hoshi: hoshi.id };
   }
   function addShitsuraeLightTo(group, c, i) {
     const lamp = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -3454,6 +3641,12 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     clearTimeout(jinjaWordTimer);
   }
 
+  // ねがい: 星めぐりの社では、半分はその星にちなむ願い（残りはふだんの30から）
+  function pickNegai() {
+    const h = currentHoshi();
+    const pool = (h.negai && Math.random() < 0.5) ? h.negai : NEGAI;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
   // 参拝者（小さな光の玉。待たせても消えない・急かさない）
   function spawnSanpaisha() {
     const group = new THREE.Group();
@@ -3474,7 +3667,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     scene.add(group);
     sanpaisha = {
       group, halo, core, state: 'coming', t: 0,
-      negai: NEGAI[Math.floor(Math.random() * NEGAI.length)],
+      negai: pickNegai(),
       target: new THREE.Vector3(0, -4.2, 5),  // 社の前（鳥居のすこし手前）
       bless: null,
     };
@@ -3509,8 +3702,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       breathWrap.style.opacity = '0'; // 社では呼吸をしないので、リングを休ませる（奉納と同じ）
       if (!sanpaisha) sanpaiTimer = 2.5;  // 入ってすこしで、最初の参拝者
       playSho(3.0);
-      setHint('シリウスのほとり、はじまりの社');
+      setHint(currentHoshi().hint);
       setTimeout(() => { if (state === 'jinja' && (!sanpaisha || sanpaisha.state !== 'waiting')) setHint(''); }, 4000);
+      maybeOpenMeguri();
     });
   }
   // 鳥居くぐり: 光の鳥居が浮かびあがり、とばりがひらき、くぐった先が社（タップで先へ）
@@ -3549,9 +3743,96 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
   function updateJinjaHud() {
     document.getElementById('j-sachi').textContent = '幸　' + save.sachi;
-    const link = document.getElementById('open-shitsurae');
+    const h = currentHoshi();
+    const atSirius = h.id === 'sirius';
+    // 設えは、はじまりの社だけ。16そろったら「星をめぐる」に席をゆずる
     const next = KURASHI.find(c => !save.shitsurae.includes(c.id));
-    link.textContent = next ? '設えをととのえる' : '設えは、すべてととのいました';
+    document.getElementById('open-shitsurae').style.display = (atSirius && next) ? '' : 'none';
+    document.getElementById('open-meguri').style.display = meguriOpen() ? '' : 'none';
+    // 星めぐりの社では、御朱印までの残りを出す
+    const gs = document.getElementById('j-goshuin');
+    gs.style.display = atSirius ? 'none' : '';
+    if (!atSirius) {
+      const left = MEGURI_SEAL - (save.meguri.toritsugi[h.id] || 0);
+      gs.textContent = left > 0 ? '御朱印まで　あと' + left : h.seal + 'の御朱印';
+    }
+  }
+  // 設えが16ととのったら、星めぐりの道がひらく（すでにととのえていた人には、つぎに社へ来たとき）
+  function maybeOpenMeguri() {
+    if (!meguriOpen() || save.meguri.sealDate.sirius) return;
+    save.meguri.sealDate.sirius = localDate();   // シリウスの御朱印をいただいた日
+    persist();
+    updateJinjaHud();
+    setTimeout(() => { if (state === 'jinja') showJinjaWord('星をめぐる道が、ひらきました', 3.6); }, 4200);
+  }
+
+  // ===== 星をめぐる（いまの社から、ほかの星の社へ）=====
+  function openMeguri() {
+    state = 'meguri';
+    renderMeguri();
+    showOverlay('meguri');
+    setHint('');
+  }
+  function renderMeguri() {
+    const list = document.getElementById('m-list');
+    list.innerHTML = '';
+    const nx = nextHoshi();
+    for (const h of HOSHI) {
+      const built = save.meguri.built.includes(h.id);
+      if (!built && h !== nx) continue;   // まだ見えない星は、名も出さない
+      const here = h.id === save.meguri.at;
+      const canBuild = !built && save.sachi >= MEGURI_COST;
+      const row = document.createElement('div');
+      row.className = 'm-row' + (here ? ' here' : '') + (!built && !canBuild ? ' dim' : '');
+      const orb = document.createElement('div');
+      orb.className = 'm-orb';
+      orb.style.color = '#' + h.color.toString(16).padStart(6, '0');
+      const left = MEGURI_SEAL - (save.meguri.toritsugi[h.id] || 0);
+      const sub = !built
+        ? '社を建てる　<b>幸 ' + MEGURI_COST + '</b>（手持ち ' + save.sachi + '）'
+        : (here ? 'いまここ　' : '') + (hasSeal(h.id) ? '御朱印をいただきました' : '御朱印まで あと' + left);
+      const text = document.createElement('div');
+      text.className = 'm-text';
+      text.innerHTML = '<div class="m-name">' + h.name + '<small>' + h.wamei + '・約' + h.ly + '光年</small></div>' +
+        '<div class="m-sub">' + sub + '</div>';
+      row.appendChild(orb); row.appendChild(text);
+      if (built && !here) row.addEventListener('click', () => goHoshi(h.id));
+      if (canBuild) row.addEventListener('click', () => buildHoshi(h));
+      list.appendChild(row);
+    }
+    const rest = HOSHI.length - save.meguri.built.length - (nx ? 1 : 0);
+    if (rest > 0) {
+      const r = document.createElement('div');
+      r.className = 'm-rest';
+      r.textContent = 'まだ見えない星が、あと ' + rest + ' つ';
+      list.appendChild(r);
+    }
+  }
+  // 鳥居をくぐって、ほかの星の社へ（参拝者は、新しい社でまた訪れる）
+  function goHoshi(id, andThen) {
+    save.meguri.at = id;
+    persist();
+    state = 'traveling';   // くぐっているあいだは、参拝者も止まる（社の中の操作は受けない）
+    showOverlay(null);     // 一覧は、くぐる前にしまう（着いてから一覧が透けて残らないように）
+    runToriiPass(() => {
+      cleanupJinjaScene();
+      makeJinja();
+      state = 'jinja';
+      showOverlay(null);
+      updateJinjaHud();
+      jinjaHud.classList.add('on');
+      sanpaiTimer = 2.5;
+      setHint(currentHoshi().hint);
+      setTimeout(() => { if (state === 'jinja' && (!sanpaisha || sanpaisha.state !== 'waiting')) setHint(''); }, 4000);
+      if (andThen) andThen();
+    });
+  }
+  function buildHoshi(h) {
+    if (save.sachi < MEGURI_COST || save.meguri.built.includes(h.id)) return;
+    save.sachi -= MEGURI_COST;
+    save.meguri.built.push(h.id);
+    persist();
+    goHoshi(h.id, () => setTimeout(() => { if (state === 'jinja') showJinjaWord(h.name + 'に、社が建ちました', 3.2); }, 600));
   }
 
   // ねがいのとりつぎ
@@ -3587,6 +3868,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     save.sachi++;
     save.sachiTotal++;
     save.toritsugiCount++;
+    // 星めぐりの社では、その星でのとりつぎを数える。7つめで、その星の御朱印
+    const h = currentHoshi();
+    let sealNow = false;
+    if (h.id !== 'sirius') {
+      const n = (save.meguri.toritsugi[h.id] || 0) + 1;
+      save.meguri.toritsugi[h.id] = n;
+      if (n === MEGURI_SEAL) { sealNow = true; save.meguri.sealDate[h.id] = localDate(); }
+    }
     persist();
     state = 'jinja';
     showOverlay(null);
@@ -3597,8 +3886,11 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     playSuzu(false);
     updateJinjaHud();
     showJinjaWord(k.name + 'が、ねがいをうけとりました', 2.6, () => {
-      if (state === 'jinja' || state === 'shitsurae' || state === 'toritsugi') {
-        showJinjaWord(TORITSUGI_WORDS[Math.floor(Math.random() * TORITSUGI_WORDS.length)], 3.0);
+      if (state === 'jinja' || state === 'shitsurae' || state === 'toritsugi' || state === 'meguri') {
+        showJinjaWord(TORITSUGI_WORDS[Math.floor(Math.random() * TORITSUGI_WORDS.length)], 3.0, sealNow ? () => {
+          showJinjaWord(h.seal + 'の御朱印を、いただきました', 3.6);
+          playBirthChime(true);
+        } : null);
       }
     });
   }
@@ -3643,16 +3935,17 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     updateJinjaHud();
     showBirthCard({ name: '暮らしの縁', color: '#e8d8b0' }, next, false);
     playBirthChime(false);
+    maybeOpenMeguri();
   }
 
   // 神社のたたずまい（メインループから毎フレーム）
   function updateJinja(dt, bs) {
     if (!jinja) return;
-    jinja.sirius.scale.setScalar(18 * (1 + Math.sin(clockTime * 0.5) * 0.05 + bs.value * 0.05));
+    for (const h of jinja.starHalos) h.sprite.scale.setScalar(h.base * (1 + Math.sin(clockTime * 0.5) * 0.05 + bs.value * 0.05));
     for (const l of jinja.lights) {
       l.sprite.material.opacity = 0.42 + Math.sin(clockTime * 0.7 + l.phase) * 0.14;
     }
-    const inJinja = (state === 'jinja' || state === 'toritsugi' || state === 'shitsurae');
+    const inJinja = (state === 'jinja' || state === 'toritsugi' || state === 'shitsurae' || state === 'meguri');
     if (!inJinja) return;
     // つぎの参拝者
     if (!sanpaisha) {
@@ -4156,6 +4449,11 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   document.getElementById('jinja-intro-cancel').addEventListener('click', leaveJinja);
   document.getElementById('jinja-leave').addEventListener('click', leaveJinja);
   document.getElementById('open-shitsurae').addEventListener('click', openShitsurae);
+  document.getElementById('open-meguri').addEventListener('click', openMeguri);
+  document.getElementById('meguri-cancel').addEventListener('click', () => {
+    state = 'jinja';
+    showOverlay(null);
+  });
   document.getElementById('shitsurae-cancel').addEventListener('click', () => {
     state = 'jinja';
     showOverlay(null);
@@ -4390,6 +4688,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     sekki: (d) => { const s = sekkiNow(d ? new Date(d) : undefined); return s && s.id; }, // テスト用: いまの節気
     pick: (i) => pickKami(RARITY[i || 0]).id, // テスト用: おみくじ抽選だけ確認
     nextRarity: (i) => { testRarity = RARITY[i]; return testRarity.name; }, // テスト用: つぎの一回の運勢（0吉 1中吉 2大吉）
+    shitsuraeAll: () => { KURASHI.forEach(c => { if (!save.shitsurae.includes(c.id)) save.shitsurae.push(c.id); save.counts[c.id] = save.counts[c.id] || 1; }); persist(); if (jinja) updateJinjaHud(); }, // テスト用: 設えを16そろえる（星めぐりがひらく）
+    meguri: () => JSON.parse(JSON.stringify(save.meguri)), // テスト用: 星めぐりの記録
+    toritsugiHere: (n) => { const h = currentHoshi(); save.meguri.toritsugi[h.id] = n; persist(); if (jinja) updateJinjaHud(); }, // テスト用: いまの星でのとりつぎ数を設定
     guardian: (n) => { save.guardian = n; save.guardianShown = false; persist(); renderGuardian(); spawnGuardian(n); showGuardianReveal(n); }, // テスト用: 守護神を設定して顕現を見る
     guardianCard: async (n) => (await drawGuardianCard(n || save.guardian)).toDataURL('image/jpeg', 0.85), // テスト用: 守護神のわけあう画像
     clock: (iso) => { clockOverride = iso || null; populateOharae(); return nowDate().toString(); }, // テスト用: 暦の「いま」を差し替える（節気・大祓・おみくじの刻）。引数なしで元に戻す
@@ -4399,6 +4700,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     musubiState: () => musubi && { id: musubi.m.id, holdTime: musubi.holdTime, done: musubi.done }, // テスト用: 進行確認
     jinjaState: () => ({ state, sachi: save.sachi, sachiTotal: save.sachiTotal, shitsurae: save.shitsurae.length, sanpaisha: sanpaisha && sanpaisha.state, negai: sanpaisha && sanpaisha.negai, timer: sanpaiTimer, pos: sanpaisha ? sanpaisha.group.position.toArray().map(v => Math.round(v * 100) / 100) : null, t: sanpaisha ? Math.round(sanpaisha.t * 10) / 10 : null }), // テスト用: 神社の進行確認
     sanpaiNow: () => { if (!sanpaisha) sanpaiTimer = 0.01; }, // テスト用: 参拝者をすぐ呼ぶ
+    sanpaiSpawn: () => { if (!sanpaisha) spawnSanpaisha(); return sanpaisha.negai; }, // テスト用: 画面が隠れていても参拝者を出す（描画の回転を待たない）
     sanpaiWait: () => { if (sanpaisha) { sanpaisha.state = 'waiting'; sanpaisha.group.position.copy(sanpaisha.target); } }, // テスト用: 参拝者を待機状態へ
     sachi: (n) => { save.sachi = n; persist(); if (jinja) updateJinjaHud(); }, // テスト用: 幸の手持ちを設定
     meetMusubi: () => { save.counts['musubi-hi-kaze'] = save.counts['musubi-hi-kaze'] || 1; persist(); }, // テスト用: むすびの神と1柱縁を結んだ状態に

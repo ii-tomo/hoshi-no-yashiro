@@ -115,5 +115,11 @@
   * 八柱と2回目から会うと、逸話のかわりに「今日のことば」（`KOTOBA`・64）。大吉は大吉だけの言葉＋金の縁・横切る光・立ちのぼる金の粒・鈴
   * 確かめ方: `_hoshi.nextRarity(2)` でつぎの一回を大吉に（0吉 1中吉）
 
+* 星めぐり（2026-10-06・クロちゃん/Opus 5.5）— **手元で完成・本人確認待ち（未公開）**
+  * はじまりの社の設えが16ととのうと、HUDに「星をめぐる」。すばる→北極星→ベガ→アルタイル→ベテルギウス→リゲルの順に、幸12で社を建てる。行き来は鳥居くぐり
+  * 星ごとに景色の色（すばるは星の群れ）・鳥居の染め・願い（各8）が変わる。7つ取り次ぐと、その星の御朱印。御朱印帳「星めぐり」に距離と「この光は、およそ◯年前に、この星を出た光」
+  * データは `HOSHI`。記録は `save.meguri`（built／at／toritsugi／sealDate）。設え（暮らしの十六柱）はシリウスだけ
+  * 確かめ方: `_hoshi.shitsuraeAll()` で設えを16そろえる／`_hoshi.toritsugiHere(6)` でいまの星の取り次ぎ数／`_hoshi.sanpaiSpawn()`＋`sanpaiWait()` で画面が隠れていても参拝者を出す／`_hoshi.meguri()`
+
 * 公開URL: https://hoshi-no-yashiro.pages.dev
 * リポジトリ: https://github.com/ii-tomo/hoshi-no-yashiro（push＝自動デプロイ。pushは本人GO後のみ）
