@@ -3554,6 +3554,107 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
 
   let toriiTexture = null;  // 星々の鳥居のテクスチャ（初回入場時に読み、以後使い回す）
+
+  // 星ごとの空（同じ社でも、見上げる空が変わる。本人「結局行った先は一緒だよね」）。
+  // 新しい絵は使わず、光の粒ともやで描く。返り値は毎フレーム呼ぶ動きの関数の配列
+  function addHoshiSky(h, group) {
+    const anim = [];
+    const STAR = new THREE.Vector3(0, 20, -16);   // 社の上の星の位置（makeJinja と同じ）
+    const glow = (color, x, y, z, scale, op) => {
+      const sp = bridgeSprite(color, op);
+      sp.position.set(x, y, z);
+      sp.scale.setScalar(scale);
+      group.add(sp);
+      return sp;
+    };
+    const dots = (pos, col, size, op) => {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+      const pts = new THREE.Points(geo, new THREE.PointsMaterial({
+        size, map: softGlow, vertexColors: true, transparent: true, opacity: op,
+        depthWrite: false, blending: THREE.AdditiveBlending,
+      }));
+      group.add(pts);
+      return pts;
+    };
+    const gauss = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+    // 天の川: 空を斜めに流れる光の帯（ベガとアルタイル。向こう岸にもう片方の星）
+    const milkyWay = (dir) => {
+      // 社の星と向こう岸の星のあいだを流れるように（縦長のスマホでも両方の星が見える位置）
+      const pos = [], col = [];
+      const m = new THREE.Vector3(6 * dir, 14, -44), d = new THREE.Vector3(0.5 * dir, 0.87, 0).normalize();
+      const a = m.clone().addScaledVector(d, -90), b = m.clone().addScaledVector(d, 90);
+      const n = new THREE.Vector3(-d.y, d.x, 0);   // 帯に直角な向き
+      for (let i = 0; i < 2600; i++) {
+        const t = Math.random();
+        const p = a.clone().lerp(b, t).addScaledVector(n, gauss() * 9);
+        pos.push(p.x, p.y, p.z + gauss() * 4);
+        const warm = Math.random() < 0.25;
+        const k = 0.55 + Math.random() * 0.45;
+        col.push(k * (warm ? 1 : 0.8), k * (warm ? 0.9 : 0.86), k);
+      }
+      dots(pos, col, 1.6, 0.85);
+      for (let i = 0; i <= 8; i++) {
+        const p = a.clone().lerp(b, 0.15 + i * 0.7 / 8);
+        glow(0xc8d4ff, p.x, p.y, p.z - 2, 34, 0.11);
+      }
+      // 向こう岸の星（ベガの社ならアルタイル、アルタイルの社ならベガ）
+      glow(0xffffff, 10 * dir, 2, -30, 6, 0.6);
+      glow(0xffffff, 10 * dir, 2, -30, 1.4, 0.9);
+    };
+    // オリオンの三つ星（ベテルギウスとリゲルの社）
+    const belt = (x, y, tilt) => {
+      for (let i = -1; i <= 1; i++) {
+        glow(0xcfe0ff, x + i * 3.2, y + i * tilt, -24, 3.6, 0.55);
+        glow(0xffffff, x + i * 3.2, y + i * tilt, -24, 0.9, 0.9);
+      }
+    };
+    if (h.id === 'subaru') {
+      // 青い反射星雲（すばるの星々を包む、青いもや）
+      for (const [x, y, sc, op] of [[0, 2, 46, 0.13], [-6, 4, 30, 0.12], [7, 6, 28, 0.1], [2, -3, 34, 0.09], [-3, 8, 24, 0.1]]) {
+        glow(0x6f8cff, STAR.x + x, STAR.y + y, STAR.z - 4, sc, op);
+      }
+    } else if (h.id === 'hokushin') {
+      // 動かない星を中心に、星の軌跡が輪になって、ゆっくり回る
+      const trails = new THREE.Group();
+      trails.position.copy(STAR);
+      const pos = [], col = [];
+      for (let r = 5; r < 70; r += 2.6 + Math.random() * 2.2) {
+        const start = Math.random() * Math.PI * 2, span = 0.6 + Math.random() * 1.6;
+        const k = 0.5 + Math.random() * 0.5, warm = Math.random() < 0.3;
+        for (let a = 0; a < span; a += 0.6 / r) {
+          pos.push(Math.cos(start + a) * r, Math.sin(start + a) * r, -6);
+          const fade = 0.5 + 0.5 * (a / span);   // 軌跡の先ほど明るい
+          col.push(k * fade * (warm ? 1 : 0.85), k * fade * (warm ? 0.88 : 0.9), k * fade);
+        }
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+      trails.add(new THREE.Points(geo, new THREE.PointsMaterial({
+        size: 1.5, map: softGlow, vertexColors: true, transparent: true, opacity: 0.95,
+        depthWrite: false, blending: THREE.AdditiveBlending,
+      })));
+      group.add(trails);
+      anim.push((dt) => { trails.rotation.z += dt * 0.025; });
+    } else if (h.id === 'vega') {
+      milkyWay(1);
+    } else if (h.id === 'altair') {
+      milkyWay(-1);
+    } else if (h.id === 'betelgeuse') {
+      // 赤い星の光が空を染める
+      glow(0xff5a2a, STAR.x, STAR.y - 4, STAR.z - 10, 90, 0.12);
+      glow(0xff7a40, STAR.x, STAR.y, STAR.z - 6, 48, 0.14);
+      belt(-12, 4, -1.6);
+    } else if (h.id === 'rigel') {
+      glow(0x8fb4ff, STAR.x, STAR.y - 2, STAR.z - 8, 80, 0.14);
+      belt(10, 12, 1.6);
+      glow(0xff7a40, -12, 30, -30, 5, 0.6);    // 遠くに、ベテルギウスの赤
+      glow(0xffd0b0, -12, 30, -30, 1.2, 0.9);
+    }
+    return anim;
+  }
   function makeJinja() {
     const group = new THREE.Group();
     group.position.set(0, -7, -2);
@@ -3574,7 +3675,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       halo.position.set(x * 2, y * 2, 0);
       halo.scale.setScalar(hoshi.size);
       starGroup.add(halo);
-      starHalos.push({ sprite: halo, base: hoshi.size });
+      // ベテルギウスは、ゆっくり大きく脈打つ（晩年の赤い星は明るさが変わる）
+      starHalos.push({ sprite: halo, base: hoshi.size, amp: hoshi.id === 'betelgeuse' ? 0.14 : 0.05, speed: hoshi.id === 'betelgeuse' ? 0.3 : 0.5 });
       const core = new THREE.Sprite(new THREE.SpriteMaterial({
         map: softGlow, color: 0xffffff, transparent: true, opacity: 0.95,
         depthWrite: false, blending: THREE.AdditiveBlending,
@@ -3595,7 +3697,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
         map: toriiTexture, transparent: true, opacity: 0.95,
         blending: THREE.AdditiveBlending, depthWrite: false, // 黒背景は加算合成で宇宙に溶ける
         // 星めぐりの社では、同じ鳥居をその星の色で淡く染める（新しい絵は作らない）
-        color: new THREE.Color(0xffffff).lerp(new THREE.Color(hoshi.color), hoshi.id === 'sirius' ? 0 : 0.35),
+        color: new THREE.Color(0xffffff).lerp(new THREE.Color(hoshi.color), hoshi.id === 'sirius' ? 0 : 0.55),
       })
     );
     torii.position.set(0, 3.4, 0); // 画像下部の星の雲海が、ちょうど参道の足もとに来る高さ
@@ -3621,7 +3723,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       lights.push({ sprite: hi, phase: Math.random() * Math.PI * 2 });
     }
     scene.add(group);
-    jinja = { group, starHalos, lights, hoshi: hoshi.id };
+    const sky = addHoshiSky(hoshi, group);
+    jinja = { group, starHalos, lights, sky, hoshi: hoshi.id };
   }
   function addShitsuraeLightTo(group, c, i) {
     const lamp = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -3941,7 +4044,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   // 神社のたたずまい（メインループから毎フレーム）
   function updateJinja(dt, bs) {
     if (!jinja) return;
-    for (const h of jinja.starHalos) h.sprite.scale.setScalar(h.base * (1 + Math.sin(clockTime * 0.5) * 0.05 + bs.value * 0.05));
+    for (const h of jinja.starHalos) h.sprite.scale.setScalar(h.base * (1 + Math.sin(clockTime * h.speed) * h.amp + bs.value * 0.05));
+    for (const a of jinja.sky) a(dt);
     for (const l of jinja.lights) {
       l.sprite.material.opacity = 0.42 + Math.sin(clockTime * 0.7 + l.phase) * 0.14;
     }
