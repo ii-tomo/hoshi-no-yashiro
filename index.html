@@ -754,13 +754,16 @@
     position: fixed; left: 50%; top: 24%; transform: translateX(-50%);
     z-index: 22; font-size: clamp(14.5px, 2.6vw, 17px); letter-spacing: .22em; text-indent: .22em;
     color: #e8e0c8; text-shadow: 0 0 18px rgba(232,224,200,.5);
-    opacity: 0; transition: opacity .9s; white-space: nowrap; pointer-events: none;
+    opacity: 0; transition: opacity .9s; pointer-events: none;
+    /* お礼参りの長いことばも、狭い画面で折り返して読めるように（前は一行きり） */
+    width: max-content; max-width: 88vw; text-align: center; line-height: 1.9; word-break: auto-phrase;
   }
   #toritsugi { justify-content: flex-start; overflow-y: auto; padding-top: 46px; touch-action: pan-y pinch-zoom; }
   #toritsugi .negai {
     font-size: clamp(15px, 2.8vw, 17px); line-height: 2.2; letter-spacing: .18em;
     color: #e8e0c8; text-align: center; margin-bottom: 16px;
   }
+  #toritsugi .negai-who { font-size: 13px; letter-spacing: .2em; color: #ffe9a8; margin-bottom: 4px; }
   #toritsugi .t-lead { font-size: 12.5px; color: #9a9ac8; letter-spacing: .18em; margin-bottom: 20px; }
   #toritsugi .t-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 22px; margin-bottom: 24px; width: min(86vw, 380px); }
   #toritsugi .t-cell { text-align: center; cursor: pointer; opacity: .82; }
@@ -1014,6 +1017,9 @@
   <div class="book-subhead musubi-head">星めぐり</div>
   <div class="book-grid musubi-grid" id="meguri-grid"></div>
   <div class="book-detail" id="meguri-detail"></div>
+  <div class="book-subhead musubi-head">常連さんの絵馬</div>
+  <div class="book-grid musubi-grid" id="jouren-grid"></div>
+  <div class="book-detail" id="jouren-detail"></div>
   <div class="book-hounou" id="book-hounou"></div>
   <div class="musubi-link" id="share-book">御朱印帳を、わけあう</div>
   <div class="book-note" id="book-note">八柱すべてと縁を結ぶと、龍神様が姿を現す。</div>
@@ -1055,6 +1061,7 @@
 <!-- 宇宙神社: ねがいのとりつぎ -->
 <div class="overlay hidden" id="toritsugi">
   <h2>ねがいのとりつぎ</h2>
+  <div class="negai-who" id="negai-who" style="display:none;"></div>
   <div class="negai" id="negai-text"></div>
   <div class="t-lead">どの神様に、とりついでもらいましょう</div>
   <div class="t-grid" id="t-grid"></div>
@@ -1413,6 +1420,51 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   // 設えの建立コスト: 幸3からゆるやかに増える（3,3,3,4,4,4,…8）
   function shitsuraeCost(index) { return 3 + Math.floor(index / 3); }
 
+  // ===== 常連さん（Phase 4.5「参拝者の個性」・正本は docs/CONCEPT.md）=====
+  // 誰なのかは決めない。年齢・性別・立場で呼ばず、来かた・持ち物で呼ぶ
+  // （本人「男も女も年代も関係なく。万人に受けるような内容がいい」）。
+  // 一人が来るのは一日に一度まで。3つの願いを取り次ぐと、後日お礼参りに来る。
+  // 顔ぶれは、遊んでピンとこなければ入れ替える約束（本人 2026-10-06）。入れ替えはこの表だけ直せばよい
+  const JOUREN_OREI_SACHI = 3;   // お礼参りのお返し（幸）
+  const JOUREN = [
+    { id: 'asa', name: '朝いちばんに来る人', color: 0xb8e0a0,
+      negai: ['新しいことを、はじめる勇気が出ますように', '三日坊主で、終わりませんように', '続けてきたことが、ちゃんと身につきますように'],
+      orei: 'ひと月、続きました。朝が少し好きになりました' },
+    { id: 'yofuke', name: '夜ふけに来る人', color: 0xc0a8e0,
+      negai: ['こんやは、ゆっくり眠れますように', '考えごとを、枕まで持ちこみませんように', '朝の光を、気持ちよく迎えられますように'],
+      orei: 'このごろ、よく眠れています' },
+    { id: 'tegami', name: '手紙を持ってくる人', color: 0x9fb8e0,
+      negai: ['手紙の返事が、来ますように', '書きかけの手紙を、出す勇気が出ますように', '会う約束が、守られますように'],
+      orei: '会えました。返事は、ちゃんと来ていました' },
+    { id: 'utsumuki', name: 'うつむいて来る人', color: 0xf0a890,
+      negai: ['言えなかったごめんが、いつか言えますように', '言いすぎたことばが、とげになりませんように', 'また一緒に笑えますように'],
+      orei: 'ごめんねが言えました。今度は、わたしが聞く番です' },
+    { id: 'isogi', name: 'いつも急ぎ足の人', color: 0xa8d8f0,
+      negai: ['今日の予定が、ぶじに終わりますように', 'ひと息つく時間が、少しでもとれますように', '自分のことも、大事にできますように'],
+      orei: '休むのが、少し上手になりました' },
+    { id: 'tooku', name: '遠くを見ている人', color: 0xe0e4f0,
+      negai: ['遠くにいる大切な人が、元気でいますように', '今年は、顔を見に行けますように', 'みんなで、ごはんを食べられますように'],
+      orei: '会えました。みんな、変わらず元気でした' },
+    { id: 'tane', name: '種を持ってくる人', color: 0xf0c860,
+      negai: ['まいた種が、芽を出しますように', '育てているものが、すくすく伸びますように', '実ったものを、誰かと分けあえますように'],
+      orei: 'たくさん実りました。おすそわけに来ました' },
+    { id: 'nimotsu', name: '大きな荷物をかかえた人', color: 0xf4b8c8,
+      negai: ['終わったことを、いつまでも悔やまずにいられますように', '手放したものに、ありがとうと言えますように', '空いた場所に、新しい風が入りますように'],
+      orei: '荷物が、ずいぶん軽くなりました' },
+  ];
+  // 記録: save.jouren[id] = { step: 0〜4, day }（3＝願いを3つ取り次いだ・つぎはお礼参り／4＝絵馬をいただいた）
+  function jourenRec(id) { return save.jouren[id] || { step: 0, day: '' }; }
+  function jourenOf(id) { return JOUREN.find(j => j.id === id) || null; }
+  let testJouren = null;   // 開発用フック _hoshi.nextJouren で、つぎの参拝者を常連さんに
+  // 参拝者が来るとき、今日まだ来ていない常連さんがいれば、3回に1回くらいは常連さん
+  function pickJouren() {
+    if (testJouren) { const j = jourenOf(testJouren); testJouren = null; return j; }
+    const today = localDate(nowDate());
+    const due = JOUREN.filter(j => { const r = jourenRec(j.id); return r.step < 4 && r.day !== today; });
+    if (!due.length || Math.random() > 0.34) return null;
+    return due[Math.floor(Math.random() * due.length)];
+  }
+
   // ===== 星めぐり（Phase 4.5・正本は docs/CONCEPT.md「星めぐり」）=====
   // はじまりの社（シリウス）の設えが16ととのうと、夜空の実在の星にひとつずつ社が増えていく。
   // 新しい神は増やさない（八十八柱はそろっている）。星ごとに変わるのは、景色の色・訪れる願い・星の御朱印
@@ -1662,6 +1714,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   save.shitsurae = save.shitsurae || [];           // 建てた設えのid配列（KURASHI配列順）
   save.toritsugiCount = save.toritsugiCount || 0;  // とりついだ願いの累計
   // 星めぐり（Phase 4.5）: 社のある星・いまいる星・星ごとのとりつぎ数・御朱印をいただいた日
+  save.jouren = save.jouren || {};   // 常連さんの記録（id ごとに step と、最後に来た日）
   save.meguri = save.meguri || {};
   save.meguri.built = save.meguri.built || ['sirius'];
   save.meguri.at = save.meguri.at || 'sirius';
@@ -2890,6 +2943,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     renderSekkiBook();
     renderKurashiBook();
     renderMeguriBook();
+    renderJourenBook();
     bookDetail.innerHTML = 'ひとつ選ぶと、その神様のことが読めます。';
     document.getElementById('book-hounou').textContent = save.hounouCount > 0
       ? '奉納の舞 ' + save.hounouCount + ' 度　届いた祝詞 ' + save.noritoTotal
@@ -3135,6 +3189,50 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       '<span class="d-name">' + h.name + '（' + h.wamei + '）</span>' + h.about + '。<br>' +
       'この光は、およそ ' + h.ly + ' 年前に、この星を出た光。' +
       '<br><span style="color:#8f8fc0;font-size:12.5px">' + status + '</span>';
+  }
+  // 御朱印帳「常連さんの絵馬」（まだ会っていない人は、呼び名も伏せる）
+  function renderJourenBook() {
+    const grid = document.getElementById('jouren-grid');
+    grid.innerHTML = '';
+    for (const j of JOUREN) {
+      const r = jourenRec(j.id);
+      const met = r.step > 0;
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const orb = document.createElement('div');
+      if (met) { orb.className = 'orb met'; orb.style.color = '#' + j.color.toString(16).padStart(6, '0'); }
+      else { orb.className = 'orb unmet'; orb.textContent = '？'; }
+      const name = document.createElement('div');
+      name.className = 'cell-name' + (met ? '' : ' dim');
+      name.textContent = met ? j.name : '？？？';
+      const st = document.createElement('div');
+      st.className = 'cell-pair';
+      st.textContent = r.step >= 4 ? '絵馬' : r.step >= 3 ? 'お礼参りまち' : met ? r.step + ' / 3' : '';
+      cell.appendChild(orb); cell.appendChild(name); cell.appendChild(st);
+      cell.addEventListener('click', () => showJourenDetail(j));
+      grid.appendChild(cell);
+    }
+    const ema = JOUREN.filter(j => jourenRec(j.id).step >= 4).length;
+    document.getElementById('jouren-detail').innerHTML = !canJinja()
+      ? '宇宙神社がひらくと、常連さんが通ってきます。'
+      : ema === JOUREN.length
+        ? '八人の常連さんの絵馬が、そろいました。<br>この社は、もうだれかの帰る場所です。'
+        : '常連さんは、一日に一度、社に通ってきます。' + (ema ? '<br>いただいた絵馬　' + ema + ' 枚' : '');
+  }
+  function showJourenDetail(j) {
+    const r = jourenRec(j.id);
+    const detail = document.getElementById('jouren-detail');
+    if (r.step === 0) {
+      detail.innerHTML = '<span class="d-name">？？？</span>まだ会っていない常連さん。社に通ううちに、出会えます。';
+      return;
+    }
+    const heard = j.negai.slice(0, Math.min(r.step, 3)).map(w => '「' + w + '」').join('<br>');
+    detail.innerHTML = '<span class="d-name">' + j.name + '</span>' + heard + '<br>' +
+      (r.step >= 4
+        ? '<span style="color:#ffe9a8">お礼参り「' + j.orei + '」</span>' +
+          (r.date ? '<br><span style="color:#8f8fc0;font-size:12.5px">絵馬をいただいた日　' + r.date + '</span>' : '')
+        : '<span style="color:#8f8fc0;font-size:12.5px">' +
+          (r.step >= 3 ? 'いつか、お礼に来てくれそうです' : 'また来てくれます（一日に一度）') + '</span>');
   }
   function showKurashiDetail(c, met) {
     const detail = document.getElementById('kurashi-detail');
@@ -3768,22 +3866,31 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     const group = new THREE.Group();
     const side = Math.random() < 0.5 ? -1 : 1;
     group.position.set(side * 24, -2 + Math.random() * 5, 3);
+    // 常連さんは、その人の色で。顔のない参拝者も、光の大きさ・色合い・歩く速さを少しずつ変える
+    const j = pickJouren();
+    const rec = j ? jourenRec(j.id) : null;
+    const size = j ? 1.15 : 0.75 + Math.random() * 0.55;   // 小さく速い光／ゆっくり大きな光
+    const speed = j ? 0.8 : 0.6 + Math.random() * 0.8;
+    const tint = j ? j.color
+      : new THREE.Color(0xf0ead8).lerp(new THREE.Color().setHSL(Math.random(), 0.45, 0.75), 0.25).getHex();
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: softGlow, color: 0xf0ead8, transparent: true, opacity: 0,
+      map: softGlow, color: tint, transparent: true, opacity: 0,
       depthWrite: false, blending: THREE.AdditiveBlending,
     }));
-    halo.scale.setScalar(3.4);
+    halo.scale.setScalar(3.4 * size);
     group.add(halo);
     const core = new THREE.Sprite(new THREE.SpriteMaterial({
       map: softGlow, color: 0xffffff, transparent: true, opacity: 0,
       depthWrite: false, blending: THREE.AdditiveBlending,
     }));
-    core.scale.setScalar(1.1);
+    core.scale.setScalar(1.1 * size);
     group.add(core);
     scene.add(group);
     sanpaisha = {
-      group, halo, core, state: 'coming', t: 0,
-      negai: pickNegai(),
+      group, halo, core, state: 'coming', t: 0, size, speed,
+      jouren: j ? j.id : null,
+      orei: !!(j && rec.step >= 3),                       // 願いを3つ取り次いだ常連さんは、お礼参りに
+      negai: j ? (rec.step < 3 ? j.negai[rec.step] : null) : pickNegai(),
       target: new THREE.Vector3(0, -4.2, 5),  // 社の前（鳥居のすこし手前）
       bless: null,
     };
@@ -3952,9 +4059,20 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
 
   // ねがいのとりつぎ
+  // 参拝者が待っているときのひとこと（常連さんなら、その人が来ていると知らせる）
+  function sanpaiHint() {
+    const j = sanpaisha && sanpaisha.jouren ? jourenOf(sanpaisha.jouren) : null;
+    if (!j) return '光にふれると、ねがいが聞こえます';
+    return 'いつもの、' + j.name + 'が来ています';
+  }
   function openToritsugi() {
+    const j = sanpaisha.jouren ? jourenOf(sanpaisha.jouren) : null;
+    if (j && sanpaisha.orei) { doOrei(j); return; }   // お礼参りは、願いがない（ことばだけ）
     state = 'toritsugi';
     toritsugiSel = null;
+    const who = document.getElementById('negai-who');
+    who.textContent = j ? 'いつもの、' + j.name : '';
+    who.style.display = j ? '' : 'none';
     document.getElementById('negai-text').textContent = '「' + sanpaisha.negai + '」';
     renderToritsugiGrid();
     showOverlay('toritsugi');
@@ -3992,6 +4110,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       save.meguri.toritsugi[h.id] = n;
       if (n === MEGURI_SEAL) { sealNow = true; save.meguri.sealDate[h.id] = localDate(); }
     }
+    // 常連さんは、話がひとつ進む（今日はもう来ない）。3つめで、いつかお礼参りに
+    let jourenDone = false;
+    if (sanpaisha.jouren) {
+      const r = jourenRec(sanpaisha.jouren);
+      save.jouren[sanpaisha.jouren] = { step: r.step + 1, day: localDate(nowDate()) };
+      jourenDone = r.step + 1 === 3;
+    }
     persist();
     state = 'jinja';
     showOverlay(null);
@@ -4001,13 +4126,38 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     sanpaisha.halo.material.color.setHex(k.color);
     playSuzu(false);
     updateJinjaHud();
+    // 取り次ぎのあとに続くことば（その星の御朱印／常連さんの3つめ）
+    const follow = [];
+    if (sealNow) follow.push([h.seal + 'の御朱印を、いただきました', 3.6, true]);
+    if (jourenDone) follow.push(['いつか、お礼に来てくれそうです', 3.0, false]);
+    const next = (i) => i < follow.length ? () => {
+      showJinjaWord(follow[i][0], follow[i][1], next(i + 1));
+      if (follow[i][2]) playBirthChime(true);
+    } : null;
     showJinjaWord(k.name + 'が、ねがいをうけとりました', 2.6, () => {
       if (state === 'jinja' || state === 'shitsurae' || state === 'toritsugi' || state === 'meguri') {
-        showJinjaWord(TORITSUGI_WORDS[Math.floor(Math.random() * TORITSUGI_WORDS.length)], 3.0, sealNow ? () => {
-          showJinjaWord(h.seal + 'の御朱印を、いただきました', 3.6);
-          playBirthChime(true);
-        } : null);
+        showJinjaWord(TORITSUGI_WORDS[Math.floor(Math.random() * TORITSUGI_WORDS.length)], 3.0, next(0));
       }
+    });
+  }
+
+  // お礼参り: 願いはなく、お礼のことばだけ。幸3と、御朱印帳「常連さんの絵馬」に一枚
+  function doOrei(j) {
+    const today = localDate(nowDate());
+    save.jouren[j.id] = { step: 4, day: today, date: today };
+    save.sachi += JOUREN_OREI_SACHI;
+    save.sachiTotal += JOUREN_OREI_SACHI;
+    persist();
+    sanpaisha.state = 'blessed';
+    sanpaisha.t = 0;
+    setHint('');
+    playSuzu(true);
+    playBirthChime(true);
+    updateJinjaHud();
+    showJinjaWord('いつもの、' + j.name + 'が、お礼参りに', 2.6, () => {
+      showJinjaWord('「' + j.orei + '」', 4.4, () => {
+        showJinjaWord('絵馬を一枚と、幸を' + JOUREN_OREI_SACHI + 'つ、いただきました', 3.2);
+      });
     });
   }
 
@@ -4074,23 +4224,23 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     s.t += dt;
     const appear = Math.min(s.t / 2, 1);
     if (s.state === 'coming') {
-      s.group.position.lerp(s.target, Math.min(dt * 0.8, 1));
+      s.group.position.lerp(s.target, Math.min(dt * 0.8 * s.speed, 1));
       s.halo.material.opacity = 0.5 * appear;
       s.core.material.opacity = 0.85 * appear;
       if (s.group.position.distanceTo(s.target) < 0.5) {
         s.state = 'waiting';
-        if (state === 'jinja') setHint('光にふれると、ねがいが聞こえます');
+        if (state === 'jinja') setHint(sanpaiHint());
       }
     } else if (s.state === 'waiting') {
       s.group.position.y = s.target.y + Math.sin(clockTime * 1.3) * 0.25;
       const breathe = 1 + Math.sin(clockTime * 1.6) * 0.08;
-      s.halo.scale.setScalar(3.4 * breathe);
+      s.halo.scale.setScalar(3.4 * s.size * breathe);
       s.halo.material.opacity = 0.55;
       s.core.material.opacity = 0.9;
     } else if (s.state === 'blessed') {
       // とりついだ神様の色に満ちて、星空へ帰ってゆく
       const p = Math.min(s.t / 1.6, 1);
-      s.halo.scale.setScalar(3.4 * (1 + p * 0.9));
+      s.halo.scale.setScalar(3.4 * s.size * (1 + p * 0.9));
       s.halo.material.opacity = 0.55 + p * 0.25;
       if (p >= 1) { s.state = 'rising'; s.t = 0; }
     } else if (s.state === 'rising') {
@@ -4582,7 +4732,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   document.getElementById('toritsugi-cancel').addEventListener('click', () => {
     state = 'jinja';   // 参拝者は、待っていてくれる
     showOverlay(null);
-    setHint('光にふれると、ねがいが聞こえます');
+    setHint(sanpaiHint());
   });
   document.getElementById('toritsugi-go').addEventListener('click', function () {
     if (this.classList.contains('dim')) return;
@@ -4807,6 +4957,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     nextRarity: (i) => { testRarity = RARITY[i]; return testRarity.name; }, // テスト用: つぎの一回の運勢（0吉 1中吉 2大吉）
     shitsuraeAll: () => { KURASHI.forEach(c => { if (!save.shitsurae.includes(c.id)) save.shitsurae.push(c.id); save.counts[c.id] = save.counts[c.id] || 1; }); persist(); if (jinja) updateJinjaHud(); }, // テスト用: 設えを16そろえる（星めぐりがひらく）
     meguri: () => JSON.parse(JSON.stringify(save.meguri)), // テスト用: 星めぐりの記録
+    nextJouren: (id) => { testJouren = id; return id; }, // テスト用: つぎの参拝者を、その常連さんに
+    jouren: () => JSON.parse(JSON.stringify(save.jouren)), // テスト用: 常連さんの記録
+    jourenSet: (id, step, day) => { save.jouren[id] = { step, day: day || '' }; persist(); }, // テスト用: 常連さんの進みを設定
     toritsugiHere: (n) => { const h = currentHoshi(); save.meguri.toritsugi[h.id] = n; persist(); if (jinja) updateJinjaHud(); }, // テスト用: いまの星でのとりつぎ数を設定
     guardian: (n) => { save.guardian = n; save.guardianShown = false; persist(); renderGuardian(); spawnGuardian(n); showGuardianReveal(n); }, // テスト用: 守護神を設定して顕現を見る
     guardianCard: async (n) => (await drawGuardianCard(n || save.guardian)).toDataURL('image/jpeg', 0.85), // テスト用: 守護神のわけあう画像
