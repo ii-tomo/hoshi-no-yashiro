@@ -2275,7 +2275,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     hatsuhiEl.className = hatsuhiCalm ? 'on calm' : 'on';
     void hatsuhiEl.offsetWidth;
     hatsuhiEl.classList.add('rise');
-    breathWrap.style.opacity = '0';   // 呼吸のリングが地球のふちに重なるので、のぼるあいだは休ませる
+    breathWrap.style.opacity = '0';   // 呼吸のリングが地球のふちに重なるので休ませる。戻すのはつぎの呼吸から（startSession）
     playSho(HATSUHI.arrive + 1.5);
     at(HATSUHI.dawn, () => hatsuhiEl.classList.add('dawn'));
     at(HATSUHI.sunup, () => hatsuhiEl.classList.add('sunup'));
@@ -2283,7 +2283,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     at(HATSUHI.crest + 1.4, () => hatsuhiEl.classList.add('crest2'));
     at(HATSUHI.rays, () => hatsuhiEl.classList.add('rays'));
     at(HATSUHI.arrive, () => hatsuhiEl.classList.add('arrive'));
-    at(HATSUHI.arrive + HATSUHI.fade, () => { hatsuhiEl.classList.add('fade'); breathWrap.style.opacity = ''; });
+    // 地球が引いたあとにリングだけ戻すと、亡霊のように丸が残る（本人指摘）ので、ここでは戻さない
+    at(HATSUHI.arrive + HATSUHI.fade, () => hatsuhiEl.classList.add('fade'));
     at(HATSUHI.arrive + HATSUHI.fade + 3, () => { hatsuhiEl.className = ''; });
   }
 
@@ -5164,6 +5165,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   function startSession() {
     if (!mode) setMode('totonoeru');  // モード未選択で来たら（奉納だけして空をながめた後など）基本の呼吸で
     preloadRyujinVideo();   // 歩みが残りわずかなら、顕現の映像をいまのうちに用意しておく
+    breathWrap.style.opacity = '';   // 初日の出のあいだ休ませた呼吸のリングを、呼吸とともに戻す
     state = 'session';
     sessionTime = 0;
     breathsDone = 0;
