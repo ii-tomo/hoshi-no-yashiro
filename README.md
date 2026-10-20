@@ -134,6 +134,8 @@
   * `https://hoshi-no-yashiro.pages.dev/shugoshin` で開くと、オープニングも呼吸もとばして、誕生日 → 顕現 → 「お参りをはじめる」／「わけあう」。すでにみちびいた人には、自分の守護神がもう一度
   * リンクを貼ったときの看板は「誕生日でわかる、あなたの守護神」（`ogp-shugoshin.jpg`・作り直しは `python docs/make_ogp_shugoshin.py [字体のフォルダ]`）
   * 守護神のわけあう画像は、文のURLも足もとの字も `/shugoshin` に
+  * オープニングの右上に「とばす」（本人発案）。入口から来たはじめての人も「お参りをはじめる」でオープニングへ、とばせばスタート画面
+  * 不具合を直した: 「音なしで はじめる」を押すと、見えないタイトルに当たって語りつきで始まっていた（公開中の版でも起きていた）
   * 確かめ方: ローカルで `http://localhost:8936/shugoshin.html`（または `/?shugoshin`）。`_hoshi.reset()` ではじめての人として
 
 * 公開URL: https://hoshi-no-yashiro.pages.dev

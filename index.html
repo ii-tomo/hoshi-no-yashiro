@@ -388,6 +388,7 @@
   #op-title {
     position: absolute;
     text-align: center;
+    pointer-events: none;   /* 見えないあいだも「音なしで はじめる」に覆いかぶさり、語りつきで始まっていた。タップは #opening が受ける */
     opacity: 0; transform: scale(1.05);
     transition: opacity 2s ease, transform 7s ease;
   }
@@ -438,6 +439,16 @@
     opacity: 0; transition: opacity 1.8s;
   }
   #opening.ready #op-skip { opacity: 1; }
+  /* オープニングをまるごととばす（社の戸のときから出しておく。一幕ずつはタップで進む） */
+  #op-skipall {
+    position: absolute; top: 4%; right: 4%;
+    padding: 8px 4px;
+    font-size: 12.5px; letter-spacing: .2em;
+    color: #8888ac;
+    border-bottom: 1px solid rgba(120,120,160,.35);
+    cursor: pointer;
+  }
+  #op-skipall:hover { color: #b8b8dd; }
 
   /* 鳥居くぐり（宇宙神社への入場演出。浮かびあがる→光のとばりがひらく→くぐる） */
   #torii-pass {
@@ -864,6 +875,7 @@
     <div class="op-yomi">ほしのやしろ</div>
   </div>
   <div id="op-skip">タップで すすむ</div>
+  <div id="op-skipall">とばす</div>
 </div>
 
 <!-- 鳥居くぐり（宇宙神社への入場。画像はimg/torii-hikari.webp・タップで先へ） -->
@@ -2814,6 +2826,19 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     document.documentElement.classList.remove('op-first'); // ここからはJSが表示を持つ
 
     let timer = 0, tapNext = null;
+    let skipped = false;   // 「とばす」を押した。待っている幕がこのあと明けても、先へ進めない
+    document.getElementById('op-skipall').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (skipped) return;
+      skipped = true;
+      clearTimeout(timer);
+      tapNext = null;
+      NARRATION.forEach(a => { a.onended = null; a.pause(); });
+      op.classList.add('hidden');
+      // 語りを聞かなかったので、スタート画面の短い物語で代える（はじめての人だけ）
+      document.getElementById('start-story').style.display = save.born > 0 ? 'none' : '';
+      showOverlay('start');
+    });
     op.addEventListener('click', () => {
       if (tapNext) { clearTimeout(timer); const go = tapNext; tapNext = null; go(); }
     });
@@ -2850,6 +2875,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       gate.classList.add('gone');
       op.classList.add('ready');
       await wait(1200); // 闇の間
+      if (skipped) return;
       for (let i = 0; i < MAKU.length; i++) {
         const lines = MAKU[i];
         textEl.classList.remove('show', 'gone');
@@ -2859,8 +2885,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
         void textEl.offsetWidth; // リフローを挟み、次のclass付与でフェードを確実に効かせる
         textEl.classList.add('show');
         await waitMaku(withSound ? NARRATION[i] : null, 2000 + lines.length * 1000);
+        if (skipped) return;
         textEl.classList.add('gone');
         await wait(1100);
+        if (skipped) return;
       }
       textEl.style.display = 'none';
       // 星屑が社の名の場所へあつまり、鈴の音とともに一文字ずつ灯る
@@ -2875,12 +2903,15 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       }
       gather.classList.add('go');
       await wait(2100);
+      if (skipped) return;
       gather.style.display = 'none';
       if (withSound) bell();
       op.classList.add('lift2'); // 空がもうひとつひらく
       document.getElementById('op-title').classList.add('show');
       document.getElementById('op-skip').textContent = 'タップで はじめる';
+      document.getElementById('op-skipall').style.display = 'none';   // あとはタップではじまる
       await wait(7500);
+      if (skipped) return;
       op.classList.add('hidden');
       showOverlay('start');
     }
@@ -4508,7 +4539,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     if (returning) populateWelcome();
     populateOharae();
     state = 'title';
-    showOverlay('start');
+    if (returning) { showOverlay('start'); return; }
+    // はじめての人には、ここでオープニング（社の戸と語り）。「とばす」でスタート画面へ（本人「スキップ出来るようにすれば良いかな？」）
+    showOverlay(null);
+    runOpening();
   });
   document.getElementById('sga-share').addEventListener('click', shareGuardian);
 
