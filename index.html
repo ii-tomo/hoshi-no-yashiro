@@ -820,6 +820,16 @@
   #hatsuhi.arrive .hh-disc { opacity: 0; transform: translate(-50%, -50%) scale(1.35); }   /* 太陽が光にほどけて、今年の一柱になる */
   #hatsuhi.fade .hh-sky, #hatsuhi.fade .hh-sky2, #hatsuhi.fade .hh-earth, #hatsuhi.fade .hh-rays,
   #hatsuhi.fade .hh-dawn, #hatsuhi.fade .hh-flare { opacity: 0; transition: opacity 2.6s ease; }
+  /* 動きを減らす設定の人には、静かな初日の出（のぼらず、その場に浮かぶ・筋は回さない・光は走らせない）。
+     Windows の「アニメーション効果」オフでもこの扱いになり、初日の出がまるごと出ていなかった（本人「日の出には見えない」） */
+  #hatsuhi.calm .hh-earth { top: 84%; opacity: 0; transition: opacity 1.6s ease; }
+  #hatsuhi.calm.rise .hh-earth { opacity: 1; }
+  #hatsuhi.calm .hh-sun { top: 60%; transition: none; }
+  #hatsuhi.calm .hh-disc { opacity: 0; transition: opacity 3s ease; }
+  #hatsuhi.calm.sunup .hh-disc { opacity: 1; }
+  #hatsuhi.calm.sunup.arrive .hh-disc { opacity: 0; transform: translate(-50%, -50%); transition: opacity 1.6s ease; }
+  #hatsuhi.calm .hh-rays { animation: none; }
+  #hatsuhi.calm .hh-flare { transform: translateY(-50%) scaleX(1); transition: opacity 1.2s ease; }
 
   /* 初詣の柏手（鳥居をくぐったあと、二度ふれる） */
   #kashiwade { cursor: pointer; }
@@ -2143,7 +2153,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     const viaBridge = !hatsu && bridgeSekki().includes(kami);   // 縁を記録する前に見る（記録すると橋の名簿から外れる）
     let hatsuRec = null;
     if (hatsu) {
-      if (hatsuhiOk) position = hatsuhiSunPoint(position);   // 今年の一柱は、太陽がのぼりきった場所に生まれる
+      position = hatsuhiSunPoint(position);   // 今年の一柱は、太陽がのぼりきった場所に生まれる
       const now = nowDate();
       hatsuRec = { id: kami.id, rarity: rarity.name, date: localDate(now),
         first: localDate(now).slice(5) === '01-01' && now.getHours() === 0 };   // 年が明けて、いちばんに
@@ -2175,8 +2185,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
       scene.add(group);
       if (viaBridge) birthBridge(position, kami.color);   // 遠くの空から橋が架かり、神の光がわたってくる
-      else if (hatsu && hatsuhiOk) setTimeout(() => birthSparkle(position), HATSUHI.arrive * 1000);   // 初詣は、のぼりきった刹那に
-      else if (hatsu || rarity.name === '大吉') birthSparkle(position);   // 大吉と初詣は、金の光の粒が立ちのぼる
+      else if (hatsu) setTimeout(() => birthSparkle(position), HATSUHI.arrive * 1000);   // 初詣は、太陽がほどけた刹那に
+      else if (rarity.name === '大吉') birthSparkle(position);   // 大吉は、金の光の粒が立ちのぼる
       kamis.push({
         group, halo, core,
         base: position.clone(),
@@ -2184,7 +2194,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
         speed: 0.15 + Math.random() * 0.2,
         drift: new THREE.Vector3((Math.random()-.5)*.15, (Math.random()-.5)*.1, 0),
         // 橋のときは、わたりきった刹那に。初日の出のときは、太陽が光にほどけた刹那に生まれる
-        bornAt: clockTime + (viaBridge ? BRIDGE.arrive : (hatsu && hatsuhiOk) ? HATSUHI.arrive : 0),
+        bornAt: clockTime + (viaBridge ? BRIDGE.arrive : hatsu ? HATSUHI.arrive : 0),
         haloBase: 7 * rarity.scale,
         coreBase: 2.2 * Math.min(rarity.scale, 1.4),
       });
@@ -2230,7 +2240,6 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
         playBirthChime(false);
         playDaikichiChime();   // 年に一度なので、運勢によらず鈴を「しゃらん」
       };
-      if (!hatsuhiOk) { named(); return 8.5; }   // 動きを減らす設定の人には、すぐ名乗る
       runHatsuhi();
       clearTimeout(hatsuCardTimer);
       hatsuCardTimer = setTimeout(named, HATSUHI.arrive * 1000);
@@ -2253,7 +2262,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     fade: 2.4,     // 名乗ってから、地球と空の明るみが引きはじめるまで
   };
   const SUN_Y = 0.60;   // のぼりきった太陽の高さ（画面の上から。CSS の .hh-sun と同じ。カードに隠れない高さ）
-  const hatsuhiOk = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hatsuhiCalm = matchMedia('(prefers-reduced-motion: reduce)').matches;   // 動きを減らす設定の人には、静かな初日の出
   let hatsuCardTimer = null;
   const hatsuhiEl = document.getElementById('hatsuhi');
   // 太陽がのぼりきった場所（画面のまん中、上から SUN_Y）を、神の生まれる空間の位置に直す
@@ -2263,7 +2272,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
   function runHatsuhi() {
     const at = (sec, fn) => setTimeout(fn, sec * 1000);
-    hatsuhiEl.className = 'on';
+    hatsuhiEl.className = hatsuhiCalm ? 'on calm' : 'on';
     void hatsuhiEl.offsetWidth;
     hatsuhiEl.classList.add('rise');
     breathWrap.style.opacity = '0';   // 呼吸のリングが地球のふちに重なるので、のぼるあいだは休ませる
