@@ -10,8 +10,11 @@
 <script>
   // 完全初回だけオープニングを出す。module読み込み前に判定して、モード選択画面のチラつきを防ぐ
   // ?hajimari 付きURL（はじまりのリンク）なら、遊んだことがある人にももう一度流す
+  // ?shugoshin 付きURL（守護神の入口・shugoshin.html から来る）は、オープニングをとばして、まず誕生日から
   try {
-    if ((location.search.indexOf('hajimari') !== -1 ||
+    if (location.search.indexOf('shugoshin') !== -1) {
+      document.documentElement.classList.add('entry-shugoshin');
+    } else if ((location.search.indexOf('hajimari') !== -1 ||
          !localStorage.getItem('hoshi-no-yashiro')) &&
         !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       document.documentElement.classList.add('op-first');
@@ -301,6 +304,7 @@
      出し分けは<head>の同期スクリプトが html に op-first を付けて行う（チラつき防止）。
      module読み込み後はJSが .on と #start の hidden で引き継ぐ */
   .op-first #start { opacity: 0; visibility: hidden; } /* オープニングが引き継ぐまで隠す */
+  .entry-shugoshin #start { opacity: 0; visibility: hidden; } /* 守護神の入口が引き継ぐまで隠す */
   #opening { display: none; }
   .op-first #opening, #opening.on { display: flex; }
   #opening {
@@ -498,7 +502,7 @@
   #start .note { margin-top: 20px; font-size: 12px; color: #a0a0c8; letter-spacing: .15em; }
 
   /* 呼吸のこころえ・奉納のこころえ・縁むすび */
-  #howto h2, #hounou-intro h2, #musubi-select h2, #jinja-intro h2, #toritsugi h2, #shitsurae h2 {
+  #howto h2, #hounou-intro h2, #musubi-select h2, #jinja-intro h2, #toritsugi h2, #shitsurae h2, #shugoshin h2 {
     font-size: 19px; letter-spacing: .4em; text-indent: .4em;
     font-weight: normal; color: #d8d8f2;
     margin-bottom: 26px;
@@ -526,18 +530,27 @@
   #howto input[type="checkbox"] { accent-color: #9494bd; }
 
   /* お参りのあと・締め・奉納のあと */
-  #after .q, #finish .msg, #hounou-end .msg {
+  #after .q, #finish .msg, #hounou-end .msg, #shugoshin-after .msg {
     font-size: clamp(15px, 2.4vw, 17px);
     letter-spacing: .25em; text-indent: .25em;
     line-height: 2.4;
     margin-bottom: 30px;
     text-align: center;
   }
-  #after .btns, #finish .btns, #hounou-end .btns, #hounou-intro .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  #after .btns, #finish .btns, #hounou-end .btns, #hounou-intro .btns, #shugoshin-after .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
   #finish .stats, #hounou-end .stats {
     font-size: 14px; color: #9a9ac8; letter-spacing: .2em;
     line-height: 2.4; margin-bottom: 30px; text-align: center;
   }
+
+  /* 守護神の入口（?shugoshin）: 誕生日をきく画面と、顕現のあとの画面 */
+  #shugoshin .sg-sub { font-size: 12.5px; color: #8f8fc0; letter-spacing: .5em; text-indent: .5em; margin-bottom: 10px; }
+  #shugoshin .sg-lead, #shugoshin-after .sga-lines {
+    font-size: clamp(14px, 2.2vw, 15.5px); color: #b8b8dd;
+    letter-spacing: .12em; line-height: 2.3; text-align: center; margin-bottom: 26px;
+  }
+  #shugoshin .sg-note { margin-top: 22px; font-size: 12.5px; color: #8888bb; letter-spacing: .12em; text-align: center; line-height: 2; }
+  #shugoshin-after .msg { margin-bottom: 14px; color: #f4f2ff; }
 
   /* 御朱印帳: 奉納の記録 */
   #goshuincho .book-hounou {
@@ -656,14 +669,14 @@
     border-bottom: 1px solid rgba(150,150,200,.2); padding-bottom: 26px;
   }
   #goshuincho .g-lead { font-size: 14px; color: #b8b8dd; letter-spacing: .1em; text-align: center; margin-bottom: 16px; line-height: 1.9; }
-  #goshuincho .g-inputs { display: flex; justify-content: center; align-items: center; gap: 5px; margin-bottom: 18px; font-size: 13.5px; color: #9a9ac8; }
-  #goshuincho .g-inputs input {
+  .g-inputs { display: flex; justify-content: center; align-items: center; gap: 5px; margin-bottom: 18px; font-size: 13.5px; color: #9a9ac8; }
+  .g-inputs input {
     width: 64px; background: rgba(255,255,255,.06); border: 1px solid rgba(160,160,220,.35);
     border-radius: 6px; color: #e8e8f8; font-family: inherit; font-size: 15px;
     text-align: center; padding: 8px 4px; -moz-appearance: textfield;
   }
-  #goshuincho .g-inputs input::-webkit-outer-spin-button,
-  #goshuincho .g-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .g-inputs input::-webkit-outer-spin-button,
+  .g-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   #goshuincho #g-divine { display: block; margin: 0 auto; }
   #goshuincho .g-label { font-size: 12.5px; color: #9a9ac8; letter-spacing: .3em; text-indent: .3em; text-align: center; margin-bottom: 12px; }
   /* 守護神のお札（絵がなければ、その神の色の光だけで成り立つ） */
@@ -875,6 +888,28 @@
     <div class="gr-yomi" id="gr-yomi"></div>
     <div class="gr-trait" id="gr-trait"></div>
     <div class="gr-tap">ふれると、御朱印帳におさまります</div>
+  </div>
+</div>
+
+<!-- 守護神の入口（?shugoshin・shugoshin.html から来る）。わけあう画像を見て来た人が、呼吸より先に誕生日から -->
+<div class="overlay hidden" id="shugoshin">
+  <div class="sg-sub">星の社</div>
+  <h2>守護神をみちびく</h2>
+  <div class="sg-lead" id="sg-lead">誕生日から、記紀の十二柱のうち<br>あなたを守る一柱を、おみちびきします</div>
+  <div class="g-inputs">
+    <input type="number" id="sg-year" placeholder="1990" min="1900" max="2100" inputmode="numeric">年
+    <input type="number" id="sg-month" placeholder="1" min="1" max="12" inputmode="numeric">月
+    <input type="number" id="sg-day" placeholder="1" min="1" max="31" inputmode="numeric">日
+  </div>
+  <button id="sg-divine">みちびく</button>
+  <div class="sg-note">誕生日は、どこにも送りません<br>この端末に、守護神だけをしまいます</div>
+</div>
+<div class="overlay hidden" id="shugoshin-after">
+  <div class="msg" id="sga-msg"></div>
+  <div class="sga-lines" id="sga-lines"></div>
+  <div class="btns">
+    <button id="sga-start">お参りをはじめる<small>呼吸で、星を生む</small></button>
+    <button id="sga-share">この縁を、わけあう<small>大切な人にも</small></button>
   </div>
 </div>
 
@@ -2654,6 +2689,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     after: document.getElementById('after'),
     finish: document.getElementById('finish'),
     goshuincho: document.getElementById('goshuincho'),
+    shugoshin: document.getElementById('shugoshin'),
+    'shugoshin-after': document.getElementById('shugoshin-after'),
     'hounou-intro': document.getElementById('hounou-intro'),
     'hounou-end': document.getElementById('hounou-end'),
     'musubi-select': document.getElementById('musubi-select'),
@@ -3279,14 +3316,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     ctx.fillStyle = g;
     ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
   }
-  function shareFooter(ctx, W, H) {
+  function shareFooter(ctx, W, H, url) {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#9a9ac8';
     ctx.font = '30px ' + SHARE_SERIF;
     ctx.fillText('星の社 ── 八百万の神々', W / 2, H - 96);
     ctx.fillStyle = '#77779f';
     ctx.font = '26px ' + SHARE_SERIF;
-    ctx.fillText('hoshi-no-yashiro.pages.dev', W / 2, H - 52);
+    ctx.fillText((url || SHARE_URL).replace('https://', ''), W / 2, H - 52);
   }
   const KINSOKU_HEAD = '、。，．・：；？！ー…‥）」』】〕〉》”';  // 行頭に置かない字（ぶら下げる）
   const KINSOKU_TAIL = '（「『【〔〈《“';                        // 行末に置かない字（次の行へ連れて折る）
@@ -3378,7 +3415,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     let y = 1116;
     for (const ln of wrapTrait(ctx, g.trait, 880)) { ctx.fillText(ln, W / 2, y); y += 54; }
     ctx.shadowBlur = 0;
-    shareFooter(ctx, W, H);
+    shareFooter(ctx, W, H, SHARE_URL + '/shugoshin');   // 画像だけが回っても、守護神の入口がわかるように
     return cv;
   }
   function drawBookCard() {
@@ -3428,13 +3465,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     shareFooter(ctx, 1080, 1080);
     return cv;
   }
-  async function shareCanvas(cv, text) {
+  async function shareCanvas(cv, text, url) {
     const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
     if (!blob) return;
     const file = new File([blob], 'hoshi-no-yashiro.png', { type: 'image/png' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
-        await navigator.share({ files: [file], text: text + '\n#星の社\n' + SHARE_URL });
+        await navigator.share({ files: [file], text: text + '\n#星の社\n' + (url || SHARE_URL) });
         return;
       } catch (err) {
         if (err && err.name === 'AbortError') return;  // 本人がやめただけ（責めない）
@@ -4370,12 +4407,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   const grEl = document.getElementById('guardian-reveal');
   let grTimers = [];
   let grDone = false;   // 名乗りまで見せきったか（見せきる前のタップは、先へ進めるだけ）
-  function showGuardianReveal(num) {
+  let grOnClose = null; // 閉じたときにつづける画面（守護神の入口から来たとき）
+  function showGuardianReveal(num, onClose) {
     const g = GUARDIANS[num];
     if (!g) return;
     grTimers.forEach(clearTimeout);
     grTimers = [];
     grDone = false;
+    grOnClose = onClose || null;
     grEl.style.setProperty('--gc', rgbOf(g.color));
     const img = document.getElementById('gr-img');
     img.style.visibility = '';
@@ -4402,30 +4441,76 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     grEl.classList.add('closing');
     grTimers.push(setTimeout(() => { grEl.className = ''; }, 900));
     if (!save.guardianShown) { save.guardianShown = true; persist(); }
+    if (grOnClose) { const next = grOnClose; grOnClose = null; next(); }   // 光が消えていくあいだに、つぎの画面が浮かぶ
   });
   document.getElementById('g-ofuda').addEventListener('click', () => {
     if (save.guardian) showGuardianReveal(save.guardian);
   });
-  document.getElementById('g-share').addEventListener('click', async () => {
+  // わけあう画像のリンクは守護神の入口へ。見た人が、呼吸より先に自分の守護神をみちびけるように
+  async function shareGuardian() {
     const g = GUARDIANS[save.guardian];
     if (!g) return;
-    shareCanvas(await drawGuardianCard(save.guardian), 'わたしの守護神は「' + g.name + '」でした ─ 星の社');
-  });
-  document.getElementById('g-divine').addEventListener('click', () => {
-    const y = parseInt(document.getElementById('g-year').value, 10);
-    const m = parseInt(document.getElementById('g-month').value, 10);
-    const d = parseInt(document.getElementById('g-day').value, 10);
-    const lead = document.getElementById('g-lead');
+    shareCanvas(await drawGuardianCard(save.guardian), 'わたしの守護神は「' + g.name + '」でした ─ 星の社', SHARE_URL + '/shugoshin');
+  }
+  document.getElementById('g-share').addEventListener('click', shareGuardian);
+  // 誕生日の欄（御朱印帳は g-、守護神の入口は sg-）から守護神をみちびく。入れ方がおかしければ lead に知らせて null
+  function divineFrom(prefix, lead) {
+    const y = parseInt(document.getElementById(prefix + 'year').value, 10);
+    const m = parseInt(document.getElementById(prefix + 'month').value, 10);
+    const d = parseInt(document.getElementById(prefix + 'day').value, 10);
     if (!(y >= 1900 && y <= 2100) || !(m >= 1 && m <= 12) || !(d >= 1 && d <= 31)) {
       lead.textContent = '生年月日を正しく入れてください（例 1990 / 1 / 1）';
-      return;
+      return null;
     }
     save.guardian = guardianNumber(y, m, d);
     persist();
     renderGuardian();
     spawnGuardian(save.guardian);
-    showGuardianReveal(save.guardian);   // 誕生日を入れた直後に、姿をあらわす（閉じたとき guardianShown）
+    return save.guardian;
+  }
+  document.getElementById('g-divine').addEventListener('click', () => {
+    const num = divineFrom('g-', document.getElementById('g-lead'));
+    if (num) showGuardianReveal(num);   // 誕生日を入れた直後に、姿をあらわす（閉じたとき guardianShown）
   });
+
+  // ===== 守護神の入口（?shugoshin）=====
+  // わけあう画像や shugoshin.html から来た人へ。オープニングも呼吸もとばして、誕生日 → 顕現 → お参りへ。
+  // すでにみちびいた人には、その守護神がもう一度姿をあらわす
+  function openShugoshin() {
+    document.documentElement.classList.remove('entry-shugoshin');   // ここからはJSが表示を持つ
+    const q = new URLSearchParams(location.search);
+    q.delete('shugoshin');   // 読み込み直したときに、また入口へ戻らないように
+    history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : ''));
+    state = 'shugoshin';
+    if (save.guardian && GUARDIANS[save.guardian]) {
+      showOverlay(null);
+      showGuardianReveal(save.guardian, showShugoshinAfter);
+    } else {
+      showOverlay('shugoshin');
+    }
+  }
+  function showShugoshinAfter() {
+    const g = GUARDIANS[save.guardian];
+    document.getElementById('sga-msg').innerHTML = g.name + 'が、<br>あなたのお参りを見守ります。';
+    document.getElementById('sga-lines').innerHTML = returning
+      ? '今日も、ひと呼吸していきませんか。'
+      : '呼吸に合わせて星を生むと、<br>八百万の神々と、縁がむすばれます。';
+    state = 'shugoshin';
+    showOverlay('shugoshin-after');
+  }
+  document.getElementById('sg-divine').addEventListener('click', () => {
+    const num = divineFrom('sg-', document.getElementById('sg-lead'));
+    if (!num) return;
+    showOverlay(null);
+    showGuardianReveal(num, showShugoshinAfter);
+  });
+  document.getElementById('sga-start').addEventListener('click', () => {
+    if (returning) populateWelcome();
+    populateOharae();
+    state = 'title';
+    showOverlay('start');
+  });
+  document.getElementById('sga-share').addEventListener('click', shareGuardian);
 
   let cardTimer = null;
   function showBirthCard(rarity, kami, firstOfDay, viaBridge, kotoba) {
@@ -4965,8 +5050,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
   // 診断済みなら、起動時に守護神を空間へ呼び出す
   if (save.guardian && GUARDIANS[save.guardian]) spawnGuardian(save.guardian);
+  if (document.documentElement.classList.contains('entry-shugoshin')) openShugoshin();
   // すでに誕生日を入れている人には、お札が入ってから初めて開いたときに一度だけ姿をあらわす
-  if (save.guardian && GUARDIANS[save.guardian] && !save.guardianShown) showGuardianReveal(save.guardian);
+  else if (save.guardian && GUARDIANS[save.guardian] && !save.guardianShown) showGuardianReveal(save.guardian);
 
   // ファイルから直接開いたとき（file: や、プレビューの data:）は、絵・映像・音・確認の切り替えが効かない。
   // 2026-10-04 に二度、この開き方で遊んでもらい「出ない」になった（橋が架からない／守護神の絵が出ない）。本番（https）では出ない

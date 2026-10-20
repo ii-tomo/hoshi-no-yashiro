@@ -17,6 +17,7 @@
 |---|---|
 | `index.html` | 本体。HTML1枚に全部入り（CSS/JS込み） |
 | `guide.html` | はじめかたガイド。note・LINEからの入口＋御朱印帳の末尾からも行ける |
+| `shugoshin.html` | 守護神の入口（`/shugoshin`）。リンクの看板（`ogp-shugoshin.jpg`）を持ち、開くと `./?shugoshin` へ移る |
 | `video/ryujin.mp4` | 龍神様の顕現映像（720×1130・10秒・2.0MB）。**歩みが残り3を切った人だけが読み込む** |
 | `img/ryujin.webp` | 龍神様のお姿（768×1228）。誕生カードの背景と御朱印帳に使う |
 | `docs/CONCEPT.md` | ゲーム構想の正本。4段階ロードマップ（瞑想→音ゲー→パズル→宇宙神社） |
@@ -128,6 +129,12 @@
   * 顔のない参拝者も、光の大きさ・色合い・歩く速さを少しずつ変えた。社のことば（`#jinja-word`）は折り返すようにした（長いお礼や長い神名がはみ出していた）
   * 確かめ方: `_hoshi.nextJouren('nimotsu')` でつぎの参拝者を常連さんに／`_hoshi.jourenSet(id, 段, 日)`／`_hoshi.jouren()`
   * 取り次ぎの返事を、願いの中身に合わせた（`KAESHI`・10の種類×3）。本人「答えがちぐはぐっぽくない？」（眠りの願いに「見守っている」）。確かめ方: `_hoshi.kaeshi('こんやは、ゆっくり眠れますように')`
+
+* 守護神の入口（2026-10-20・クロちゃん/Opus 5.5）— **公開は本人確認待ち**
+  * `https://hoshi-no-yashiro.pages.dev/shugoshin` で開くと、オープニングも呼吸もとばして、誕生日 → 顕現 → 「お参りをはじめる」／「わけあう」。すでにみちびいた人には、自分の守護神がもう一度
+  * リンクを貼ったときの看板は「誕生日でわかる、あなたの守護神」（`ogp-shugoshin.jpg`・作り直しは `python docs/make_ogp_shugoshin.py [字体のフォルダ]`）
+  * 守護神のわけあう画像は、文のURLも足もとの字も `/shugoshin` に
+  * 確かめ方: ローカルで `http://localhost:8936/shugoshin.html`（または `/?shugoshin`）。`_hoshi.reset()` ではじめての人として
 
 * 公開URL: https://hoshi-no-yashiro.pages.dev
 * リポジトリ: https://github.com/ii-tomo/hoshi-no-yashiro（push＝自動デプロイ。pushは本人GO後のみ）
