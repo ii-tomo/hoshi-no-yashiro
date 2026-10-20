@@ -750,31 +750,76 @@
   #goshuincho .hatsu-row .h-name small { font-size: 12.5px; color: #ffe09e; margin-left: 8px; letter-spacing: .15em; }
   #goshuincho .hatsu-row .h-kotoba { font-size: 13px; color: #b8b8dd; line-height: 1.9; }
   #goshuincho .hatsu-row .h-kotoba span { display: inline-block; }
-  /* 初詣の初日の出（宇宙から見た、地球のふちからのぼる光・年に一度）。3Dの神の光より上、文字やカードより下。
-     地球は不透明にして、のぼる前の光を隠す（ふちから光がのぞく）。空の明るみは screen で重ねる */
+  /* 初詣の初日の出（宇宙から見た、地球のふちからのぼる太陽・年に一度）。3Dの空より上、文字やカードより下。
+     いつもの神の光の玉ではなく、大きな太陽を描く（神の玉がのぼるだけでは、いつもと同じに見えた・本人指摘）。
+     重なりは 空の明るみ → 光の筋 → 太陽 → 地球（太陽はのぼるまで地球に隠れる）→ ふちの光 → 文字 */
   #hatsuhi { position: fixed; inset: 0; z-index: 5; pointer-events: none; display: none; overflow: hidden; }
   #hatsuhi.on { display: block; }
   #hatsuhi .hh-sky {
-    position: absolute; inset: 0; mix-blend-mode: screen; opacity: 0; transition: opacity 3.2s ease;
-    background: linear-gradient(to top, rgba(255,176,96,.34), rgba(255,140,90,.12) 32%, rgba(0,0,0,0) 62%);
+    position: absolute; inset: 0; mix-blend-mode: screen; opacity: 0; transition: opacity 2.4s ease;
+    background: linear-gradient(to top, rgba(255,176,96,.30), rgba(255,140,90,.10) 30%, rgba(0,0,0,0) 58%);
   }
+  #hatsuhi.sunup .hh-sky { opacity: 1; transition: opacity 3.6s ease; }
+  #hatsuhi .hh-sky2 {   /* のぼりきった空: 太陽のまわりが、ひときわ明るむ */
+    position: absolute; inset: 0; mix-blend-mode: screen; opacity: 0; transition: opacity 3s ease;
+    background: radial-gradient(circle at 50% 60%, rgba(255,214,150,.38), rgba(255,170,100,.14) 30%, rgba(0,0,0,0) 60%);
+  }
+  #hatsuhi.rays .hh-sky2 { opacity: 1; }
+  #hatsuhi .hh-sun {
+    position: absolute; left: 50%; top: calc(84% + 30vw); width: 0; height: 0;
+    transition: top 3.8s cubic-bezier(.45,.05,.35,1);
+  }
+  #hatsuhi.sunup .hh-sun { top: 60%; }
+  #hatsuhi .hh-disc {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: min(36vw, 180px); aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle, #fffef4 0%, #fff4cc 34%, #ffd27a 58%, #ffae5a 68%, rgba(255,150,70,0) 72%);
+    box-shadow: 0 0 50px 22px rgba(255,200,110,.5), 0 0 140px 70px rgba(255,150,70,.28);
+    transition: opacity 1.6s ease, transform 1.6s ease;
+  }
+  #hatsuhi .hh-rays {   /* 後光の光の筋（日の丸の旭光）。のぼりきってから浮かび、ゆっくり回る */
+    position: absolute; left: 50%; top: 50%; width: 260vmax; aspect-ratio: 1;
+    transform: translate(-50%, -50%); opacity: 0; mix-blend-mode: screen;
+    background: repeating-conic-gradient(from 0deg, rgba(255,220,150,.18) 0deg 5deg, rgba(255,220,150,0) 5deg 15deg);
+    -webkit-mask-image: radial-gradient(circle, #000 4%, rgba(0,0,0,.5) 14%, transparent 34%);
+    mask-image: radial-gradient(circle, #000 4%, rgba(0,0,0,.5) 14%, transparent 34%);
+    animation: hh-turn 40s linear infinite;
+    transition: opacity 2.4s ease;
+  }
+  @keyframes hh-turn { to { transform: translate(-50%, -50%) rotate(360deg); } }
+  #hatsuhi.rays .hh-rays { opacity: 1; }
   #hatsuhi .hh-earth {
     position: absolute; left: -110%; width: 320%; height: 100vh; top: 100%;   /* 横に大きく＝ゆるい弧（大きな地球のふち） */
     border-radius: 50%;
     background: radial-gradient(ellipse 30% 18% at 50% 0%, #1a2350, #070818 70%);
-    box-shadow: 0 -1px 0 rgba(255,240,210,.95), 0 -6px 22px rgba(255,196,120,.6), 0 -28px 90px rgba(255,150,80,.3);
+    box-shadow: 0 -1px 0 rgba(255,240,210,.9), 0 -6px 22px rgba(255,196,120,.5), 0 -28px 90px rgba(255,150,80,.25);
     transition: top 1.6s cubic-bezier(.2,.7,.3,1), opacity 2.8s ease;
   }
+  #hatsuhi.rise .hh-earth { top: 84%; }
+  #hatsuhi .hh-dawn {   /* 夜明け: 太陽がのぼる場所のふちだけが、さきに明るむ */
+    position: absolute; left: 50%; top: 84%; width: 120vw; height: 22vw; transform: translate(-50%, -50%);
+    background: radial-gradient(ellipse at 50% 50%, rgba(255,236,190,.95), rgba(255,190,110,.45) 22%, rgba(255,150,80,0) 60%);
+    opacity: 0; transition: opacity 1.6s ease;
+  }
+  #hatsuhi.dawn .hh-dawn { opacity: 1; }
+  #hatsuhi .hh-flare {   /* 太陽が顔を出す刹那、地平線に光が横一文字に走る */
+    position: absolute; left: 0; right: 0; top: 84%; height: 3px; transform: translateY(-50%) scaleX(.1);
+    background: linear-gradient(to right, rgba(255,240,210,0), rgba(255,250,235,1) 50%, rgba(255,240,210,0));
+    box-shadow: 0 0 18px 4px rgba(255,214,150,.8);
+    opacity: 0; transition: opacity .5s ease, transform 1.2s cubic-bezier(.2,.7,.3,1);
+  }
+  #hatsuhi.crest .hh-flare { opacity: 1; transform: translateY(-50%) scaleX(1); }
+  #hatsuhi.crest2 .hh-flare { opacity: .35; transition: opacity 2s ease; }
   #hatsuhi .hh-name {
-    position: absolute; left: 0; right: 0; top: 74%; text-align: center;
-    font-size: 14px; letter-spacing: .6em; text-indent: .6em; color: #ffe2b0;
+    position: absolute; left: 0; right: 0; top: 22%; text-align: center;
+    font-size: 16px; letter-spacing: .7em; text-indent: .7em; color: #ffe2b0;
     text-shadow: 0 0 14px rgba(255,190,110,.8); opacity: 0; transition: opacity 1.6s ease;
   }
-  #hatsuhi.rise .hh-sky { opacity: 1; }
-  #hatsuhi.rise .hh-earth { top: 84%; }
-  #hatsuhi.rise .hh-name { opacity: 1; }
+  #hatsuhi.dawn .hh-name { opacity: 1; }
   #hatsuhi.arrive .hh-name { opacity: 0; }
-  #hatsuhi.fade .hh-sky, #hatsuhi.fade .hh-earth { opacity: 0; }
+  #hatsuhi.arrive .hh-disc { opacity: 0; transform: translate(-50%, -50%) scale(1.35); }   /* 太陽が光にほどけて、今年の一柱になる */
+  #hatsuhi.fade .hh-sky, #hatsuhi.fade .hh-sky2, #hatsuhi.fade .hh-earth, #hatsuhi.fade .hh-rays,
+  #hatsuhi.fade .hh-dawn, #hatsuhi.fade .hh-flare { opacity: 0; transition: opacity 2.6s ease; }
 
   /* 初詣の柏手（鳥居をくぐったあと、二度ふれる） */
   #kashiwade { cursor: pointer; }
@@ -910,7 +955,12 @@
 </div>
 <div class="ui" id="norito-pop"></div>
 <!-- 初詣の初日の出（宇宙から見た、地球のふちからのぼる光） -->
-<div id="hatsuhi"><div class="hh-sky"></div><div class="hh-earth"></div><div class="hh-name">初日の出</div></div>
+<div id="hatsuhi">
+  <div class="hh-sky"></div><div class="hh-sky2"></div>
+  <div class="hh-sun"><div class="hh-rays"></div><div class="hh-disc"></div></div>
+  <div class="hh-earth"></div><div class="hh-dawn"></div><div class="hh-flare"></div>
+  <div class="hh-name">初日の出</div>
+</div>
 <div id="jinja-word"></div>
 <div id="jinja-hud">
   <span class="j-sachi" id="j-sachi">幸　0</span>
@@ -2093,6 +2143,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     const viaBridge = !hatsu && bridgeSekki().includes(kami);   // 縁を記録する前に見る（記録すると橋の名簿から外れる）
     let hatsuRec = null;
     if (hatsu) {
+      if (hatsuhiOk) position = hatsuhiSunPoint(position);   // 今年の一柱は、太陽がのぼりきった場所に生まれる
       const now = nowDate();
       hatsuRec = { id: kami.id, rarity: rarity.name, date: localDate(now),
         first: localDate(now).slice(5) === '01-01' && now.getHours() === 0 };   // 年が明けて、いちばんに
@@ -2132,11 +2183,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
         phase: Math.random() * Math.PI * 2,
         speed: 0.15 + Math.random() * 0.2,
         drift: new THREE.Vector3((Math.random()-.5)*.15, (Math.random()-.5)*.1, 0),
-        bornAt: clockTime + (viaBridge ? BRIDGE.arrive : 0),   // 橋のときは、わたりきった刹那に生まれる
+        // 橋のときは、わたりきった刹那に。初日の出のときは、太陽が光にほどけた刹那に生まれる
+        bornAt: clockTime + (viaBridge ? BRIDGE.arrive : (hatsu && hatsuhiOk) ? HATSUHI.arrive : 0),
         haloBase: 7 * rarity.scale,
         coreBase: 2.2 * Math.min(rarity.scale, 1.4),
-        // 初詣は、地球のふちの向こうからのぼってくる（初日の出）
-        rise: (hatsu && hatsuhiOk) ? { from: hatsuhiFromY(position), at: clockTime + HATSUHI.rise, dur: HATSUHI.arrive - HATSUHI.rise } : null,
       });
     }
 
@@ -2191,31 +2241,41 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     if (rarity.name === '大吉') playDaikichiChime();
     return 5;
   }
-  // ===== 初日の出（初詣の今年の一柱は、地球のふちの向こうからのぼってくる）=====
-  // 宇宙から見た初日の出なので、0時に来ても日の出でよい（本人「宇宙から見た初日の出だから0時でもいいんじゃないかな」）
+  // ===== 初日の出（初詣の今年の一柱は、地球のふちからのぼる太陽の中から生まれる）=====
+  // 宇宙から見た初日の出なので、0時に来ても日の出でよい（本人「宇宙から見た初日の出だから0時でもいいんじゃないかな」）。
+  // 神の光の玉がのぼるだけでは、いつもと変わらなく見えた（本人指摘）ので、大きな太陽を描き、のぼりきった太陽が光にほどけて神になる
   const HATSUHI = {
-    rise: 1.4,     // 地球のふちが浮かび、空が明るんでから、のぼりはじめる
-    arrive: 5.4,   // のぼりきって、名乗る（カードもここ）
-    fade: 2.4,     // 着いてから、地球と空の明るみが引きはじめるまで
+    dawn: 1.0,     // 地球のふちが浮かんだあと、太陽の出る場所のふちが明るみはじめる
+    sunup: 1.8,    // 太陽がのぼりはじめる（のぼりきるまで 3.8秒・CSS の .hh-sun と同じ）
+    crest: 2.5,    // 太陽が顔を出す刹那、地平線に光が走る
+    rays: 4.2,     // 後光の光の筋が浮かぶ
+    arrive: 6.4,   // 太陽が光にほどけて、今年の一柱が生まれ、名乗る（カードもここ）
+    fade: 2.4,     // 名乗ってから、地球と空の明るみが引きはじめるまで
   };
-  const RIM = 0.84;   // 地球のふちの高さ（画面の上から。CSS の .hh-earth の top と同じ）
+  const SUN_Y = 0.60;   // のぼりきった太陽の高さ（画面の上から。CSS の .hh-sun と同じ。カードに隠れない高さ）
   const hatsuhiOk = !matchMedia('(prefers-reduced-motion: reduce)').matches;
   let hatsuCardTimer = null;
   const hatsuhiEl = document.getElementById('hatsuhi');
-  // のぼりはじめの高さ = 地球のふちより少し下（光の輪がふちからのぞき、芯はあとから出てくる）
-  function hatsuhiFromY(pos) {
+  // 太陽がのぼりきった場所（画面のまん中、上から SUN_Y）を、神の生まれる空間の位置に直す
+  function hatsuhiSunPoint(pos) {
     const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * (camera.position.z - pos.z);
-    return camera.position.y + (1 - 2 * RIM - 0.22) * halfH;
+    return new THREE.Vector3(camera.position.x, camera.position.y + (1 - 2 * SUN_Y) * halfH, pos.z);
   }
   function runHatsuhi() {
+    const at = (sec, fn) => setTimeout(fn, sec * 1000);
     hatsuhiEl.className = 'on';
     void hatsuhiEl.offsetWidth;
     hatsuhiEl.classList.add('rise');
     breathWrap.style.opacity = '0';   // 呼吸のリングが地球のふちに重なるので、のぼるあいだは休ませる
     playSho(HATSUHI.arrive + 1.5);
-    setTimeout(() => hatsuhiEl.classList.add('arrive'), HATSUHI.arrive * 1000);
-    setTimeout(() => { hatsuhiEl.classList.add('fade'); breathWrap.style.opacity = ''; }, (HATSUHI.arrive + HATSUHI.fade) * 1000);
-    setTimeout(() => { hatsuhiEl.className = ''; }, (HATSUHI.arrive + HATSUHI.fade + 3) * 1000);
+    at(HATSUHI.dawn, () => hatsuhiEl.classList.add('dawn'));
+    at(HATSUHI.sunup, () => hatsuhiEl.classList.add('sunup'));
+    at(HATSUHI.crest, () => { hatsuhiEl.classList.add('crest'); playBridgeChime(); });   // 一音ずつのぼる鈴
+    at(HATSUHI.crest + 1.4, () => hatsuhiEl.classList.add('crest2'));
+    at(HATSUHI.rays, () => hatsuhiEl.classList.add('rays'));
+    at(HATSUHI.arrive, () => hatsuhiEl.classList.add('arrive'));
+    at(HATSUHI.arrive + HATSUHI.fade, () => { hatsuhiEl.classList.add('fade'); breathWrap.style.opacity = ''; });
+    at(HATSUHI.arrive + HATSUHI.fade + 3, () => { hatsuhiEl.className = ''; });
   }
 
   // 初詣の運勢: 吉・中吉・大吉を三分の一ずつ（開発用フックで決めた運勢があれば、それ。龍神様は出ない）
@@ -5346,12 +5406,6 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       k.phase += dt * k.speed;
       k.group.position.x = k.base.x + Math.sin(k.phase) * 2.5 + k.drift.x * age;
       k.group.position.y = k.base.y + Math.sin(k.phase * 0.7) * 1.5 + k.drift.y * age;
-      if (k.rise) {   // 初日の出: のぼりきるまで、地球のふちの向こうから
-        const t = Math.max(0, Math.min(1, (clockTime - k.rise.at) / k.rise.dur));
-        const e = (1 - Math.cos(Math.PI * t)) / 2;   // ゆっくりのぞき、のぼり、ゆっくり着く
-        k.group.position.y += (k.rise.from - k.base.y) * (1 - e);
-        if (t >= 1) k.rise = null;
-      }
       if (Math.abs(k.group.position.x) > 30) k.drift.x *= -1;
       if (Math.abs(k.group.position.y) > 20) k.drift.y *= -1;
       const pulse = 1 + bs.value * 0.15;
