@@ -18,6 +18,7 @@
 | `index.html` | 本体。HTML1枚に全部入り（CSS/JS込み） |
 | `guide.html` | はじめかたガイド。note・LINEからの入口＋御朱印帳の末尾からも行ける |
 | `shugoshin.html` | 守護神の入口（`/shugoshin`）。リンクの看板（`ogp-shugoshin.jpg`）を持ち、開くと `./?shugoshin` へ移る |
+| `hatsumoude.html` | 初詣の入口（`/hatsumoude`）。リンクの看板（`ogp-hatsumoude.jpg`）を持ち、開くと `./?hatsumoude` へ移る（数えるだけ） |
 | `video/ryujin.mp4` | 龍神様の顕現映像（720×1130・10秒・2.0MB）。**歩みが残り3を切った人だけが読み込む** |
 | `img/ryujin.webp` | 龍神様のお姿（768×1228）。誕生カードの背景と御朱印帳に使う |
 | `docs/CONCEPT.md` | ゲーム構想の正本。4段階ロードマップ（瞑想→音ゲー→パズル→宇宙神社） |
@@ -143,6 +144,12 @@
   * **Worker を先に入れ直す**（`kansou-worker` で `npx wrangler deploy`）→ それからアプリを公開。逆だと古い Worker が空の感想としてしまう
   * 数を見る: `kansou-worker` で `node count-visits.mjs`（直近だけなら `node count-visits.mjs 14`）
   * ガイドの末尾に、開いた日を数えていることを書き足した
+
+* 初詣（2026-10-20・クロちゃん/Opus 5.5）— **公開は本人確認待ち**
+  * 松の内（1/1〜1/7）、その年はじめてのお参りが初詣: 鳥居くぐり → 柏手を二度 → 3呼吸 → 八柱から「今年の一柱」（吉・中吉・大吉が三分の一ずつ・年のことば）。元日0時台は「年が明けて、いちばんに来てくれました。」
+  * 年賀の一枚でわけあう（リンクは `/hatsumoude`）。御朱印帳「初詣」の章・おかえりカードに今年の一柱
+  * スタート画面の暦の知らせ: 冬至の日・大晦日（あすから初詣）・松の内
+  * 確かめ方: `?ganjitsu`（元日0時10分）／`?ganjitsu=hiru`（元日の昼）。開くたびにやり直せる。手元と試し用のページで動き、本番では動かない
 
 * 公開URL: https://hoshi-no-yashiro.pages.dev
 * リポジトリ: https://github.com/ii-tomo/hoshi-no-yashiro（push＝自動デプロイ。pushは本人GO後のみ）

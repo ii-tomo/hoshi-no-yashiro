@@ -239,6 +239,19 @@
     text-shadow: 0 0 10px rgba(255,224,158,.5);
   }
   #birth-card.via-bridge #birth-bridge { display: block; }
+  /* 初詣（年に一度）: カードのいちばん上に年と「今年の一柱」。金の縁は大吉と同じ（運勢によらず） */
+  #birth-hatsu {
+    display: none; margin-bottom: 8px;
+    font-size: 13.5px; letter-spacing: .3em; text-indent: .3em; color: #ffe09e; line-height: 1.9;
+    text-shadow: 0 0 10px rgba(255,224,158,.5);
+  }
+  #birth-hatsu small { display: block; font-size: 12.5px; letter-spacing: .15em; text-indent: .15em; color: #e8dcc0; }
+  #birth-card.hatsu #birth-hatsu { display: block; }
+  #birth-card.hatsu {
+    border-color: rgba(255,224,158,.6);
+    background: linear-gradient(180deg, rgba(var(--kc), .2), rgba(10,10,35,.62) 72%);
+    box-shadow: 0 0 26px rgba(255,224,158,.2);
+  }
   /* 今日のことば（2回目からの神）。逸話より少し明るく、言葉が主役 */
   #birth-card.kotoba #birth-story { color: #dcd8f2; font-size: 14.5px; word-break: auto-phrase; text-wrap: balance; }
   /* 大吉: 金の縁と、カードをゆっくり横切る光（ふだんの吉と見分けがつくように・本人「みんな同じに見えてつまんなかった」） */
@@ -596,6 +609,7 @@
   #start .progress-card .streak { font-size: 14px; color: #b0b0d6; letter-spacing: .12em; line-height: 2; }
   #start .progress-card .streak b { color: #ffe09e; font-size: 18px; font-weight: normal; }
   #start .progress-card .collected { font-size: 12.5px; color: #9a9ac8; letter-spacing: .12em; margin: 8px 0 10px; }
+  #start .progress-card .toshi { font-size: 12.5px; color: #e8d8a8; letter-spacing: .12em; margin-top: 10px; }
   #start .mini-dots { display: flex; justify-content: center; gap: 6px; }
   #start .mini-dots span { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(120,120,160,.6); }
   #start .mini-dots span.on { box-shadow: 0 0 7px currentColor; background: currentColor; border-color: transparent; }
@@ -728,6 +742,25 @@
     cursor: pointer; text-decoration: underline dotted rgba(150,150,200,.5); text-underline-offset: 4px;
   }
   #goshuincho .share-link:hover { color: #d8d8f2; }
+  /* 御朱印帳「初詣」: 年ごとの今年の一柱 */
+  #goshuincho .hatsu-section { width: min(86vw, 360px); margin-bottom: 26px; border-bottom: 1px solid rgba(150,150,200,.2); padding-bottom: 22px; text-align: center; }
+  #goshuincho .hatsu-row { margin-bottom: 14px; }
+  #goshuincho .hatsu-row .h-year { font-size: 12.5px; color: #c8b078; letter-spacing: .25em; }
+  #goshuincho .hatsu-row .h-name { font-size: 16px; color: #eeeeff; letter-spacing: .25em; margin: 2px 0; }
+  #goshuincho .hatsu-row .h-name small { font-size: 12.5px; color: #ffe09e; margin-left: 8px; letter-spacing: .15em; }
+  #goshuincho .hatsu-row .h-kotoba { font-size: 13px; color: #b8b8dd; line-height: 1.9; }
+  #goshuincho .hatsu-row .h-kotoba span { display: inline-block; }
+  /* 初詣の柏手（鳥居をくぐったあと、二度ふれる） */
+  #kashiwade { cursor: pointer; }
+  #kashiwade .kw-year { font-size: 13.5px; color: #ffe09e; letter-spacing: .4em; text-indent: .4em; margin-bottom: 26px; text-shadow: 0 0 10px rgba(255,224,158,.4); }
+  #kashiwade .kw-ask { font-size: clamp(16px, 3vw, 19px); color: #e8e8f8; letter-spacing: .4em; text-indent: .4em; margin-bottom: 14px; }
+  #kashiwade .kw-note { font-size: 12.5px; color: #8888bb; letter-spacing: .2em; text-indent: .2em; margin-bottom: 34px; }
+  #kashiwade .kw-claps { display: flex; gap: 22px; justify-content: center; }
+  #kashiwade .kw-claps span {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 1px solid rgba(255,224,158,.55); transition: all .25s;
+  }
+  #kashiwade .kw-claps span.on { background: #ffe09e; box-shadow: 0 0 16px rgba(255,224,158,.9); border-color: transparent; }
   /* はじめかたガイドへの導線（初回の人の目に入らないよう、御朱印帳のいちばん下に控えめに） */
   #goshuincho .guide-link {
     display: block; font-size: 12.5px; color: #9a9ac8; letter-spacing: .18em;
@@ -844,6 +877,7 @@
 <div class="ui" id="en-dots"></div>
 <div class="ui" id="birth-card">
   <div id="birth-bridge">めぐりの橋をわたって</div>
+  <div id="birth-hatsu"></div>
   <div id="birth-rarity"></div>
   <div id="birth-name"></div>
   <div id="birth-story"></div>
@@ -940,6 +974,7 @@
       <div class="streak" id="w-streak-line">連続 <b>0</b> 日目のお参り</div>
       <div class="collected">結んだ縁　<span id="w-collected">0 / 8柱</span></div>
       <div class="mini-dots" id="w-dots"></div>
+      <div class="toshi" id="w-toshi" style="display:none;"></div>
     </div>
   </div>
   <div class="oharae" id="oharae-note" style="display:none;"></div>
@@ -953,6 +988,14 @@
   <div class="book-link" id="open-hounou-start" style="display:none;">奉納の舞をささげる</div>
   <div class="book-link" id="open-jinja-start" style="display:none;">宇宙神社へまいる</div>
   <div class="book-link" id="open-book-start" style="display:none;">御朱印帳をひらく</div>
+</div>
+
+<!-- 初詣の柏手（鳥居をくぐったあと。画面のどこに二度ふれても柏手が鳴る） -->
+<div class="overlay hidden" id="kashiwade">
+  <div class="kw-year" id="kw-year"></div>
+  <div class="kw-ask">手を、二度打ちます</div>
+  <div class="kw-note">画面のどこに、ふれても</div>
+  <div class="kw-claps"><span></span><span></span></div>
 </div>
 
 <!-- 呼吸のこころえ -->
@@ -978,6 +1021,7 @@
     <button id="btn-again">もうひと巡り<small>つづけて呼吸する</small></button>
     <button id="btn-hounou">奉納の舞<small>結んだ縁に、祝詞をささげる</small></button>
     <button id="btn-jinja" style="display:none;">宇宙神社<small>参拝者のねがいを、とりつぐ</small></button>
+    <button id="btn-nenga" style="display:none;">この縁を、わけあう<small>今年の一柱を、年賀の一枚に</small></button>
     <button id="btn-finish">今日はここまで</button>
   </div>
 </div>
@@ -1044,6 +1088,10 @@
       <div class="g-trait" id="g-trait"></div>
       <div class="share-link" id="g-share">この縁を、わけあう</div>
     </div>
+  </div>
+  <div class="hatsu-section" id="hatsu-section" style="display:none;">
+    <div class="book-subhead">初詣</div>
+    <div id="hatsu-list"></div>
   </div>
   <div class="book-subhead">出会った神々</div>
   <div class="book-grid" id="book-grid"></div>
@@ -1428,6 +1476,38 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     return SEKKI.filter(s => s !== cur && !(save.counts[s.id] > 0));
   }
 
+  // ===== 初詣（年に一度・松の内・正本は docs/CONCEPT.md）=====
+  // 松の内のあいだ、その年はじめてのお参りが初詣になる。鳥居をくぐって柏手を打ち、八柱から「今年の一柱」をおみちびきする。
+  // 運勢は吉・中吉・大吉が三分の一ずつ（新年くらい、みんなにいい年を）。龍神様と節気の神は出ない
+  const HATSUMOUDE = { from: '01-01', to: '01-07' };
+  const TOSHI_KOTOBA = {
+    hi:       { ふだん: '今年は、はじめる年。小さな一歩を、何度でも',             大吉: '今年のあなたは、誰かの朝日になります。そのままで' },
+    kaze:     { ふだん: '今年は、流れが変わる年。迷ったら、窓をあけて',           大吉: '追い風の一年。会いたい人には、会いに行って' },
+    yama:     { ふだん: '今年は、根を張る年。急がず、続けたぶんだけ実ります',     大吉: '積み重ねてきたものが、形になる一年です' },
+    mizu:     { ふだん: '今年は、ととのえる年。古いものを流して、身軽に',         大吉: 'めぐりのいい一年。流したものの分だけ、新しく入ります' },
+    ho:       { ふだん: '今年は、温める年。好きなことの火を、絶やさずに',         大吉: '胸の熾火が、燃えあがる一年。やりたいことを、声に出して' },
+    kaminari: { ふだん: '今年は、ひらめく年。静かな時間を、毎日すこし',           大吉: '思いがけない一閃が、道をひらく一年です' },
+    tsuki:    { ふだん: '今年は、休むのが上手になる年。夜は、ちゃんと眠って',     大吉: 'やさしさが、やさしさで返ってくる一年です' },
+    hoshi:    { ふだん: '今年は、願いをあずける年。忘れたころに、届きます',       大吉: 'むかしの願いが、光になって返ってくる一年です' },
+  };
+  function hatsumoudeNow(d) {
+    const md = localDate(d || nowDate()).slice(5);
+    return HATSUMOUDE.from <= md && md <= HATSUMOUDE.to;
+  }
+  function hatsuYear(d) { return String((d || nowDate()).getFullYear()); }
+  // 初詣がまだの年か（松の内で、今年の記録がない）
+  function hatsumoudeDue() { return hatsumoudeNow() && !save.hatsumoude[hatsuYear()]; }
+  // 年の呼び名（令和九年）。改元は考えない
+  function kanjiNum(n) {
+    const d = '〇一二三四五六七八九';
+    if (n < 10) return d[n];
+    const t = Math.floor(n / 10), o = n % 10;
+    return (t > 1 ? d[t] : '') + '十' + (o ? d[o] : '');
+  }
+  function nenName(year) { const r = Number(year) - 2018; return '令和' + (r === 1 ? '元' : kanjiNum(r)) + '年'; }
+  // 年のことばは、運勢が大吉なら大吉のことば
+  function toshiKotoba(rec) { const k = TOSHI_KOTOBA[rec.id]; return k ? (rec.rarity === '大吉' ? k.大吉 : k.ふだん) : ''; }
+
   // ===== 暮らしの十六柱（Phase 4.0・正本は docs/CONCEPT.md）=====
   // 宇宙神社で設え（しつらえ）が建つと、その柱が宿る。配列順＝設えの建つ順（参道からはじまる）
   const KURASHI = [
@@ -1749,7 +1829,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   save.firstMet = save.firstMet || {};  // 神様ごとに初めて出会った日
   save.lastKotoba = save.lastKotoba || {};  // 神様ごとに、前回の「今日のことば」（つづけて同じ言葉を出さないため）
   save.guardian = save.guardian || null;  // 守護神の番号（診断済みなら 1〜9/11/22/33）
-  save.guardianShown = save.guardianShown || false;  // 守護神の顕現（お札の絵）を見たか。すでに診断済みの人にも一度見せる
+  save.guardianShown = save.guardianShown || false;
+  save.hatsumoude = save.hatsumoude || {};   // 初詣の記録（年ごとに { id, rarity, date, first }・first＝年明けいちばん）  // 守護神の顕現（お札の絵）を見たか。すでに診断済みの人にも一度見せる
   save.hounouCount = save.hounouCount || 0;    // 奉納の舞をささげた回数
   save.noritoTotal = save.noritoTotal || 0;    // 届いた祝詞の累計（記録用・減らさない）
   save.seenHounouIntro = save.seenHounouIntro || false;  // 奉納のこころえを見たか
@@ -1975,12 +2056,22 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     }
 
     stepRyujin();   // このお参りを、龍神様への歩みに数える
-    const byCertain = ryujinReady();   // 歩みが満ちての顕現か、おみくじを引き当てたのか
-    const rarity = rollOmikuji(firstOfDay);
-    const kami = pickKami(rarity, firstOfDay);
-    const viaBridge = bridgeSekki().includes(kami);   // 縁を記録する前に見る（記録すると橋の名簿から外れる）
-    // はじめて会った神は逸話で名乗り、2回目からは「今日のことば」（八柱だけ）
-    const kotoba = (save.counts[kami.id] > 0) ? pickKotoba(kami, rarity) : null;
+    // 初詣（その年はじめてのお参り）は、八柱から今年の一柱。運勢は三分の一ずつ。
+    // 龍神様の歩みが満ちていても、ここでは現れない（つぎのお参りへ持ち越す）
+    const hatsu = hatsumoudeDue();
+    const byCertain = !hatsu && ryujinReady();   // 歩みが満ちての顕現か、おみくじを引き当てたのか
+    const rarity = hatsu ? rollHatsumoude() : rollOmikuji(firstOfDay);
+    const kami = hatsu ? eightKami[Math.floor(Math.random() * eightKami.length)] : pickKami(rarity, firstOfDay);
+    const viaBridge = !hatsu && bridgeSekki().includes(kami);   // 縁を記録する前に見る（記録すると橋の名簿から外れる）
+    let hatsuRec = null;
+    if (hatsu) {
+      const now = nowDate();
+      hatsuRec = { id: kami.id, rarity: rarity.name, date: localDate(now),
+        first: localDate(now).slice(5) === '01-01' && now.getHours() === 0 };   // 年が明けて、いちばんに
+      save.hatsumoude[hatsuYear(now)] = hatsuRec;
+    }
+    // はじめて会った神は逸話で名乗り、2回目からは「今日のことば」（八柱だけ）。初詣は年のことば
+    const kotoba = hatsu ? toshiKotoba(hatsuRec) : (save.counts[kami.id] > 0) ? pickKotoba(kami, rarity) : null;
     if (kami.id === 'ryujin') reportRyujin(byCertain ? 'certain' : 'omikuji');
 
     let dragonWithVideo = false;
@@ -2005,7 +2096,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
       scene.add(group);
       if (viaBridge) birthBridge(position, kami.color);   // 遠くの空から橋が架かり、神の光がわたってくる
-      else if (rarity.name === '大吉') birthSparkle(position);   // 大吉は、金の光の粒が立ちのぼる
+      else if (hatsu || rarity.name === '大吉') birthSparkle(position);   // 大吉と初詣は、金の光の粒が立ちのぼる
       kamis.push({
         group, halo, core,
         base: position.clone(),
@@ -2031,7 +2122,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       // 狭い画面では「、」のところで折る（語の途中で割らない）
       ? 'めぐりの橋をわたって<br><span style="display:inline-block">' + kami.name + 'が、</span>' +
         '<span style="display:inline-block">会いにきてくれました。</span>'
-      : '新しい神様との縁が、結ばれました。';
+      : hatsu
+        ? nenName(hatsuYear()) + 'の初詣<br>今年の一柱は、' + kami.name + 'です。'
+        : '新しい神様との縁が、結ばれました。';
+    document.getElementById('btn-nenga').style.display = hatsu ? '' : 'none';   // 年賀の一枚は、初詣のあとだけ
     if (kami.id === 'ryujin') {
       // 龍神様は姿を見せきってから名乗る。音は映像か birthDragon が鳴らしている
       const T = dragonWithVideo ? RYUJIN_VIDEO : DRAGON;
@@ -2049,10 +2143,21 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       }, BRIDGE.arrive * 1000);
       return BRIDGE.arrive + 8;   // カードを見せきってから「縁が結ばれました」へ（カードが消えるのと同じ8秒）
     }
+    if (hatsu) {
+      showBirthCard(rarity, kami, false, false, kotoba, hatsuRec);
+      playBirthChime(false);
+      playDaikichiChime();   // 年に一度なので、運勢によらず鈴を「しゃらん」
+      return 8.5;   // カードを見せきってから（カードが消えるのと同じ8秒）
+    }
     showBirthCard(rarity, kami, firstOfDay, false, kotoba);
     playBirthChime(false);
     if (rarity.name === '大吉') playDaikichiChime();
     return 5;
+  }
+  // 初詣の運勢: 吉・中吉・大吉を三分の一ずつ（開発用フックで決めた運勢があれば、それ。龍神様は出ない）
+  function rollHatsumoude() {
+    if (testRarity && testRarity.name !== '大大吉') { const r = testRarity; testRarity = null; return r; }
+    return RARITY[Math.floor(Math.random() * 3)];
   }
   let dragonCardTimer = null;
   let bridgeCardTimer = null;
@@ -2474,7 +2579,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     } else if (state === 'jinja') {
       if (sanpaisha && sanpaisha.state === 'waiting') openToritsugi();  // 参拝者の光にふれる（画面のどこでも）
     } else if (state === 'idle') {
-      startSession(); // 空をながめた後、画面にふれるともうひと巡り
+      beginOmairi(); // 空をながめた後、画面にふれるともうひと巡り（年をまたいだら、初詣から）
     }
   });
   window.addEventListener('pointermove', (e) => {
@@ -2722,6 +2827,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     finish: document.getElementById('finish'),
     goshuincho: document.getElementById('goshuincho'),
     shugoshin: document.getElementById('shugoshin'),
+    kashiwade: document.getElementById('kashiwade'),
     'shugoshin-after': document.getElementById('shugoshin-after'),
     'hounou-intro': document.getElementById('hounou-intro'),
     'hounou-end': document.getElementById('hounou-end'),
@@ -2784,6 +2890,12 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     document.getElementById('w-streak-line').innerHTML =
       ds > 0 ? '連続 <b>' + ds + '</b> 日目のお参り' : '今日から、またはじめましょう';
     document.getElementById('w-collected').textContent = collectedCount() + ' / 8柱';
+    // 今年の一柱（初詣を済ませた年は、一年じゅう）
+    const tRec = save.hatsumoude[hatsuYear()];
+    const tKami = tRec && KAMI.find(x => x.id === tRec.id);
+    const wt = document.getElementById('w-toshi');
+    wt.style.display = tKami ? '' : 'none';
+    if (tKami) wt.textContent = '今年の一柱　' + tKami.name;
     const wd = document.getElementById('w-dots');
     wd.innerHTML = '';
     for (const k of eightKami) {
@@ -2803,19 +2915,35 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     (returning && canJinja()) ? '' : 'none';  // むすびの神と縁ができると、社がひらく
   if (returning) populateWelcome();
 
-  // 大祓の三日間は、スタート画面で知らせる
+  // 暦の知らせ（スタート画面）: 大祓の三日間・初詣の松の内・冬至の日。大晦日は、あすからの初詣も
   function populateOharae() {
     const el = document.getElementById('oharae-note');
+    const now = nowDate();
+    const md = localDate(now).slice(5);
     const o = oharaeNow();
-    el.style.display = o ? '' : 'none';
-    if (!o) return;
-    const [mo, da] = o.to.split('-').map(Number);
-    el.innerHTML = '<div class="o-name">' + o.name + '</div>' +
-      'めぐりの橋が架かっています<br>' +
-      (bridgeSekki().length > 0
-        ? 'まだ会えていない節気の神も<br>おみくじに混ざります'
-        : '節気の神とは、すべて縁を結んでいます') +
-      '<small>' + mo + '月' + da + '日まで</small>';
+    const touji = SEKKI.find(x => x.id === 'sekki-touji');
+    let html = '';
+    if (o) {
+      const [mo, da] = o.to.split('-').map(Number);
+      html = '<div class="o-name">' + o.name + '</div>' +
+        'めぐりの橋が架かっています<br>' +
+        (bridgeSekki().length > 0
+          ? 'まだ会えていない節気の神も<br>おみくじに混ざります'
+          : '節気の神とは、すべて縁を結んでいます') +
+        '<small>' + mo + '月' + da + '日まで</small>';
+      if (md === '12-31') html += '<small>あすから初詣。今年の一柱を、おみちびきします</small>';
+    } else if (hatsumoudeNow()) {
+      const rec = save.hatsumoude[hatsuYear()];
+      const k = rec && KAMI.find(x => x.id === rec.id);
+      const [mo, da] = HATSUMOUDE.to.split('-').map(Number);
+      html = '<div class="o-name">' + nenName(hatsuYear()) + 'の初詣</div>' +
+        (k ? '今年の一柱　' + k.name + '（' + rec.rarity + '）'
+           : 'その年はじめてのお参りで<br>今年の一柱を、おみちびきします<small>' + mo + '月' + da + '日まで</small>');
+    } else if (touji && md === touji.start) {
+      html = '<div class="o-name">冬至</div>今日は、いちばん長い夜です<br>冬至の神は、夜ふけに降りてきます<small>22時から1時ごろ</small>';
+    }
+    el.style.display = html ? '' : 'none';
+    el.innerHTML = html;
   }
   populateOharae();
 
@@ -3031,6 +3159,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     renderKurashiBook();
     renderMeguriBook();
     renderJourenBook();
+    renderHatsuBook();
     bookDetail.innerHTML = 'ひとつ選ぶと、その神様のことが読めます。';
     document.getElementById('book-hounou').textContent = save.hounouCount > 0
       ? '奉納の舞 ' + save.hounouCount + ' 度　届いた祝詞 ' + save.noritoTotal
@@ -3278,6 +3407,23 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       '<br><span style="color:#8f8fc0;font-size:12.5px">' + status + '</span>';
   }
   // 御朱印帳「常連さんの絵馬」（まだ会っていない人は、呼び名も伏せる）
+  // 御朱印帳「初詣」: 年ごとの今年の一柱（新しい年が上）。初詣をした年がなければ章ごと出さない
+  function renderHatsuBook() {
+    const years = Object.keys(save.hatsumoude).sort().reverse();
+    document.getElementById('hatsu-section').style.display = years.length ? '' : 'none';
+    document.getElementById('hatsu-list').innerHTML = years.map(y => {
+      const rec = save.hatsumoude[y];
+      const k = KAMI.find(x => x.id === rec.id);
+      if (!k) return '';
+      const words = toshiKotoba(rec).match(/[^、。]+[、。]?/g) || [];
+      return '<div class="hatsu-row"><div class="h-year">' + nenName(y) + '</div>' +
+        '<div class="h-name" style="text-shadow:0 0 12px #' + k.color.toString(16).padStart(6, '0') + '">' + k.name +
+        '<small>' + rec.rarity + '</small></div>' +
+        '<div class="h-kotoba">' + words.map(w => '<span>' + w + '</span>').join('') + '</div>' +
+        '<div class="share-link nenga-link" data-year="' + y + '">この縁を、わけあう</div></div>';
+    }).join('');
+  }
+
   function renderJourenBook() {
     const grid = document.getElementById('jouren-grid');
     grid.innerHTML = '';
@@ -3469,6 +3615,52 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     shareFooter(ctx, W, H, SHARE_URL + '/shugoshin');   // 画像だけが回っても、守護神の入口がわかるように
     return cv;
   }
+  // 年賀の一枚（初詣の今年の一柱・縦4:5）
+  function drawNengaCard(year) {
+    const rec = save.hatsumoude[year];
+    const k = KAMI.find(x => x.id === rec.id);
+    const W = 1080, H = 1350;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+    shareBg(ctx, W, H, Number(year));
+    shareGlow(ctx, W / 2, 470, 340, k.color);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffe09e';
+    ctx.font = '40px ' + SHARE_SERIF;
+    ctx.fillText(nenName(year) + '　初詣', W / 2, 140);
+    ctx.fillStyle = '#c8b078';
+    ctx.font = '32px ' + SHARE_SERIF;
+    ctx.fillText('今年の一柱', W / 2, 196);
+    ctx.fillStyle = '#f4f2ff';
+    ctx.font = '96px ' + SHARE_SERIF;
+    ctx.fillText(k.name, W / 2, 860);
+    ctx.fillStyle = '#ffe09e';
+    ctx.font = '40px ' + SHARE_SERIF;
+    ctx.fillText('― ' + rec.rarity + ' ―', W / 2, 936);
+    ctx.fillStyle = '#dcd8f2';
+    ctx.font = '38px ' + SHARE_SERIF;
+    // 年のことばは「。」で一文ずつ、収まらない文だけ「、」で折る（「急がず、／続けた…」と文の途中で割らない）
+    let y = 1040;
+    const lines = [];
+    for (const sentence of toshiKotoba(rec).match(/[^。]+。?/g)) {
+      let line = '';
+      for (const part of sentence.match(/[^、]+、?/g)) {
+        if (line && ctx.measureText(line + part).width > 900) { lines.push(line); line = part; }
+        else line += part;
+      }
+      if (line) lines.push(line);
+    }
+    for (const ln of lines) { ctx.fillText(ln, W / 2, y); y += 62; }
+    shareFooter(ctx, W, H, SHARE_URL + '/hatsumoude');
+    return cv;
+  }
+  function shareNenga(year) {
+    const rec = save.hatsumoude[year];
+    const k = rec && KAMI.find(x => x.id === rec.id);
+    if (!k) return;
+    shareCanvas(drawNengaCard(year), nenName(year) + 'の初詣。今年の一柱は「' + k.name + '」でした ─ 星の社', SHARE_URL + '/hatsumoude');
+  }
   function drawBookCard() {
     const cv = document.createElement('canvas');
     cv.width = 1080; cv.height = 1080;
@@ -3538,9 +3730,11 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   function shareLinkHtml(kind, id) {
     return '<div class="share-link" data-kind="' + kind + '" data-id="' + id + '">この縁を、わけあう</div>';
   }
+  document.getElementById('btn-nenga').addEventListener('click', () => shareNenga(hatsuYear()));
   document.getElementById('goshuincho').addEventListener('click', (e) => {
     const el = e.target.closest && e.target.closest('.share-link');
     if (!el) return;
+    if (el.dataset.year) { shareNenga(el.dataset.year); return; }   // 初詣の章の、年賀の一枚
     const arrMap = { kami: KAMI, musubi: MUSUBI, sekki: SEKKI, kurashi: KURASHI };
     const k = (arrMap[el.dataset.kind] || []).find(x => x.id === el.dataset.id);
     if (k) shareCanvas(drawKamiCard(k), '「' + k.name + '」と縁をむすびました ─ 星の社');
@@ -4567,8 +4761,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   document.getElementById('sga-share').addEventListener('click', shareGuardian);
 
   let cardTimer = null;
-  function showBirthCard(rarity, kami, firstOfDay, viaBridge, kotoba) {
+  function showBirthCard(rarity, kami, firstOfDay, viaBridge, kotoba, hatsuRec) {
     birthCard.classList.toggle('ryujin', kami.id === 'ryujin');
+    birthCard.classList.toggle('hatsu', !!hatsuRec);
+    if (hatsuRec) {
+      document.getElementById('birth-hatsu').innerHTML = nenName(hatsuYear()) + '　初詣　今年の一柱' +
+        (hatsuRec.first ? '<small><span style="display:inline-block">年が明けて、</span><span style="display:inline-block">いちばんに来てくれました。</span></small>' : '');
+    }
     birthRarity.textContent = '— ' + rarity.name + (firstOfDay ? '（今日の初縁）' : '') + ' —';
     birthRarity.style.color = rarity.color;
     birthName.textContent = kami.name;
@@ -4850,6 +5049,28 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     playSummonBell();
   }
 
+  // お参りに入る。初詣がまだの年（松の内）は、鳥居をくぐって柏手を二度打ってから呼吸へ
+  function beginOmairi() {
+    if (!hatsumoudeDue()) { startSession(); return; }
+    state = 'hatsumoude';
+    showOverlay(null);
+    runToriiPass(() => {
+      document.getElementById('kw-year').textContent = nenName(hatsuYear()) + '　初詣';
+      kwClaps = 0;
+      kwEl.querySelectorAll('.kw-claps span').forEach(s => s.classList.remove('on'));
+      showOverlay('kashiwade');
+    });
+  }
+  const kwEl = document.getElementById('kashiwade');
+  let kwClaps = 0;
+  kwEl.addEventListener('click', () => {
+    if (kwClaps >= 2) return;
+    playKashiwade();   // 外れも遅れもない。ふれれば鳴る
+    kwEl.querySelectorAll('.kw-claps span')[kwClaps].classList.add('on');
+    kwClaps++;
+    if (kwClaps === 2) setTimeout(() => { if (state === 'hatsumoude') startSession(); }, 1100);
+  });
+
   // はじまり: モード選択
   overlays.start.querySelectorAll('button[data-mode]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -4857,7 +5078,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       ensureAudio();
       setSound(true); // モード選択の操作をきっかけに音を開始（🔇で消せる）
       if (save.hideHowto) {
-        startSession();
+        beginOmairi();
       } else {
         state = 'howto';
         document.getElementById('mode-desc').textContent = mode.desc +
@@ -4870,10 +5091,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   document.getElementById('howto-start').addEventListener('click', () => {
     save.hideHowto = document.getElementById('hide-howto').checked;
     persist();
-    startSession();
+    beginOmairi();
   });
 
-  document.getElementById('btn-again').addEventListener('click', () => startSession());
+  document.getElementById('btn-again').addEventListener('click', () => beginOmairi());
 
   function showFinish() {
     state = 'finish';
@@ -5104,7 +5325,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
   // 診断済みなら、起動時に守護神を空間へ呼び出す
   if (save.guardian && GUARDIANS[save.guardian]) spawnGuardian(save.guardian);
-  reportVisit(document.documentElement.classList.contains('entry-shugoshin') ? 'shugoshin' : '');
+  // 初詣の入口（hatsumoude.html）から来た人。数えるだけで、ほかはふだんどおり（松の内なら、はじめのお参りが初詣になる）
+  const fromHatsumoude = new URLSearchParams(location.search).has('hatsumoude');
+  if (fromHatsumoude) {
+    const q = new URLSearchParams(location.search);
+    q.delete('hatsumoude');
+    history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : ''));
+  }
+  reportVisit(document.documentElement.classList.contains('entry-shugoshin') ? 'shugoshin' : fromHatsumoude ? 'hatsumoude' : '');
   if (document.documentElement.classList.contains('entry-shugoshin')) openShugoshin();
   // すでに誕生日を入れている人には、お札が入ってから初めて開いたときに一度だけ姿をあらわす
   else if (save.guardian && GUARDIANS[save.guardian] && !save.guardianShown) showGuardianReveal(save.guardian);
@@ -5125,6 +5353,18 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   if (oharaeTest !== null && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
     clockOverride = new Date().getFullYear() + (oharaeTest === 'nagoshi' ? '-06-28T12:00' : '-12-29T22:00');
     populateOharae();
+  }
+
+  // 確認用: ?ganjitsu を付けて開くと、元日の 0時10分（年明けいちばん）として動く。?ganjitsu=hiru で元日の昼。
+  // 開くたびに、その年の初詣をやり直せる。手元と試し用のページ（スマホで試してもらう）では動き、
+  // 本番（hoshi-no-yashiro.pages.dev）では動かない ― 年に一度の意味がなくなるため
+  const ganjitsuTest = new URLSearchParams(location.search).get('ganjitsu');
+  if (ganjitsuTest !== null && location.hostname !== 'hoshi-no-yashiro.pages.dev') {
+    clockOverride = (new Date().getFullYear() + 1) + (ganjitsuTest === 'hiru' ? '-01-01T12:00' : '-01-01T00:10');
+    delete save.hatsumoude[hatsuYear()];
+    persist();
+    populateOharae();
+    if (returning) populateWelcome();
   }
 
   // ローカルでの確認用: ?ryujin を付けて開くと、顕現だけをすぐ見られる。
@@ -5170,7 +5410,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     toritsugiHere: (n) => { const h = currentHoshi(); save.meguri.toritsugi[h.id] = n; persist(); if (jinja) updateJinjaHud(); }, // テスト用: いまの星でのとりつぎ数を設定
     guardian: (n) => { save.guardian = n; save.guardianShown = false; persist(); renderGuardian(); spawnGuardian(n); showGuardianReveal(n); }, // テスト用: 守護神を設定して顕現を見る
     guardianCard: async (n) => (await drawGuardianCard(n || save.guardian)).toDataURL('image/jpeg', 0.85), // テスト用: 守護神のわけあう画像
-    clock: (iso) => { clockOverride = iso || null; populateOharae(); return nowDate().toString(); }, // テスト用: 暦の「いま」を差し替える（節気・大祓・おみくじの刻）。引数なしで元に戻す
+    clock: (iso) => { clockOverride = iso || null; populateOharae(); if (returning) populateWelcome(); return nowDate().toString(); }, // テスト用: 暦の「いま」を差し替える（節気・大祓・初詣・おみくじの刻）。引数なしで元に戻す
+    hatsumoude: () => JSON.parse(JSON.stringify(save.hatsumoude)), // テスト用: 初詣の記録
+    hatsumoudeReset: () => { delete save.hatsumoude[hatsuYear()]; persist(); populateOharae(); }, // テスト用: 今年の初詣をやり直せるように
+    nengaCard: (y) => drawNengaCard(y || hatsuYear()).toDataURL('image/jpeg', 0.85), // テスト用: 年賀の一枚
     oharae: () => { const o = oharaeNow(); return o && { id: o.id, bridge: bridgeSekki().map(s => s.id) }; }, // テスト用: 大祓と、橋をわたってくる神
     pickMany: (n) => { const c = {}; for (let i = 0; i < (n || 1000); i++) { const id = pickKami(RARITY[0]).id; c[id] = (c[id] || 0) + 1; } return c; }, // テスト用: おみくじの出方をまとめて見る
     musubiSkip: () => { if (musubi && !musubi.done) finishMusubi(); }, // テスト用: むすびの呼吸を飛ばす
