@@ -5063,7 +5063,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
   const kwEl = document.getElementById('kashiwade');
   let kwClaps = 0;
-  kwEl.addEventListener('click', () => {
+  // ふれた瞬間に鳴らす（click は指を離したときに来るので、柏手が遅れて聞こえていた・本人指摘）
+  kwEl.addEventListener('pointerdown', () => {
     if (kwClaps >= 2) return;
     playKashiwade();   // 外れも遅れもない。ふれれば鳴る
     kwEl.querySelectorAll('.kw-claps span')[kwClaps].classList.add('on');
