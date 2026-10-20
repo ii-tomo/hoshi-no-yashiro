@@ -766,16 +766,23 @@
   }
   #hatsuhi.rays .hh-sky2 { opacity: 1; }
   #hatsuhi .hh-sun {
-    position: absolute; left: 50%; top: calc(84% + 30vw); width: 0; height: 0;
+    position: absolute; left: 50%; top: calc(84% + 46vw); width: 0; height: 0;
     transition: top 3.8s cubic-bezier(.45,.05,.35,1);
   }
   #hatsuhi.sunup .hh-sun { top: 60%; }
+  /* 太陽: ふちは描かず、光が空ににじんで溶ける（くっきりした円にすると、ふちが黒い線に見えた・本人指摘）。
+     要素の中で透明まで落としきるので、境目ができない。外のにじみ（::after）はさらに大きく、淡く */
   #hatsuhi .hh-disc {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    width: min(36vw, 180px); aspect-ratio: 1; border-radius: 50%;
-    background: radial-gradient(circle, #fffef4 0%, #fff4cc 34%, #ffd27a 58%, #ffae5a 68%, rgba(255,150,70,0) 72%);
-    box-shadow: 0 0 50px 22px rgba(255,200,110,.5), 0 0 140px 70px rgba(255,150,70,.28);
+    width: min(58vw, 290px); aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle closest-side, #fffef6 0%, #fff4cc 26%, #ffdc90 40%,
+      rgba(255,190,105,.72) 52%, rgba(255,165,85,.36) 68%, rgba(255,150,70,.12) 84%, rgba(255,150,70,0) 100%);
     transition: opacity 1.6s ease, transform 1.6s ease;
+  }
+  #hatsuhi .hh-disc::after {
+    content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 260%; aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle closest-side, rgba(255,190,110,.26), rgba(255,160,80,.10) 45%, rgba(255,150,70,0) 100%);
   }
   #hatsuhi .hh-rays {   /* 後光の光の筋（日の丸の旭光）。のぼりきってから浮かび、ゆっくり回る */
     position: absolute; left: 50%; top: 50%; width: 260vmax; aspect-ratio: 1;
@@ -1566,8 +1573,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
   // ===== 初詣（年に一度・松の内・正本は docs/CONCEPT.md）=====
   // 松の内のあいだ、その年はじめてのお参りが初詣になる。鳥居をくぐって柏手を打ち、八柱から「今年の一柱」をおみちびきする。
-  // 運勢は吉・中吉・大吉が三分の一ずつ（新年くらい、みんなにいい年を）。龍神様と節気の神は出ない
+  // 運勢はみんな大吉（お正月の大サービス・本人「みんなに大吉をあげようよ」）。龍神様と節気の神は出ない
   const HATSUMOUDE = { from: '01-01', to: '01-07' };
+  // 年のことば。いまは初詣がみんな大吉なので「ふだん」は出ない（運勢を混ぜる年に戻せるよう、残してある）
   const TOSHI_KOTOBA = {
     hi:       { ふだん: '今年は、はじめる年。小さな一歩を、何度でも',             大吉: '今年のあなたは、誰かの朝日になります。そのままで' },
     kaze:     { ふだん: '今年は、流れが変わる年。迷ったら、窓をあけて',           大吉: '追い風の一年。会いたい人には、会いに行って' },
@@ -2144,7 +2152,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     }
 
     stepRyujin();   // このお参りを、龍神様への歩みに数える
-    // 初詣（その年はじめてのお参り）は、八柱から今年の一柱。運勢は三分の一ずつ。
+    // 初詣（その年はじめてのお参り）は、八柱から今年の一柱。運勢はみんな大吉。
     // 龍神様の歩みが満ちていても、ここでは現れない（つぎのお参りへ持ち越す）
     const hatsu = hatsumoudeDue();
     const byCertain = !hatsu && ryujinReady();   // 歩みが満ちての顕現か、おみくじを引き当てたのか
@@ -2288,10 +2296,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     at(HATSUHI.arrive + HATSUHI.fade + 3, () => { hatsuhiEl.className = ''; });
   }
 
-  // 初詣の運勢: 吉・中吉・大吉を三分の一ずつ（開発用フックで決めた運勢があれば、それ。龍神様は出ない）
+  // 初詣の運勢: みんな大吉（お正月の大サービス）。開発用フックで決めた運勢があれば、それ（龍神様は出ない）
   function rollHatsumoude() {
     if (testRarity && testRarity.name !== '大大吉') { const r = testRarity; testRarity = null; return r; }
-    return RARITY[Math.floor(Math.random() * 3)];
+    return RARITY[2];
   }
   let dragonCardTimer = null;
   let bridgeCardTimer = null;
