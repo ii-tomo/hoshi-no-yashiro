@@ -42,6 +42,18 @@ export default {
       return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...cors, 'Content-Type': 'application/json' } });
     }
 
+    // 来てくれた人の数。アプリを開いた日に、一台から一度だけ届く。名前も中身も、端末を見分ける番号も受け取らない。
+    // 中身は metadata にも入れておく（key list だけで日ごとに数えられる。数えかたは count-visits.mjs）
+    if (data.kind === 'visit') {
+      const r = {
+        day: /^\d{4}-\d{2}-\d{2}$/.test(data.day) ? data.day : new Date().toISOString().slice(0, 10),  // 端末の日付
+        first: data.first === true,                                        // この端末ではじめて開いた
+        via: ['shugoshin', 'hatsumoude'].includes(data.via) ? data.via : '', // どの入口から来たか
+      };
+      await env.KANSOU.put('visit:' + r.day + ':' + Math.random().toString(36).slice(2, 10), '1', { metadata: r });
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...cors, 'Content-Type': 'application/json' } });
+    }
+
     const rec = {
       name: clip(data.name, 40),          // ペンネーム（任意）
       device: clip(data.device, 20),      // iPhone / Android / その他・PC

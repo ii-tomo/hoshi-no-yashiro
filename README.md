@@ -138,5 +138,11 @@
   * 不具合を直した: 「音なしで はじめる」を押すと、見えないタイトルに当たって語りつきで始まっていた（公開中の版でも起きていた）
   * 確かめ方: ローカルで `http://localhost:8936/shugoshin.html`（または `/?shugoshin`）。`_hoshi.reset()` ではじめての人として
 
+* 来てくれた人の数（2026-10-20・クロちゃん/Opus 5.5）— **実装済み・Worker の入れ直し → 公開待ち**
+  * アプリを開いた日に、一台から一度だけ `{kind:"visit", day, first, via}` を感想帳と同じ Worker へ。名前も中身も、端末を見分ける番号も送らない。本番のアドレスでだけ送る
+  * **Worker を先に入れ直す**（`kansou-worker` で `npx wrangler deploy`）→ それからアプリを公開。逆だと古い Worker が空の感想としてしまう
+  * 数を見る: `kansou-worker` で `node count-visits.mjs`（直近だけなら `node count-visits.mjs 14`）
+  * ガイドの末尾に、開いた日を数えていることを書き足した
+
 * 公開URL: https://hoshi-no-yashiro.pages.dev
 * リポジトリ: https://github.com/ii-tomo/hoshi-no-yashiro（push＝自動デプロイ。pushは本人GO後のみ）

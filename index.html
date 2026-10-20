@@ -1738,7 +1738,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   // ===== 記録（localStorage）=====
   const SAVE_KEY = 'hoshi-no-yashiro';
   let save;
-  try { save = JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch { save = {}; }
+  let firstOpen = false;   // この端末ではじめて開いたか（来てくれた人の数に、新しく来た人として数える）
+  try { firstOpen = !localStorage.getItem(SAVE_KEY); save = JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch { save = {}; }
   save.born = save.born || 0;
   save.counts = save.counts || {};
   save.streak = save.streak || 0;
@@ -2334,6 +2335,25 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   // 龍神様に会った人の数を、社務所（感想帳と同じWorker）に伝える。
   // 送るのは「会った」という事実と、そこまでの回数だけ。名前も記録も端末の中に置いたまま。
   // 一度きり。失敗しても黙って忘れる（遊びを止めない）
+  // 来てくれた人の数: アプリを開いた日に、一台から一度だけ「開いた」ことを送る（正本は docs/CONCEPT.md）。
+  // 送るのは日付・はじめてか・どの入口から来たか だけ。名前も御朱印帳の中身も、端末を見分ける番号も送らない。
+  // 本番でだけ送る（手元や試し用のページで確かめた分を混ぜないため）。失敗しても黙って忘れる
+  function reportVisit(via) {
+    if (location.hostname !== 'hoshi-no-yashiro.pages.dev') return;
+    const today = localDate();
+    if (save.visitDay === today) return;
+    save.visitDay = today;
+    persist();
+    try {
+      fetch('https://hoshi-kansou.banb358.workers.dev/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'visit', day: today, first: firstOpen, via }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch {}
+  }
+
   function reportRyujin(how) {
     if (save.ryujinReported) return;
     save.ryujinReported = true;
@@ -5084,6 +5104,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
   // 診断済みなら、起動時に守護神を空間へ呼び出す
   if (save.guardian && GUARDIANS[save.guardian]) spawnGuardian(save.guardian);
+  reportVisit(document.documentElement.classList.contains('entry-shugoshin') ? 'shugoshin' : '');
   if (document.documentElement.classList.contains('entry-shugoshin')) openShugoshin();
   // すでに誕生日を入れている人には、お札が入ってから初めて開いたときに一度だけ姿をあらわす
   else if (save.guardian && GUARDIANS[save.guardian] && !save.guardianShown) showGuardianReveal(save.guardian);
