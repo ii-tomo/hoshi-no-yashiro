@@ -11,13 +11,15 @@
   // 完全初回だけオープニングを出す。module読み込み前に判定して、モード選択画面のチラつきを防ぐ
   // ?hajimari 付きURL（はじまりのリンク）なら、遊んだことがある人にももう一度流す
   // ?shugoshin 付きURL（守護神の入口・shugoshin.html から来る）は、オープニングをとばして、まず誕生日から
+  // 動きを減らす設定の人にも、静かなオープニングを出す（op-calm）。前はまるごと出していなかったが、
+  // Windows の「アニメーション効果」オフでもこの扱いになり、パソコンでは見られていなかった（初日の出と同じ）
   try {
     if (location.search.indexOf('shugoshin') !== -1) {
       document.documentElement.classList.add('entry-shugoshin');
-    } else if ((location.search.indexOf('hajimari') !== -1 ||
-         !localStorage.getItem('hoshi-no-yashiro')) &&
-        !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    } else if (location.search.indexOf('hajimari') !== -1 ||
+         !localStorage.getItem('hoshi-no-yashiro')) {
       document.documentElement.classList.add('op-first');
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('op-calm');
     }
   } catch (e) {}
 </script>
@@ -418,6 +420,11 @@
     pointer-events: none;
   }
   #op-title.show::before { opacity: 1; transform: translate(-50%, -52%) scale(1.5); }
+  /* 静かなオープニング（動きを減らす設定の人）: 星屑は飛ばさない・名と後光は大きさを変えず、浮かぶだけ・語りの行もずらさない */
+  .op-calm #op-gather { display: none; }
+  .op-calm #op-title, .op-calm #op-title.show { transform: none; }
+  .op-calm #op-title::before, .op-calm #op-title.show::before { transform: translate(-50%, -52%) scale(1.2); }
+  .op-calm #op-text span { transform: none; }
   #op-title .op-sub {
     font-size: clamp(13.5px, 2.6vw, 15px);
     letter-spacing: .55em; text-indent: .55em;
