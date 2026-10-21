@@ -7,9 +7,13 @@ import { execSync } from 'node:child_process';
 const NAMESPACE = 'd850e18e4a3545078b4a0d1120f58cb8';
 const days = Number(process.argv[2]) || 0;
 
+// 環境変数の CLOUDFLARE_API_TOKEN は Pages を読むだけのトークンで、KV は読めない（2026-10-20 実測・権限エラー）。
+// wrangler 自身のログインなら読めるので、呼ぶときだけ外す
+const env = { ...process.env };
+delete env.CLOUDFLARE_API_TOKEN;
 const out = execSync(
   `npx wrangler kv key list --namespace-id ${NAMESPACE} --remote --prefix visit:`,
-  { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'inherit'] },
+  { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'inherit'], env },
 );
 const keys = JSON.parse(out.slice(out.indexOf('[')));
 
