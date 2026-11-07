@@ -161,9 +161,9 @@
 
 * 八柱のお姿（2026-11-07・クロちゃん/Opus 5.5）— **仕組みだけ。絵はまだ・未公開**
   * 本人「火の神様とか、画像かなんか、何かのタイミングで出せないかな」
-  * 絵がある八柱だけ、①はじめての縁で光の中から姿が浮かぶ（守護神の顕現と同じ）②2回目からは誕生カードの奥に透ける ③御朱印帳の円と詳細（ふれるともう一度）
+  * 絵がある八柱だけ、①はじめての縁と大吉のとき、光の中から姿が浮かぶ（守護神の顕現と同じ）②ふだんの2回目からは誕生カードの奥に透ける ③その神の刻（火の神なら17〜22時）に開くと、スタート画面の奥にうっすら「いまは、火の神の刻」（縁を結んだ神だけ）④御朱印帳の円と詳細（ふれるともう一度）
   * 絵を `img/kami-<id>.webp` に置き、`index.html` の `SUGATA` に id を足すと出る（足すまで何も変わらない）。加工は `python docs/make_sugata.py <PNG> <id>`。頼み方は CONCEPT.md「八柱のお姿」
-  * 確かめ方: `_hoshi.sugata('ho', true)` → `_hoshi.birth()`
+  * 確かめ方: `_hoshi.sugata('ho', true)` → `_hoshi.birth()`／大吉は先に `_hoshi.nextRarity(2)`／刻は `_hoshi.sugata('ho')` → `_hoshi.clock('2026-11-07T19:00')`
 
 * 公開URL: https://hoshi-no-yashiro.pages.dev
 * リポジトリ: https://github.com/ii-tomo/hoshi-no-yashiro（push＝自動デプロイ。pushは本人GO後のみ）

@@ -623,6 +623,19 @@
   #start .progress-card .streak b { color: #ffe09e; font-size: 18px; font-weight: normal; }
   #start .progress-card .collected { font-size: 12.5px; color: #9a9ac8; letter-spacing: .12em; margin: 8px 0 10px; }
   #start .progress-card .toshi { font-size: 12.5px; color: #e8d8a8; letter-spacing: .12em; margin-top: 10px; }
+  /* その神の刻（出やすい時間）に開くと、縁を結んだ八柱の姿が奥にうっすら（絵のある神だけ） */
+  #start.koku::before {
+    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: var(--koku) 50% 0 / auto 100% no-repeat;
+    opacity: .2;
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 32%, #000 25%, transparent 72%);
+            mask-image: radial-gradient(ellipse 70% 60% at 50% 32%, #000 25%, transparent 72%);
+  }
+  #start .progress-card .koku {
+    display: none; font-size: 12.5px; letter-spacing: .15em; margin-top: 10px;
+    color: rgb(var(--kc)); text-shadow: 0 0 10px rgba(var(--kc), .6);
+  }
+  #start.koku .progress-card .koku { display: block; }
   #start .mini-dots { display: flex; justify-content: center; gap: 6px; }
   #start .mini-dots span { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(120,120,160,.6); }
   #start .mini-dots span.on { box-shadow: 0 0 7px currentColor; background: currentColor; border-color: transparent; }
@@ -1094,6 +1107,7 @@
       <div class="collected">結んだ縁　<span id="w-collected">0 / 8柱</span></div>
       <div class="mini-dots" id="w-dots"></div>
       <div class="toshi" id="w-toshi" style="display:none;"></div>
+      <div class="koku" id="w-koku"></div>
     </div>
   </div>
   <div class="oharae" id="oharae-note" style="display:none;"></div>
@@ -2288,8 +2302,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       hatsuCardTimer = setTimeout(named, HATSUHI.arrive * 1000);
       return HATSUHI.arrive + 8.5;   // のぼりきって名乗り、カードを見せきってから
     }
-    if (firstMeet && sugataImg(kami)) {
-      // 絵のある八柱と、はじめて縁を結んだときは、光が生まれた少しあとに、その中から姿があらわれる（守護神の顕現と同じ）。
+    if (sugataImg(kami) && (firstMeet || rarity.name === '大吉')) {
+      // 絵のある八柱と、はじめて縁を結んだとき・大吉のときは、光が生まれた少しあとに、その中から姿があらわれる（守護神の顕現と同じ）。
+      // 大吉は2回目からも（本人「1、いいね」＝大吉なら何度でも姿が見られる。ふだんの吉はカードに透けるだけ）。
       // カードのかわりに名乗り、ふれて閉じると「縁が結ばれました」へ。だから待ち秒数は返さない（null）
       new Image().src = sugataImg(kami);   // 光が灯るあいだに絵を読んでおく
       if (rarity.name === '大吉') playDaikichiChime();
@@ -2297,8 +2312,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       sugataTimer = setTimeout(() => {
         showReveal({
           color: kami.color, src: sugataImg(kami),
-          lead: 'はじめての縁　' + rarity.name + (firstOfDay ? '（今日の初縁）' : ''),
-          name: kami.name, yomi: '', trait: kami.story,
+          lead: (firstMeet ? 'はじめての縁　' : '') + rarity.name + (firstOfDay ? '（今日の初縁）' : ''),
+          name: kami.name, yomi: '', trait: kotoba || kami.story, phrases: !!kotoba,   // 2回目からは大吉の今日のことば
           tap: 'ふれると、縁が結ばれます',
           onClose: toAfterBirth,
         });
@@ -3046,6 +3061,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   function showOverlay(name) {
     // 縁の進みで現れる入り口は、開くたびに最新の条件で出し分ける
     if (name === 'start') {
+      updateKoku();   // 開いているあいだに刻が移ることもある
       document.getElementById('open-hounou-start').style.display =
         (save.born > 0 && collectedCount() >= 1) ? '' : 'none';
       document.getElementById('open-jinja-start').style.display = canJinja() ? '' : 'none';
@@ -3087,7 +3103,25 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     const yesterday = localDate(new Date(Date.now() - 86400000));
     return (save.lastDay === today || save.lastDay === yesterday) ? save.streak : 0;
   }
+  // その神の刻: いまの時刻を出やすい時間にもつ八柱のうち、縁を結んでいて絵のある神。
+  // 重なるとき（夜の月と星など）は、日と時で選ぶ（開くたびに入れ替わらないように）
+  function kokuKami() {
+    if (!(save.born > 0)) return null;
+    const now = nowDate(), h = now.getHours();
+    const c = eightKami.filter(k => (save.counts[k.id] || 0) > 0 && sugataImg(k) && (k.hours || []).includes(h));
+    return c.length ? c[(now.getDate() + h) % c.length] : null;
+  }
+  function updateKoku() {
+    const st = document.getElementById('start');
+    const k = kokuKami();
+    st.classList.toggle('koku', !!k);
+    if (!k) return;
+    st.style.setProperty('--koku', "url('" + sugataImg(k) + "')");
+    st.style.setProperty('--kc', rgbOf(k.color));
+    document.getElementById('w-koku').textContent = 'いまは、' + k.name + 'の刻';
+  }
   function populateWelcome() {
+    updateKoku();
     const ds = currentStreak();
     document.getElementById('w-streak-line').innerHTML =
       ds > 0 ? '連続 <b>' + ds + '</b> 日目のお参り' : '今日から、またはじめましょう';
@@ -4896,7 +4930,16 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     document.getElementById('gr-name').textContent = o.name;
     document.getElementById('gr-name').classList.toggle('long', o.name.length > 7);
     document.getElementById('gr-yomi').textContent = o.yomi || '';
-    document.getElementById('gr-trait').textContent = o.trait;
+    const trait = document.getElementById('gr-trait');
+    trait.textContent = o.phrases ? '' : o.trait;
+    if (o.phrases) {   // 今日のことばは「、」「。」のところでだけ折る（誕生カードと同じ）
+      for (const part of o.trait.match(/[^、。]+[、。]?/g)) {
+        const span = document.createElement('span');
+        span.style.display = 'inline-block';
+        span.textContent = part;
+        trait.appendChild(span);
+      }
+    }
     document.getElementById('gr-tap').textContent = o.tap;
     grEl.className = 'on';
     void grEl.offsetWidth;   // 表示してから段を進める（いきなり最後の状態にならないように）
