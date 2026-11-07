@@ -219,6 +219,12 @@
     background-size: cover; background-position: 50% 16%;
     border-color: rgba(255,215,0,.45);
   }
+  /* 八柱のお姿（絵があれば）。龍神様と同じく、カードの奥に透ける。絵は --sugata に入れる */
+  #birth-card.sugata {
+    background-image: linear-gradient(rgba(6,6,24,.72), rgba(6,6,24,.9)), var(--sugata);
+    background-size: cover; background-position: 50% 16%;
+    border-color: rgba(var(--kc), .5);
+  }
   #birth-rarity {
     font-size: 13.5px; letter-spacing: .5em; text-indent: .5em;
     margin-bottom: 8px;
@@ -668,6 +674,17 @@
     border: 1px solid rgba(127,255,212,.45); border-radius: 6px;
     box-shadow: 0 0 20px rgba(127,255,212,.22);
   }
+  /* 八柱のお姿（絵がある神だけ）。円のなかに姿が宿り、詳細には絵。絵にふれると、もう一度姿をあらわす */
+  #goshuincho .orb.sugata {
+    background-color: currentColor; background-image: var(--sugata);
+    background-position: 50% 12%; background-size: 200%; background-repeat: no-repeat;
+  }
+  #goshuincho .book-detail .d-sugata {
+    width: min(70vw, 230px); height: 150px; margin: 0 auto 10px; cursor: pointer;
+    background: var(--sugata) 50% 14% / cover no-repeat;
+    border: 1px solid rgba(var(--kc), .5); border-radius: 6px;
+    box-shadow: 0 0 20px rgba(var(--kc), .25);
+  }
   #goshuincho .cell-name { font-size: 13px; color: #c8c8e8; letter-spacing: .1em; }
   #goshuincho .cell-name.dim { color: #9494b8; }
   #goshuincho .cell-name.dragon { color: #7fffd4; }
@@ -1026,16 +1043,16 @@
 <video id="ryujin-video" playsinline preload="none"></video>
 <div id="dragon-flash"></div>
 
-<!-- 守護神の顕現（絵は img/guardian-<番号>.webp・AI生成） -->
+<!-- 守護神の顕現（絵は img/guardian-<番号>.webp・AI生成）。八柱のお姿（img/kami-<id>.webp）も、はじめての縁のときにここから浮かぶ -->
 <div id="guardian-reveal">
   <div id="gr-glow"></div>
   <img id="gr-img" alt="">
   <div id="gr-text">
-    <div class="gr-lead">あなたの守護神が、姿をあらわしました</div>
+    <div class="gr-lead" id="gr-lead">あなたの守護神が、姿をあらわしました</div>
     <div class="gr-name" id="gr-name"></div>
     <div class="gr-yomi" id="gr-yomi"></div>
     <div class="gr-trait" id="gr-trait"></div>
-    <div class="gr-tap">ふれると、御朱印帳におさまります</div>
+    <div class="gr-tap" id="gr-tap">ふれると、御朱印帳におさまります</div>
   </div>
 </div>
 
@@ -1311,6 +1328,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     { id: 'ryujin',   name: '龍神様', color: 0x7fffd4, hidden: true,
       story: '八百万の流れを束ねる、大いなる存在。すべての神と縁を結んだ者の前にだけ、その姿を現すという。' },
   ];
+
+  // ===== 八柱のお姿（絵）=====
+  // 絵を img/kami-<id>.webp に置いたら、ここに id を足す（火の神なら 'ho'）。足した神だけ姿が出る。
+  // 出るところ: はじめての縁（光の中から姿が浮かぶ）／誕生カードの奥に透ける／御朱印帳の円と詳細（ふれると、もう一度）
+  // 絵の頼み方・加工は docs/CONCEPT.md「八柱のお姿」。AI生成なので guide.html にも書き足すこと
+  const SUGATA = new Set([]);
+  function sugataImg(k) { return k && SUGATA.has(k.id) ? 'img/kami-' + k.id + '.webp' : null; }
 
   // ===== 今日のことば（2026-10-05 本人OK・下書きは Project の 今日のことば_下書き.md）=====
   // 八柱と2回目から会うと、逸話のかわりに出る。逸話は御朱印帳でいつでも読める。
@@ -2096,6 +2120,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     save.ryujinSteps++;
   }
 
+  let testKami = null;     // 開発用フック _hoshi.sugata で、つぎの一回だけ神を決める
   let testRarity = null;   // 開発用フック _hoshi.nextRarity で、つぎの一回だけ運勢を決める
   function rollOmikuji(boost) {
     if (testRarity) { const r = testRarity; testRarity = null; return r; }
@@ -2164,7 +2189,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     const hatsu = hatsumoudeDue();
     const byCertain = !hatsu && ryujinReady();   // 歩みが満ちての顕現か、おみくじを引き当てたのか
     const rarity = hatsu ? rollHatsumoude() : rollOmikuji(firstOfDay);
-    const kami = hatsu ? eightKami[Math.floor(Math.random() * eightKami.length)] : pickKami(rarity, firstOfDay);
+    const forced = testKami && KAMI.find(k => k.id === testKami);
+    testKami = null;
+    const kami = hatsu ? eightKami[Math.floor(Math.random() * eightKami.length)] : forced || pickKami(rarity, firstOfDay);
     const viaBridge = !hatsu && bridgeSekki().includes(kami);   // 縁を記録する前に見る（記録すると橋の名簿から外れる）
     let hatsuRec = null;
     if (hatsu) {
@@ -2175,7 +2202,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       save.hatsumoude[hatsuYear(now)] = hatsuRec;
     }
     // はじめて会った神は逸話で名乗り、2回目からは「今日のことば」（八柱だけ）。初詣は年のことば
-    const kotoba = hatsu ? toshiKotoba(hatsuRec) : (save.counts[kami.id] > 0) ? pickKotoba(kami, rarity) : null;
+    const firstMeet = !(save.counts[kami.id] > 0);   // 縁を記録する前に見る
+    const kotoba = hatsu ? toshiKotoba(hatsuRec) : !firstMeet ? pickKotoba(kami, rarity) : null;
     if (kami.id === 'ryujin') reportRyujin(byCertain ? 'certain' : 'omikuji');
 
     let dragonWithVideo = false;
@@ -2260,10 +2288,35 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       hatsuCardTimer = setTimeout(named, HATSUHI.arrive * 1000);
       return HATSUHI.arrive + 8.5;   // のぼりきって名乗り、カードを見せきってから
     }
+    if (firstMeet && sugataImg(kami)) {
+      // 絵のある八柱と、はじめて縁を結んだときは、光が生まれた少しあとに、その中から姿があらわれる（守護神の顕現と同じ）。
+      // カードのかわりに名乗り、ふれて閉じると「縁が結ばれました」へ。だから待ち秒数は返さない（null）
+      new Image().src = sugataImg(kami);   // 光が灯るあいだに絵を読んでおく
+      if (rarity.name === '大吉') playDaikichiChime();
+      clearTimeout(sugataTimer);
+      sugataTimer = setTimeout(() => {
+        showReveal({
+          color: kami.color, src: sugataImg(kami),
+          lead: 'はじめての縁　' + rarity.name + (firstOfDay ? '（今日の初縁）' : ''),
+          name: kami.name, yomi: '', trait: kami.story,
+          tap: 'ふれると、縁が結ばれます',
+          onClose: toAfterBirth,
+        });
+      }, SUGATA_DELAY * 1000);
+      return null;
+    }
     showBirthCard(rarity, kami, firstOfDay, false, kotoba);
     playBirthChime(false);
     if (rarity.name === '大吉') playDaikichiChime();
     return 5;
+  }
+  const SUGATA_DELAY = 1.6;   // 光が生まれてから、姿の顕現がはじまるまで（秒）
+  let sugataTimer = null;
+  // 誕生のあと「縁が結ばれました」の画面へ（待ち秒数のあと、または姿の顕現を閉じたとき）
+  function toAfterBirth() {
+    if (state !== 'card') return;
+    showOverlay('after');
+    state = 'after';
   }
   // ===== 初日の出（初詣の今年の一柱は、地球のふちからのぼる太陽の中から生まれる）=====
   // 宇宙から見た初日の出なので、0時に来ても日の出でよい（本人「宇宙から見た初日の出だから0時でもいいんじゃないかな」）。
@@ -3270,6 +3323,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
       const orb = document.createElement('div');
       if (met && k.hidden) { orb.className = 'orb ryujin'; }
+      else if (met && sugataImg(k)) {   // 絵のある八柱は、円のなかに姿が宿る
+        orb.className = 'orb met sugata'; orb.style.color = hex;
+        orb.style.setProperty('--sugata', "url('" + sugataImg(k) + "')");
+      }
       else if (met) { orb.className = 'orb met'; orb.style.color = hex; }
       else if (k.hidden) { orb.className = 'orb locked'; orb.textContent = '？'; }
       else { orb.className = 'orb unmet'; orb.textContent = '？'; }
@@ -3287,10 +3344,19 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     if (met) {
       const cnt = save.counts[k.id] || 0;
       const first = save.firstMet[k.id] || '';
+      const sugata = sugataImg(k);
+      bookDetail.style.setProperty('--kc', rgbOf(k.color));
+      if (sugata) bookDetail.style.setProperty('--sugata', "url('" + sugata + "')");
       bookDetail.innerHTML = (k.hidden ? '<div class="d-ryujin"></div>' : '') +
+        (sugata ? '<div class="d-sugata" title="もう一度、姿をあらわす"></div>' : '') +
         '<span class="d-name"' + (k.hidden ? ' style="color:#7fffd4"' : '') + '>' + k.name + '</span>' + k.story +
         '<br><span style="color:#8f8fc0;font-size:12.5px">これまで ' + cnt + ' 度の縁' +
         (first ? '　はじまりは ' + first : '') + '</span>' + shareLinkHtml('kami', k.id);
+      const ds = bookDetail.querySelector('.d-sugata');
+      if (ds) ds.addEventListener('click', () => showReveal({   // 絵にふれると、もう一度姿をあらわす
+        color: k.color, src: sugata, lead: 'これまで ' + cnt + ' 度の縁',
+        name: k.name, yomi: '', trait: k.story, tap: 'ふれると、とじます',
+      }));
     } else if (k.hidden) {
       bookDetail.innerHTML = '<span class="d-name" style="color:#7fffd4">龍神様</span>' +
         '八柱すべてと縁を結んだ者の前にだけ、その姿を現すという。';
@@ -4801,23 +4867,37 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   const grEl = document.getElementById('guardian-reveal');
   let grTimers = [];
   let grDone = false;   // 名乗りまで見せきったか（見せきる前のタップは、先へ進めるだけ）
-  let grOnClose = null; // 閉じたときにつづける画面（守護神の入口から来たとき）
+  let grOnClose = null; // 閉じたときにつづける画面（守護神の入口から来たとき・八柱のはじめての縁）
+  let grGuardian = false; // 守護神の顕現か（閉じたときに guardianShown を立てる）
   function showGuardianReveal(num, onClose) {
     const g = GUARDIANS[num];
     if (!g) return;
+    showReveal({
+      color: g.color, src: guardianImg(num),
+      lead: 'あなたの守護神が、姿をあらわしました',
+      name: g.name, yomi: g.yomi, trait: g.trait,
+      tap: 'ふれると、御朱印帳におさまります',
+      onClose, guardian: true,
+    });
+  }
+  // 光が灯り、その中から姿が浮かび、名乗る。守護神と八柱のお姿で同じ演出を使う
+  function showReveal(o) {
     grTimers.forEach(clearTimeout);
     grTimers = [];
     grDone = false;
-    grOnClose = onClose || null;
-    grEl.style.setProperty('--gc', rgbOf(g.color));
+    grOnClose = o.onClose || null;
+    grGuardian = !!o.guardian;
+    grEl.style.setProperty('--gc', rgbOf(o.color));
     const img = document.getElementById('gr-img');
     img.style.visibility = '';
     img.onerror = () => { img.style.visibility = 'hidden'; };   // 絵が読めなくても、光と名乗りで成り立つ
-    img.src = guardianImg(num);
-    document.getElementById('gr-name').textContent = g.name;
-    document.getElementById('gr-name').classList.toggle('long', g.name.length > 7);
-    document.getElementById('gr-yomi').textContent = g.yomi;
-    document.getElementById('gr-trait').textContent = g.trait;
+    img.src = o.src;
+    document.getElementById('gr-lead').textContent = o.lead;
+    document.getElementById('gr-name').textContent = o.name;
+    document.getElementById('gr-name').classList.toggle('long', o.name.length > 7);
+    document.getElementById('gr-yomi').textContent = o.yomi || '';
+    document.getElementById('gr-trait').textContent = o.trait;
+    document.getElementById('gr-tap').textContent = o.tap;
     grEl.className = 'on';
     void grEl.offsetWidth;   // 表示してから段を進める（いきなり最後の状態にならないように）
     grTimers.push(setTimeout(() => grEl.classList.add('s1'), 80));               // 光が灯る
@@ -4834,7 +4914,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     }
     grEl.classList.add('closing');
     grTimers.push(setTimeout(() => { grEl.className = ''; }, 900));
-    if (!save.guardianShown) { save.guardianShown = true; persist(); }
+    if (grGuardian && !save.guardianShown) { save.guardianShown = true; persist(); }
     if (grOnClose) { const next = grOnClose; grOnClose = null; next(); }   // 光が消えていくあいだに、つぎの画面が浮かぶ
   });
   document.getElementById('g-ofuda').addEventListener('click', () => {
@@ -4912,6 +4992,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   let cardTimer = null;
   function showBirthCard(rarity, kami, firstOfDay, viaBridge, kotoba, hatsuRec) {
     birthCard.classList.toggle('ryujin', kami.id === 'ryujin');
+    const sugata = sugataImg(kami);   // 絵のある八柱は、カードの奥に姿が透ける
+    birthCard.classList.toggle('sugata', !!sugata);
+    if (sugata) birthCard.style.setProperty('--sugata', "url('" + sugata + "')");
     birthCard.classList.toggle('hatsu', !!hatsuRec);
     if (hatsuRec) {
       document.getElementById('birth-hatsu').innerHTML = nenName(hatsuYear()) + '　初詣　今年の一柱' +
@@ -5417,11 +5500,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
         holding = false;
         state = 'card';
         // 龍神様のときは、顕現を見せきるまで「縁が結ばれました」を待たせる
+        // 絵のある八柱との、はじめての縁は null（姿の顕現を閉じたときに先へ）
         const waitSec = birthKami(p);
-        setTimeout(() => {
-          if (state === 'card') showOverlay('after');
-          if (state === 'card') state = 'after';
-        }, waitSec * 1000);
+        if (waitSec != null) setTimeout(toAfterBirth, waitSec * 1000);
       }
     }
 
@@ -5552,6 +5633,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     sekki: (d) => { const s = sekkiNow(d ? new Date(d) : undefined); return s && s.id; }, // テスト用: いまの節気
     pick: (i) => pickKami(RARITY[i || 0]).id, // テスト用: おみくじ抽選だけ確認
     kaeshi: (negai) => kaeshiFor(negai), // テスト用: 願いに返る、取り次ぎの返事
+    sugata: (id, fresh) => { SUGATA.add(id); testKami = id; if (fresh) { delete save.counts[id]; persist(); } return sugataImg({ id }); }, // テスト用: その神の絵を出すことにして、つぎの一回をその神に（fresh で、はじめての縁に戻す）
     nextRarity: (i) => { testRarity = RARITY[i]; return testRarity.name; }, // テスト用: つぎの一回の運勢（0吉 1中吉 2大吉）
     shitsuraeAll: () => { KURASHI.forEach(c => { if (!save.shitsurae.includes(c.id)) save.shitsurae.push(c.id); save.counts[c.id] = save.counts[c.id] || 1; }); persist(); if (jinja) updateJinjaHud(); }, // テスト用: 設えを16そろえる（星めぐりがひらく）
     meguri: () => JSON.parse(JSON.stringify(save.meguri)), // テスト用: 星めぐりの記録
