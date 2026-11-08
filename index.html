@@ -774,6 +774,44 @@
   #goshuincho .musubi-grid .cell-name { font-size: 12px; }
   #goshuincho .musubi-grid .cell-pair { font-size: 11px; color: #a0a0c8; letter-spacing: .12em; margin-top: 2px; }
   #goshuincho .cell-pair.now { color: #ffe9a8; }
+  /* むすびの曼荼羅（2026-11-08 本人「おすすめの28柱、いいですね」）: 八柱を円に置き、結んだ縁を二柱のあいだの光の線で描く。
+     八柱から二柱を選ぶ組み合わせ＝28本。ぜんぶ結ぶと、八角の曼荼羅になる */
+  #goshuincho .musubi-mandala { width: min(90vw, 360px); margin: 0 auto 6px; }
+  #goshuincho .musubi-mandala svg { display: block; width: 100%; height: auto; overflow: visible; }
+  #goshuincho .musubi-mandala .m-line { transition: opacity .35s, stroke-width .35s; }
+  #goshuincho .musubi-mandala .m-line.unmet { stroke: rgba(150,150,200,.32); stroke-dasharray: 2 5; stroke-width: 1; }
+  #goshuincho .musubi-mandala .m-line.met { stroke-width: 2; opacity: .85; filter: url(#m-glow); }
+  #goshuincho .musubi-mandala.sel .m-line { opacity: .12; }
+  #goshuincho .musubi-mandala.sel .m-line.on { opacity: 1; }
+  #goshuincho .musubi-mandala.sel .m-line.on.met { stroke-width: 3.2; }
+  #goshuincho .musubi-mandala.sel .m-line.on.unmet { stroke: rgba(190,190,240,.75); }
+  #goshuincho .musubi-mandala .m-hit { stroke: transparent; stroke-width: 12; cursor: pointer; }
+  #goshuincho .musubi-mandala .m-node { cursor: pointer; }
+  #goshuincho .musubi-mandala .m-node .ring { fill: none; stroke: rgba(255,255,255,0); stroke-width: 1.5; transition: stroke .3s; }
+  #goshuincho .musubi-mandala .m-node.on .ring { stroke: rgba(255,255,255,.85); }
+  #goshuincho .musubi-mandala .m-label { font-size: 13px; fill: #c8c8e8; letter-spacing: .1em; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+  #goshuincho .musubi-mandala .m-node.on + .m-label, #goshuincho .musubi-mandala .m-label.on { fill: #ffffff; }
+  #goshuincho .musubi-mandala .m-core { opacity: 0; }
+  #goshuincho .musubi-mandala.kansei .m-core { opacity: .55; }
+  #goshuincho .musubi-mandala.kansei.sel .m-core { opacity: .2; }
+  /* 完成の光は、ひらいたとき（点をえらんでいないとき）だけ流す */
+  #goshuincho .musubi-mandala.kansei:not(.sel) .m-core { animation: m-kansei 3.2s ease-out 1; }
+  @keyframes m-kansei { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: .55; } }
+  #goshuincho .musubi-mandala.kansei:not(.sel) .m-line.met { animation: m-kansei-line 3.2s ease-out 1; }
+  @keyframes m-kansei-line { 0% { opacity: .2; } 35% { opacity: 1; } 100% { opacity: .85; } }
+  #goshuincho .musubi-pick { width: min(90vw, 360px); min-height: 44px; margin: 0 auto 14px; text-align: center; }
+  #goshuincho .musubi-pick .p-lead { font-size: 13px; color: #9a9ac8; letter-spacing: .12em; line-height: 1.9; }
+  #goshuincho .musubi-pick .p-lead b { color: #ffe9a8; font-weight: normal; font-size: 15px; }
+  #goshuincho .musubi-pick .p-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  #goshuincho .musubi-pick .p-chip {
+    display: flex; align-items: center; gap: 7px; cursor: pointer;
+    border: 1px solid rgba(160,160,220,.35); border-radius: 18px; padding: 6px 12px 6px 8px;
+    font-size: 13px; color: #d8d8f2; letter-spacing: .08em;
+  }
+  #goshuincho .musubi-pick .p-chip.dim { color: #9494b8; border-style: dashed; }
+  #goshuincho .musubi-pick .p-chip i { width: 14px; height: 14px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; flex: none; }
+  #goshuincho .musubi-pick .p-chip.dim i { background: none; box-shadow: none; border: 1px dashed rgba(140,140,180,.8); }
+  #goshuincho .musubi-pick .p-chip small { font-size: 11px; color: #a0a0c8; }
   #goshuincho .share-link {
     font-size: 12.5px; color: #9a9ac8; letter-spacing: .18em; margin-top: 10px;
     cursor: pointer; text-decoration: underline dotted rgba(150,150,200,.5); text-underline-offset: 4px;
@@ -1232,7 +1270,8 @@
   <div class="book-subhead musubi-head">むすびの二十八柱</div>
   <div class="musubi-norito" id="musubi-norito">手持ちの祝詞　0</div>
   <div class="musubi-link" id="open-musubi">縁をむすぶ ─ 祝詞八つ</div>
-  <div class="book-grid musubi-grid" id="musubi-grid"></div>
+  <div class="musubi-mandala" id="musubi-grid"></div>
+  <div class="musubi-pick" id="musubi-pick"></div>
   <div class="book-detail" id="musubi-detail"></div>
   <div class="book-subhead musubi-head">節気の二十四柱</div>
   <div class="book-grid musubi-grid" id="sekki-grid"></div>
@@ -3448,26 +3487,119 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     if (!canPair) musubiLink.textContent = '二柱と出会うと、縁がむすべます';
     else if (save.noritoHeld < MUSUBI_COST) musubiLink.textContent = '縁をむすぶ ─ 祝詞八つ（あと' + (MUSUBI_COST - save.noritoHeld) + 'つ）';
     else musubiLink.textContent = '縁をむすぶ ─ 祝詞八つ';
-    musubiGrid.innerHTML = '';
+    renderMandala(null);
+    musubiDetail.innerHTML = '';
+  }
+
+  // むすびの曼荼羅: 八柱を円に置き、28の縁を二柱のあいだの線で描く。点にふれると、その神の7本が光り、下に7柱が並ぶ
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function svgEl(tag, attrs) {
+    const e = document.createElementNS(SVGNS, tag);
+    for (const a in attrs) e.setAttribute(a, attrs[a]);
+    return e;
+  }
+  function musubiMet(m) { return (save.counts[m.id] || 0) > 0; }
+  function renderMandala(selId) {
+    const C = 160, R = 112, NR = 15;
+    const pos = {};
+    eightKami.forEach((k, i) => {
+      const a = -Math.PI / 2 + i * Math.PI * 2 / eightKami.length;
+      const lr = R + 30 + 20 * Math.abs(Math.cos(a));   // 横にある神ほど名前を外へ（名前は横に長いので）
+      pos[k.id] = { x: C + R * Math.cos(a), y: C + R * Math.sin(a), lx: C + lr * Math.cos(a), ly: C + lr * Math.sin(a) };
+    });
+    const metCount = MUSUBI.filter(musubiMet).length;
+    const svg = svgEl('svg', { viewBox: '-10 -10 340 340', role: 'img', 'aria-label': 'むすびの曼荼羅　結んだ縁 ' + metCount + ' / 28' });
+    const defs = svgEl('defs', {});
+    // 光のにじみは図全体を範囲にする（線の幅や高さが0＝縦・横まっすぐの線だと、図形基準の範囲では線ごと消える）
+    const glow = svgEl('filter', { id: 'm-glow', filterUnits: 'userSpaceOnUse', x: -20, y: -20, width: 360, height: 360 });
+    glow.appendChild(svgEl('feGaussianBlur', { stdDeviation: '2.2', result: 'b' }));
+    const mg = svgEl('feMerge', {});
+    mg.appendChild(svgEl('feMergeNode', { in: 'b' })); mg.appendChild(svgEl('feMergeNode', { in: 'SourceGraphic' }));
+    glow.appendChild(mg); defs.appendChild(glow);
+    const core = svgEl('radialGradient', { id: 'm-core-g' });
+    core.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#fff6dc', 'stop-opacity': '.9' }));
+    core.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#fff6dc', 'stop-opacity': '0' }));
+    defs.appendChild(core);
+    svg.appendChild(defs);
+    svg.appendChild(svgEl('circle', { class: 'm-core', cx: C, cy: C, r: R * 0.9, fill: 'url(#m-core-g)' }));   // 28本そろうと、まん中に光が満ちる
+
+    // 線（結んでいない縁は点線、結んだ縁はその神の色の光）
     for (const m of MUSUBI) {
-      const met = (save.counts[m.id] || 0) > 0;
-      const hex = '#' + m.color.toString(16).padStart(6, '0');
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      const orb = document.createElement('div');
-      if (met) { orb.className = 'orb met'; orb.style.color = hex; }
-      else { orb.className = 'orb unmet'; orb.textContent = '？'; }
-      const name = document.createElement('div');
-      name.className = 'cell-name' + (met ? '' : ' dim');
-      name.textContent = met ? m.name : '？？？';
-      const pair = document.createElement('div');
-      pair.className = 'cell-pair';
-      pair.textContent = pairLabel(m);
-      cell.appendChild(orb); cell.appendChild(name); cell.appendChild(pair);
-      cell.addEventListener('click', () => showMusubiDetail(m, met));
-      musubiGrid.appendChild(cell);
+      const p = pos[m.pair[0]], q = pos[m.pair[1]];
+      const met = musubiMet(m);
+      const on = selId && m.pair.includes(selId);
+      const ln = svgEl('line', { class: 'm-line ' + (met ? 'met' : 'unmet') + (on ? ' on' : ''), x1: p.x, y1: p.y, x2: q.x, y2: q.y });
+      if (met) ln.setAttribute('stroke', '#' + m.color.toString(16).padStart(6, '0'));
+      svg.appendChild(ln);
     }
-    musubiDetail.innerHTML = 'ひとつ選ぶと、その縁のことが読めます。';
+    // 線にもふれられる（太い透明の線）
+    for (const m of MUSUBI) {
+      const p = pos[m.pair[0]], q = pos[m.pair[1]];
+      const hit = svgEl('line', { class: 'm-hit', x1: p.x, y1: p.y, x2: q.x, y2: q.y });
+      hit.addEventListener('click', () => { showMusubiDetail(m, musubiMet(m)); });
+      svg.appendChild(hit);
+    }
+    // 八柱の点（会った神は色の光。絵のある神は、点のなかに姿が宿る）
+    for (const k of eightKami) {
+      const p = pos[k.id];
+      const met = (save.counts[k.id] || 0) > 0;
+      const hex = '#' + k.color.toString(16).padStart(6, '0');
+      const g = svgEl('g', { class: 'm-node' + (selId === k.id ? ' on' : '') });
+      if (met) {
+        g.appendChild(svgEl('circle', { cx: p.x, cy: p.y, r: NR, fill: hex, filter: 'url(#m-glow)' }));
+        const src = sugataImg(k);
+        if (src) {
+          const cp = svgEl('clipPath', { id: 'm-clip-' + k.id });
+          cp.appendChild(svgEl('circle', { cx: p.x, cy: p.y, r: NR - 1 }));
+          defs.appendChild(cp);
+          const w = NR * 3.4;
+          g.appendChild(svgEl('image', { href: src, x: p.x - w / 2, y: p.y - NR * 1.25, width: w, height: w * 4 / 3, 'clip-path': 'url(#m-clip-' + k.id + ')', preserveAspectRatio: 'xMidYMin slice' }));
+        }
+      } else {
+        g.appendChild(svgEl('circle', { cx: p.x, cy: p.y, r: NR, fill: '#0a0a22', stroke: 'rgba(120,120,170,.8)', 'stroke-dasharray': '2 3' }));
+        const q = svgEl('text', { x: p.x, y: p.y + 1, class: 'm-label' }); q.textContent = '？'; g.appendChild(q);
+      }
+      g.appendChild(svgEl('circle', { class: 'ring', cx: p.x, cy: p.y, r: NR + 4 }));
+      g.addEventListener('click', () => { renderMandala(selId === k.id ? null : k.id); });
+      svg.appendChild(g);
+      const lb = svgEl('text', { x: p.lx, y: p.ly, class: 'm-label' + (selId === k.id ? ' on' : '') });
+      lb.textContent = met ? k.name : '？？？';
+      svg.appendChild(lb);
+    }
+    musubiGrid.className = 'musubi-mandala' + (selId ? ' sel' : '') + (metCount === MUSUBI.length ? ' kansei' : '');
+    musubiGrid.innerHTML = '';
+    musubiGrid.appendChild(svg);
+
+    // 下の欄: えらんでいなければ数と案内、えらんでいれば、その神から結ばれる7柱
+    const pick = document.getElementById('musubi-pick');
+    pick.innerHTML = '';
+    if (!selId) {
+      const lead = document.createElement('div');
+      lead.className = 'p-lead';
+      lead.innerHTML = metCount === MUSUBI.length
+        ? '二十八の縁が、ひとつの曼荼羅になりました。<br>八柱の点にふれると、その神の縁が光ります'
+        : '結んだ縁　<b>' + metCount + '</b> / 28<br>八柱の点にふれると、その神の縁が光ります';
+      pick.appendChild(lead);
+      return;
+    }
+    const chips = document.createElement('div');
+    chips.className = 'p-chips';
+    for (const m of MUSUBI.filter(x => x.pair.includes(selId))) {
+      const met = musubiMet(m);
+      const other = kamiById(m.pair[0] === selId ? m.pair[1] : m.pair[0]);
+      const chip = document.createElement('div');
+      chip.className = 'p-chip' + (met ? '' : ' dim');
+      const dot = document.createElement('i');
+      if (met) dot.style.color = '#' + m.color.toString(16).padStart(6, '0');
+      chip.appendChild(dot);
+      chip.appendChild(document.createTextNode(met ? m.name : '？？？'));
+      const sm = document.createElement('small');
+      sm.textContent = '× ' + other.name.replace('の神', '');
+      chip.appendChild(sm);
+      chip.addEventListener('click', () => showMusubiDetail(m, met));
+      chips.appendChild(chip);
+    }
+    pick.appendChild(chips);
   }
   function showMusubiDetail(m, met) {
     const parents = kamiById(m.pair[0]).name + 'と' + kamiById(m.pair[1]).name;

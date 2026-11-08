@@ -165,5 +165,10 @@
   * 絵を `img/kami-<id>.webp` に置き、`index.html` の `SUGATA` に id を足すと出る（足すまで何も変わらない）。加工は `python docs/make_sugata.py <PNG> <id>`。頼み方は CONCEPT.md「八柱のお姿」
   * 確かめ方: `_hoshi.sugata('ho', true)` → `_hoshi.birth()`／大吉は先に `_hoshi.nextRarity(2)`／刻は `_hoshi.sugata('ho')` → `_hoshi.clock('2026-11-07T19:00')`
 
+* むすびの曼荼羅（2026-11-08・クロちゃん/Opus 5.5）— **未公開**
+  * 本人「結びの28柱…スクロール大変だよね…丸のただ色ついたやつだしね」。御朱印帳のむすびの章を、八柱を結ぶ光の線の図にした（28本＝八柱から二柱の組み合わせ）。そろうと曼荼羅
+  * 点にふれると、その神の7本が光り下に7柱が並ぶ。詳しくは CONCEPT.md「むすびの二十八柱」
+* 七柱の絵（2026-11-08 頼んだ）— コウちゃんの利用枠が切れたので、**11/12 23:15 にタスク「七柱の絵（単発）」が自動で頼み直す**（`04_Automations/単発_七柱の絵.ps1` → `docs/kou_7.ps1`）。11/13からAIオフィスに「七柱の絵を見る」カード。絵の採用と組み込みはAIが見てから
+
 * 公開URL: https://hoshi-no-yashiro.pages.dev
 * リポジトリ: https://github.com/ii-tomo/hoshi-no-yashiro（push＝自動デプロイ。pushは本人GO後のみ）
