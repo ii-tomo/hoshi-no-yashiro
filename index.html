@@ -1347,7 +1347,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   // 絵を img/kami-<id>.webp に置いたら、ここに id を足す（火の神なら 'ho'）。足した神だけ姿が出る。
   // 出るところ: はじめての縁（光の中から姿が浮かぶ）／誕生カードの奥に透ける／御朱印帳の円と詳細（ふれると、もう一度）
   // 絵の頼み方・加工は docs/CONCEPT.md「八柱のお姿」。AI生成なので guide.html にも書き足すこと
-  const SUGATA = new Set([]);
+  const SUGATA = new Set(['ho']);
   function sugataImg(k) { return k && SUGATA.has(k.id) ? 'img/kami-' + k.id + '.webp' : null; }
 
   // ===== 今日のことば（2026-10-05 本人OK・下書きは Project の 今日のことば_下書き.md）=====
