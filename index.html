@@ -5589,7 +5589,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     }
     ryu.d = makeRyuDragon(ryuIro(rs.uroko));
     ryuBackEl.classList.add('on');
+    stopRyuTsuku(0.3);
     startShirabe('ryujin');   // 空をゆくあいだは、龍神様の調べ
+    loadRyuTsuku();           // 着いたときの一節を、いまのうちに読んでおく
     showRyuWord('<b>ゆく先は</b>' + h.name + '（' + h.wamei + '）', 5.5);
   }
   function updateRyu(dt, bs) {
@@ -5637,6 +5639,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     if (flying && r.time >= RYU.breaths * (RYU.in + RYU.out)) {
       r.arriving = 0;
       playSho(3.0);
+      playRyuTsuku();
     }
     if (!flying) {
       r.arriving += dt;
@@ -5646,6 +5649,41 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       r.starCore.scale.setScalar(2.6 + 6 * u);
       if (r.arriving >= RYU.arrive) finishRyu();
     }
+  }
+  // 星に着いたときの一節（audio/ryu-tsuku.mp3・10秒・笛の節。本人が Muse で作った動画の音・2026-11-16）
+  // 空をゆくあいだは機械の調べ、着いたところでだけ本物の節が一度鳴る。読みこめなければ黙って調べのまま
+  let ryuTsukuBuf = null, ryuTsukuLoading = false, ryuTsukuNow = null;
+  function loadRyuTsuku() {
+    if (ryuTsukuBuf || ryuTsukuLoading || !audioCtx) return;
+    ryuTsukuLoading = true;
+    fetch('audio/ryu-tsuku.mp3').then(r => r.arrayBuffer()).then(b => audioCtx.decodeAudioData(b))
+      .then(buf => { ryuTsukuBuf = buf; }).catch(() => {}).then(() => { ryuTsukuLoading = false; });
+  }
+  function stopRyuTsuku(fade) {
+    const n = ryuTsukuNow;
+    if (!n) return;
+    ryuTsukuNow = null;
+    const t = audioCtx.currentTime, f = fade || 0.8;
+    n.g.gain.cancelScheduledValues(t);
+    n.g.gain.setValueAtTime(n.g.gain.value, t);
+    n.g.gain.linearRampToValueAtTime(0, t + f);
+    try { n.src.stop(t + f + 0.1); } catch {}
+  }
+  function playRyuTsuku() {
+    if (!audioCtx || !soundOn || !ryuTsukuBuf) return;
+    stopRyuTsuku(0.2);
+    if (shirabe) {   // 調べは下がって、節にゆずる
+      const t = audioCtx.currentTime;
+      shirabe.out.gain.cancelScheduledValues(t);
+      shirabe.out.gain.setValueAtTime(shirabe.out.gain.value, t);
+      shirabe.out.gain.linearRampToValueAtTime(0.5, t + 1.5);
+    }
+    const src = audioCtx.createBufferSource(); src.buffer = ryuTsukuBuf;
+    const g = audioCtx.createGain(); g.gain.value = 0.9;
+    src.connect(g); g.connect(audioCtx.destination);
+    src.start();
+    ryuTsukuNow = { src, g };
+    src.onended = () => { if (ryuTsukuNow && ryuTsukuNow.src === src) ryuTsukuNow = null; };
   }
   function cleanupRyu() {
     const r = ryu;
@@ -5685,6 +5723,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     showOverlay('ryu-end');
   }
   function leaveRyu() {
+    stopRyuTsuku();
     cleanupRyu();
     populateWelcome(); populateOharae();
     state = 'title';
@@ -6417,7 +6456,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     ryu: (uroko) => { save.counts.ryujin = save.counts.ryujin || 1; if (uroko != null) { ryuSave().uroko = uroko; ryuSave().day = ''; } persist(); openRyu(); },   // テスト用: 龍神様と縁を結んだことにして「空をゆく」をひらく（引数で鱗の数）
     ryuSkip: () => { if (ryu) ryu.time = RYU.breaths * (RYU.in + RYU.out) - 0.5; },   // テスト用: 着くところまで飛ばす
     ryuStep: (sec) => { if (ryu) { for (let i = 0; i < (sec || 1) * 20 && ryu; i++) { clockTime += 0.05; updateRyu(0.05, ryuBreath()); } updateDragons(); } return ryu && { time: Math.round(ryu.time), passes: ryu.passes.length, arriving: ryu.arriving, word: ryuWordEl.textContent }; },   // テスト用: 画面が隠れていても時間を進める
-    ryuState: () => ({ state, save: save.ryu, flying: !!ryu, end: document.getElementById('ryu-end-stats').textContent }),   // テスト用
+    ryuState: () => ({ state, save: save.ryu, flying: !!ryu, tsuku: { loaded: !!ryuTsukuBuf, playing: !!ryuTsukuNow }, end: document.getElementById('ryu-end-stats').textContent }),   // テスト用
     shirabe: (id) => { if (id) openShirabe(id); else closeShirabe(); return shirabe ? 'on' : 'off'; },   // テスト用: 神様のしらべをひらく（引数なしでとじる）
     kabegami: async (id) => { const img = new Image(); img.src = shirabeSrc(kamiById(id)); await img.decode(); const cv = drawSugataKabegami(img); return cv.toDataURL('image/jpeg', .6); },   // テスト用: 待ち受けの一枚
     save: () => save,
