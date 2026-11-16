@@ -1322,7 +1322,9 @@
     　　吐くと、すすみます</strong><br>
     一、画面には、ふれなくてかまいません<br>
     一、ゆく先の星は、そのたびにかわります<br>
-    　　着くと、龍の鱗を一枚いただけます
+    一、星に着くと、龍の鱗を一枚いただけます<br>
+    　　<strong>鱗は、一日に一枚です</strong><br>
+    　　空は、何度でもゆけます
   </div>
   <div class="btns">
     <button id="ryu-start">空をゆく</button>
@@ -5675,8 +5677,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     document.getElementById('ryu-end-stats').innerHTML = got
       ? '龍の鱗を、一枚いただきました<br>これまでに <b>' + rs.uroko + '</b> 枚' +
         (after !== before ? '<br>龍神様が、<b>' + after.name + '</b>の姿になりました'
-          : next ? '<br>あと ' + (next.n - rs.uroko) + ' 枚で、龍の姿がかわります' : '')
-      : '今日の鱗は、もういただいています<br>空は、何度でもゆけます';
+          : next ? '<br>あと ' + (next.n - rs.uroko) + ' 枚で、龍の姿がかわります' : '') +
+        '<br>鱗は一日に一枚。つぎの一枚は、あしたです'
+      :'今日の鱗は、もういただいています<br>空は、何度でもゆけます';
     cleanupRyu();
     state = 'ryu-end';
     showOverlay('ryu-end');
