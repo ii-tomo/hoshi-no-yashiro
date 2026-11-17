@@ -5539,7 +5539,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     { n: 33, name: '黒龍',   hikari: '紫の光', head: 0xe0d0ff, tail: 0x8a6cff },
   ];
   const RYU_MAN = 33;   // 鱗がこの数で、龍神様は育ちきる
-  const RYU_OTONA = 8;  // 鱗がこの数になるまでは、赤ちゃんの姿（img/ryu-akachan.webp＝誕生の映像の最後のコマ）。ここから、おとなの姿（img/ryujin.webp）
+  // 龍神様の姿は三段: 赤ちゃん（img/ryu-akachan.webp＝誕生の映像の最後のコマ）→ 鱗8枚で若い龍（img/ryu-wakai.webp）→ 24枚でおとな（img/ryujin.webp）。絵はどれも本人が Muse で作った（おとなは8月の Gemini）
+  const RYU_WAKAI = 8, RYU_OTONA = 24;
+  function ryuSugataSrc(u) { return u < RYU_WAKAI ? 'img/ryu-akachan.webp' : u < RYU_OTONA ? 'img/ryu-wakai.webp' : 'img/ryujin.webp'; }
   function ryuIro(u) { let r = RYU_IRO[0]; for (const c of RYU_IRO) if (u >= c.n) r = c; return r; }
   function ryuSave() { if (!save.ryu) save.ryu = { uroko: 0, day: '', count: 0 }; return save.ryu; }   // uroko＝鱗の数／day＝さいごに鱗をいただいた日／count＝空をゆいた回数／hatched＝卵から生まれた
   // 龍神様を育てる: 鱗の数で、大きさ（s）・明るさ（b）・まとう光の濃さ（aura）がきまる
@@ -5554,7 +5556,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     st.setProperty('--rs-b', o.b.toFixed(3));
     st.setProperty('--rs-aura', o.aura.toFixed(3));
     st.setProperty('--rs-iro', '#' + ryuIro(u).tail.toString(16).padStart(6, '0'));
-    const img = ryuSugataEl.querySelector('.rs-ryu'), src = u < RYU_OTONA ? 'img/ryu-akachan.webp' : 'img/ryujin.webp';
+    const img = ryuSugataEl.querySelector('.rs-ryu'), src = ryuSugataSrc(u);
     if (img.getAttribute('src') !== src) img.setAttribute('src', src);
   }
   function ryuPika() {   // ひかりが、ぱっとひろがる
@@ -5807,7 +5809,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       : '今日の鱗は、もういただいています。';
     document.getElementById('ryu-end-stats').innerHTML =
       [got && rs.uroko < RYU_MAN ? '龍神様が、ひとまわり大きくなりました' : '',
-       got && rs.uroko === RYU_OTONA ? '赤ちゃんだった龍神様が、<b>おとなの姿</b>になりました' : '',
+       got && rs.uroko === RYU_WAKAI ? '赤ちゃんだった龍神様が、<b>若い龍</b>に育ちました' : '',
+       got && rs.uroko === RYU_OTONA ? '若い龍神様が、<b>おとなの姿</b>になりました' : '',
        got && after !== before ? '龍神様が、<b>' + after.hikari + '</b>をまといました' : ''].filter(Boolean).join('<br>') +
       urokoZu(rs.uroko) +
       '鱗 <b>' + rs.uroko + '</b> 枚' + (rs.uroko < RYU_MAN ? '（' + RYU_MAN + '枚で、育ちきります）' : '') +
