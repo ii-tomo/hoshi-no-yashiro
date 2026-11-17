@@ -2208,6 +2208,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     for (const s of SEKKI) past += (save.counts[s.id] || 0);
     save.ryujinSteps = past;
   }
+  // 龍神様と空をゆく: 「龍神様を育てる」に作り直したので、前の作り（粒子の龍）でいただいた鱗を一度だけ白紙にする。
+  // 卵から生まれるところから、みんな同じにはじめてもらう（2026-11-17 本人「もうリセットして明日からにすればいい」）。空をゆいた回数（ゆく先の星の順）だけ残す
+  if (save.ryu && save.ryu.v !== 2) save.ryu = { uroko: 0, day: '', count: save.ryu.count || 0, v: 2 };
   function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch {} }
   function allEightMet() { return KAMI.filter(k => !k.hidden).every(k => (save.counts[k.id] || 0) > 0); }
   function localDate(d) { return (d || new Date()).toLocaleDateString('sv-SE'); }
@@ -5541,9 +5544,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   const RYU_MAN = 33;   // 鱗がこの数で、龍神様は育ちきる
   // 龍神様の姿は三段: 赤ちゃん（img/ryu-akachan.webp＝誕生の映像の最後のコマ）→ 鱗8枚で若い龍（img/ryu-wakai.webp）→ 24枚でおとな（img/ryujin.webp）。絵はどれも本人が Muse で作った（おとなは8月の Gemini）
   const RYU_WAKAI = 8, RYU_OTONA = 24;
+  const RYU_SEICHO = { 8: './video/ryu-seicho-wakai.mp4', 24: './video/ryu-seicho-otona.mp4' };   // 姿がかわる日に一度だけ流れる、育つ映像（本人が Muse で作る）
   function ryuSugataSrc(u) { return u < RYU_WAKAI ? 'img/ryu-akachan.webp' : u < RYU_OTONA ? 'img/ryu-wakai.webp' : 'img/ryujin.webp'; }
   function ryuIro(u) { let r = RYU_IRO[0]; for (const c of RYU_IRO) if (u >= c.n) r = c; return r; }
-  function ryuSave() { if (!save.ryu) save.ryu = { uroko: 0, day: '', count: 0 }; return save.ryu; }   // uroko＝鱗の数／day＝さいごに鱗をいただいた日／count＝空をゆいた回数／hatched＝卵から生まれた
+  function ryuSave() { if (!save.ryu) save.ryu = { uroko: 0, day: '', count: 0, v: 2 }; return save.ryu; }   // uroko＝鱗の数／day＝さいごに鱗をいただいた日／count＝空をゆいた回数／hatched＝卵から生まれた
   // 龍神様を育てる: 鱗の数で、大きさ（s）・明るさ（b）・まとう光の濃さ（aura）がきまる
   function ryuOkisa(u) {
     const k = Math.min(1, u / RYU_MAN);
@@ -5651,6 +5655,11 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     if (rs.uroko === RYU_MAN - 1 && rs.day !== localDate() && !ryujinVideoAsked) {   // 育ちきる日は、龍神様の映像を用意しておく
       ryujinVideoAsked = true; ryujinVideo.src = './video/ryujin.mp4'; ryujinVideo.load();
     }
+    // 姿がかわる日（鱗8枚・24枚）は、育つ映像を用意しておく（2026-11-17 本人「成長したのも動画に。1回だけ」）。無ければ、絵の入れ替えと光で
+    const seicho = RYU_SEICHO[rs.uroko + 1];
+    if (seicho && rs.day !== localDate() && ryuTamagoVideo.getAttribute('src') !== seicho) {
+      ryuTamagoVideo.src = seicho; ryuTamagoVideo.load();
+    }
     // 龍神様の姿（絵）。はじめは雲のなか
     clearTimeout(ryuWordTimer); ryuTimers.forEach(clearTimeout); ryuTimers = [];
     setRyuSugata(rs.uroko);
@@ -5744,6 +5753,15 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
         const nu = ryuSave().uroko + 1;
         setRyuSugata(nu); ryuPika(); playSuzu(true);
         if (nu === RYU_MAN && playRyujinVideo()) r.arriveEnd += RYUJIN_VIDEO.hold;   // 育ちきった日は、龍神様の映像がもう一度
+        else if (RYU_SEICHO[nu] && ryuTamagoVideo.getAttribute('src') === RYU_SEICHO[nu] && playRyuTamagoVideo()) {   // 姿がかわる日は、育つ映像（10秒・一度だけ）
+          const nagasa = ryuTamagoVideo.duration || 10;   // 映像の長さに合わせる（8枚の映像は、はじめの天秤を切って7.6秒）
+          r.arriveEnd += nagasa + 0.5;
+          ryuSugataEl.classList.remove('mieru');
+          clearTimeout(ryuWordTimer); ryuWordEl.style.opacity = '0';
+          stopRyuTsuku(0.6);
+          ryuLater(nagasa - 0.4, () => { ryuSugataEl.classList.add('mieru'); ryuTamagoVideo.style.opacity = '0'; });
+          ryuLater(nagasa + 1.2, hideRyuTamagoVideo);
+        }
       }
       if (r.arriving >= r.arriveEnd) finishRyu();
     }
