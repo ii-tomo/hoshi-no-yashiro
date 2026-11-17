@@ -168,6 +168,48 @@
   }
   #ryu-back.on { display: block; }
   #ryu-end .stats b { color: #ffe9a8; font-weight: normal; font-size: 17px; }
+  /* 龍神様を育てる（2026-11-16）。龍は絵で見せる。卵・雲・鱗もここ。大きさと明るさは JS が --rs-* で渡す */
+  #ryu-sugata { position: fixed; inset: 0; z-index: 21; pointer-events: none; display: none; --rs-s: .36; --rs-b: .8; --rs-aura: .25; --rs-iro: #7fffd4; }
+  #ryu-sugata.on { display: block; }
+  /* 誕生の映像（video/ryu-tamago.mp4・10秒・本人が Muse で作った。卵から金の赤ちゃん龍が生まれる）。はじめての旅でだけ流れる */
+  #ryu-tamago-video { position: fixed; inset: 0; z-index: 21; pointer-events: none; width: 100%; height: 100%; object-fit: cover; background: #05051a; display: none; opacity: 0; transition: opacity 1.4s ease; }
+  #ryu-tamago-video.on { display: block; }
+  @media (min-aspect-ratio: 1/1) { #ryu-tamago-video { object-fit: contain; } }
+  #ryu-sugata.eizou .rs-kumo, #ryu-sugata.eizou .rs-tamago { display: none; }
+  #ryu-sugata .rs-stage { position: absolute; left: 50%; top: 47%; width: min(88vw, 46vh); aspect-ratio: 768 / 1228; transform: translate(-50%, -50%); transition: top 1.8s ease, width 1.8s ease; }
+  #ryu-sugata.ue .rs-stage { top: 27%; width: min(66vw, 28vh); }
+  #ryu-sugata .rs-aura { position: absolute; inset: -32%; border-radius: 50%; background: radial-gradient(circle, var(--rs-iro) 0%, transparent 62%); mix-blend-mode: screen; opacity: 0; transform: scale(var(--rs-s)); transition: opacity 2.2s ease, transform 2.4s cubic-bezier(.2,.8,.2,1); }
+  #ryu-sugata.mieru .rs-aura { opacity: var(--rs-aura); }
+  #ryu-sugata .rs-ryu { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(var(--rs-s)); filter: brightness(var(--rs-b));
+    -webkit-mask-image: radial-gradient(ellipse 54% 42% at 50% 42%, #000 50%, transparent 100%); mask-image: radial-gradient(ellipse 54% 42% at 50% 42%, #000 50%, transparent 100%);
+    transition: opacity 2.2s ease, transform 2.4s cubic-bezier(.2,.8,.2,1), filter 2.4s ease; }
+  #ryu-sugata.mieru .rs-ryu { opacity: 1; }
+  #ryu-sugata .rs-kumo { position: absolute; border-radius: 50%; background: radial-gradient(ellipse, rgba(206,210,238,.9) 0%, rgba(150,158,205,.55) 42%, transparent 70%); filter: blur(9px); transition: transform 3.6s ease, opacity 3.6s ease; }
+  #ryu-sugata .rs-k1 { left: -30%; top: 14%; width: 105%; height: 34%; }
+  #ryu-sugata .rs-k2 { right: -30%; top: 34%; width: 105%; height: 34%; }
+  #ryu-sugata .rs-k3 { left: -5%; top: 52%; width: 110%; height: 30%; }
+  #ryu-sugata.hare .rs-k1 { transform: translateX(-75%); opacity: 0; }
+  #ryu-sugata.hare .rs-k2 { transform: translateX(75%); opacity: 0; }
+  #ryu-sugata.hare .rs-k3 { transform: translateY(70%); opacity: 0; }
+  #ryu-sugata .rs-tamago { position: absolute; left: 50%; top: 44%; width: 30%; aspect-ratio: 3 / 4; margin: -20% 0 0 -15%; opacity: 0; transition: opacity 1.6s ease;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: radial-gradient(ellipse at 40% 34%, #fffdf0 0%, #ffe9a8 38%, #e0aa4a 88%); box-shadow: 0 0 46px 14px rgba(255,222,140,.7); }
+  #ryu-sugata.tamago .rs-tamago { opacity: 1; animation: rs-myaku 1.8s ease-in-out infinite; }
+  #ryu-sugata .rs-tamago svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity .5s; }
+  #ryu-sugata.hibi .rs-tamago svg { opacity: 1; }
+  #ryu-sugata.wareru .rs-tamago { animation: rs-wareru 1.3s ease-out forwards; }
+  #ryu-sugata .rs-hikari { position: absolute; inset: -45%; border-radius: 50%; background: radial-gradient(circle, #fff 0%, rgba(255,236,170,.75) 26%, transparent 64%); opacity: 0; }
+  #ryu-sugata .rs-hikari.pika { animation: rs-pika 1.6s ease-out; }
+  #ryu-sugata .rs-uroko { position: absolute; left: 50%; top: -34%; width: 9%; aspect-ratio: 1; margin-left: -4.5%; opacity: 0;
+    clip-path: polygon(50% 0, 100% 36%, 80% 100%, 20% 100%, 0 36%); background: radial-gradient(circle at 50% 35%, #fffbe0, #ffd766 55%, #c98b1e); filter: drop-shadow(0 0 10px #ffe9a8); }
+  #ryu-sugata .rs-uroko.ochiru { animation: rs-ochiru 1.8s ease-in forwards; }
+  @keyframes rs-myaku { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.25); } }
+  @keyframes rs-wareru { 0% { transform: scale(1.06); opacity: 1; filter: brightness(1.4); } 100% { transform: scale(2.2); opacity: 0; filter: brightness(3); } }
+  @keyframes rs-pika { 0% { opacity: 0; transform: scale(.3); } 22% { opacity: .95; } 100% { opacity: 0; transform: scale(1.15); } }
+  @keyframes rs-ochiru { 0% { top: -34%; opacity: 0; transform: rotate(-30deg); } 15% { opacity: 1; } 85% { opacity: 1; } 100% { top: 40%; opacity: 0; transform: rotate(200deg) scale(.5); } }
+  #ryu-end { justify-content: flex-end; padding-bottom: max(30px, env(safe-area-inset-bottom)); background: linear-gradient(to bottom, rgba(6,6,24,.12) 0%, rgba(6,6,24,.2) 44%, rgba(6,6,24,.95) 60%); }
+  .uroko-zu { display: grid; grid-template-columns: repeat(11, 13px); gap: 6px; justify-content: center; margin: 12px auto 6px; }
+  .uroko-zu i { width: 13px; height: 13px; clip-path: polygon(50% 0, 100% 36%, 80% 100%, 20% 100%, 0 36%); background: rgba(160,160,210,.28); }
+  .uroko-zu i.on { background: #ffd766; }
 
   /* 神様のしらべ。お姿が画面いっぱいに浮かび、その神だけの調べが、とじるまで流れつづける（正本は CONCEPT.md「神様のしらべ」） */
   #shirabe {
@@ -1163,6 +1205,7 @@
 </div>
 
 <video id="ryujin-video" playsinline preload="none"></video>
+<video id="ryu-tamago-video" playsinline preload="none"></video>
 <div id="dragon-flash"></div>
 
 <!-- 守護神の顕現（絵は img/guardian-<番号>.webp・AI生成）。八柱のお姿（img/kami-<id>.webp）も、はじめての縁のときにここから浮かぶ -->
@@ -1321,9 +1364,10 @@
     一、<strong>息を吸うと、龍はのぼり<br>
     　　吐くと、すすみます</strong><br>
     一、画面には、ふれなくてかまいません<br>
-    一、ゆく先の星は、そのたびにかわります<br>
     一、星に着くと、龍の鱗を一枚いただけます<br>
-    　　<strong>鱗は、一日に一枚です</strong><br>
+    　　<strong>鱗をいただくたび、龍神様は<br>
+    　　大きく、明るくなります</strong><br>
+    一、鱗は、一日に一枚です<br>
     　　空は、何度でもゆけます
   </div>
   <div class="btns">
@@ -1339,6 +1383,14 @@
     <button id="ryu-home">もどる</button>
   </div>
 </div>
+<div id="ryu-sugata"><div class="rs-stage">
+  <div class="rs-aura"></div>
+  <img class="rs-ryu" src="img/ryu-akachan.webp" alt="" loading="lazy">
+  <div class="rs-tamago"><svg viewBox="0 0 30 40"><path d="M15 3 L12 11 L17 16 L11 23 L16 29 L13 37" fill="none" stroke="#fff" stroke-width="1.1" stroke-linejoin="round"/><path d="M17 16 L23 19 M11 23 L6 25" fill="none" stroke="#fff" stroke-width=".8"/></svg></div>
+  <div class="rs-kumo rs-k1"></div><div class="rs-kumo rs-k2"></div><div class="rs-kumo rs-k3"></div>
+  <div class="rs-hikari"></div>
+  <div class="rs-uroko"></div>
+</div></div>
 <div id="ryu-word"></div>
 <button id="ryu-back" type="button">もどる</button>
 
@@ -3498,7 +3550,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     if ((save.counts.ryujin || 0) > 0) {
       const u = (save.ryu && save.ryu.uroko) || 0;
       el.innerHTML = '龍神様と、縁が結ばれている。' +
-        (u > 0 ? '<small>龍の鱗　' + u + ' 枚 ─ いまは ' + ryuIro(u).name + '</small>' : '');
+        (u > 0 ? '<small>龍の鱗　' + u + ' 枚 ─ ' + ryuIro(u).hikari + 'をまとう</small>' : '');
     } else if (!allEightMet()) {
       el.innerHTML = '八柱すべてと縁を結ぶと、龍神様が姿を現す。';
     } else if (ryujinRemain() === 0) {
@@ -5476,18 +5528,46 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   // ===== 龍神様と、空をゆく（龍神様と縁を結んだ人の二巡目・正本は docs/CONCEPT.md「そろえた人のつづき」）=====
   // 龍神様に会ったあと、新しく起きることが何もなかった。呼吸に合わせて龍が星の空をわたり、着くたびに鱗を一枚。
   // 吸うと龍はのぼり、吐くと星が速く流れる（すすむ）。画面にはふれない。数で競わせない・急かさない
-  const RYU = { breaths: 12, in: 4, out: 4, arrive: 5.0, lag: 7.5, passSec: 7.5 };
-  // 鱗がたまると、龍の姿がかわる（五行の五色＝青・赤・黄・白・黒）。いちばん新しい色になる
+  const RYU = { breaths: 6, in: 4, out: 4, arrive: 7.0, passSec: 6.5 };
+  // 鱗がたまると、龍神様がまとう光の色がかわる（五行の五色＝青・赤・黄・白・黒）。龍そのものの色は変えない
   const RYU_IRO = [
-    { n: 0,  name: '翠の龍', head: 0xffd700, tail: 0x7fffd4 },
-    { n: 3,  name: '青龍',   head: 0xc8ecff, tail: 0x3f7bff },
-    { n: 8,  name: '赤龍',   head: 0xffd8a8, tail: 0xff4a3a },
-    { n: 15, name: '黄龍',   head: 0xfff6b8, tail: 0xffb020 },
-    { n: 24, name: '白龍',   head: 0xffffff, tail: 0xbcd4ff },
-    { n: 33, name: '黒龍',   head: 0xe0d0ff, tail: 0x5a3fb0 },
+    { n: 0,  name: '翠の龍', hikari: '翠の光', head: 0xffd700, tail: 0x7fffd4 },
+    { n: 3,  name: '青龍',   hikari: '青い光', head: 0xc8ecff, tail: 0x3f7bff },
+    { n: 8,  name: '赤龍',   hikari: '赤い光', head: 0xffd8a8, tail: 0xff4a3a },
+    { n: 15, name: '黄龍',   hikari: '金の光', head: 0xfff6b8, tail: 0xffb020 },
+    { n: 24, name: '白龍',   hikari: '白い光', head: 0xffffff, tail: 0xbcd4ff },
+    { n: 33, name: '黒龍',   hikari: '紫の光', head: 0xe0d0ff, tail: 0x8a6cff },
   ];
+  const RYU_MAN = 33;   // 鱗がこの数で、龍神様は育ちきる
+  const RYU_OTONA = 8;  // 鱗がこの数になるまでは、赤ちゃんの姿（img/ryu-akachan.webp＝誕生の映像の最後のコマ）。ここから、おとなの姿（img/ryujin.webp）
   function ryuIro(u) { let r = RYU_IRO[0]; for (const c of RYU_IRO) if (u >= c.n) r = c; return r; }
-  function ryuSave() { if (!save.ryu) save.ryu = { uroko: 0, day: '', count: 0 }; return save.ryu; }   // uroko＝鱗の数／day＝さいごに鱗をいただいた日／count＝空をゆいた回数
+  function ryuSave() { if (!save.ryu) save.ryu = { uroko: 0, day: '', count: 0 }; return save.ryu; }   // uroko＝鱗の数／day＝さいごに鱗をいただいた日／count＝空をゆいた回数／hatched＝卵から生まれた
+  // 龍神様を育てる: 鱗の数で、大きさ（s）・明るさ（b）・まとう光の濃さ（aura）がきまる
+  function ryuOkisa(u) {
+    const k = Math.min(1, u / RYU_MAN);
+    return { s: 0.36 + 0.64 * Math.pow(k, 0.75), b: 0.8 + 0.45 * k, aura: 0.25 + 0.6 * k };
+  }
+  const ryuSugataEl = document.getElementById('ryu-sugata');
+  function setRyuSugata(u) {
+    const o = ryuOkisa(u), st = ryuSugataEl.style;
+    st.setProperty('--rs-s', o.s.toFixed(3));
+    st.setProperty('--rs-b', o.b.toFixed(3));
+    st.setProperty('--rs-aura', o.aura.toFixed(3));
+    st.setProperty('--rs-iro', '#' + ryuIro(u).tail.toString(16).padStart(6, '0'));
+    const img = ryuSugataEl.querySelector('.rs-ryu'), src = u < RYU_OTONA ? 'img/ryu-akachan.webp' : 'img/ryujin.webp';
+    if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+  }
+  function ryuPika() {   // ひかりが、ぱっとひろがる
+    const el = ryuSugataEl.querySelector('.rs-hikari');
+    el.classList.remove('pika'); void el.offsetWidth; el.classList.add('pika');
+  }
+  let ryuTimers = [];
+  function ryuLater(sec, fn) { ryuTimers.push(setTimeout(() => { if (ryu) fn(); }, sec * 1000)); }
+  function urokoZu(u) {   // 33枚の鱗の図。いただいた分だけ灯る
+    let h = '<div class="uroko-zu">';
+    for (let i = 0; i < RYU_MAN; i++) h += '<i' + (i < u ? ' class="on"' : '') + '></i>';
+    return h + '</div>';
+  }
   let ryu = null;
   const ryuWordEl = document.getElementById('ryu-word');
   const ryuBackEl = document.getElementById('ryu-back');
@@ -5503,51 +5583,29 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     return t < RYU.in ? { label: '吸う', value: easeInOut(t / RYU.in) }
                       : { label: '吐く', value: 1 - easeInOut((t - RYU.in) / RYU.out) };
   }
-  // 龍の頭のゆくえ。ゆったり左右にうねり、奥と手前を行き来する。高さは呼吸で変わる
-  function ryuHeadAt(t, lift, out) {
-    return out.set(Math.sin(t * 0.4) * Math.min(10, 2 + 9 * camera.aspect), lift + Math.sin(t * 0.7) * 1.5 - 2, -8 + Math.cos(t * 0.27) * 8);
+  const ryuTamagoVideo = document.getElementById('ryu-tamago-video');
+  function hideRyuTamagoVideo() {
+    ryuTamagoVideo.style.opacity = '0';
+    ryuTamagoVideo.classList.remove('on');
+    try { ryuTamagoVideo.pause(); } catch {}
   }
-  // 胴は、頭が通ったあとをたどる（高さが呼吸で変わるので、通った道を覚えておく）
-  function ryuPathAt(tau, out) {
-    const r = ryu;
-    if (!r || !r.ht.length) return out.set(0, 0, -8);
-    const n = r.ht.length;
-    if (tau <= r.ht[0]) return out.set(r.hx[0], r.hy[0], r.hz[0]);
-    if (tau >= r.ht[n - 1]) return out.set(r.hx[n - 1], r.hy[n - 1], r.hz[n - 1]);
-    let lo = 0, hi = n - 1;
-    while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (r.ht[mid] <= tau) lo = mid; else hi = mid; }
-    const u = (tau - r.ht[lo]) / (r.ht[hi] - r.ht[lo] || 1);
-    return out.set(r.hx[lo] + (r.hx[hi] - r.hx[lo]) * u, r.hy[lo] + (r.hy[hi] - r.hy[lo]) * u, r.hz[lo] + (r.hz[hi] - r.hz[lo]) * u);
-  }
-  function makeRyuDragon(iro) {
-    const N = DRAGON.N;
-    const pos = new Float32Array(N * 3), col = new Float32Array(N * 3), swirl = new Float32Array(N * 2);
-    const headC = new THREE.Color(iro.head), tailC = new THREE.Color(iro.tail), tmp = new THREE.Color();
-    for (let i = 0; i < N; i++) {
-      const s = i / (N - 1);
-      tmp.copy(headC).lerp(tailC, Math.pow(s, 0.7));
-      col[i*3] = tmp.r; col[i*3+1] = tmp.g; col[i*3+2] = tmp.b;
-      swirl[i*2] = Math.random() * Math.PI * 2;
-      swirl[i*2+1] = 0.35 + Math.random() * 0.65;
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    const body = new THREE.Points(geo, new THREE.PointsMaterial({
-      size: 2.2, map: softGlow, vertexColors: true,
-      transparent: true, opacity: 0.92, depthWrite: false, blending: THREE.AdditiveBlending,
-    }));
-    scene.add(body);
-    const face = makeDragonFace();
-    face.parts.material.color.set(iro.head);
-    face.glow.material.color.set(iro.head);
-    scene.add(face.group);
-    const d = { body, geo, face, N, swirl, bornAt: clockTime, pathAt: ryuPathAt, lagFixed: RYU.lag, opMul: 0.62, ryu: true };
-    dragons.push(d);
-    return d;
+  function playRyuTamagoVideo() {
+    if (!ryuTamagoVideo.getAttribute('src') || ryuTamagoVideo.readyState < 3) return false;   // 読めていなければ、描いた卵で
+    ryuTamagoVideo.classList.add('on');
+    ryuTamagoVideo.currentTime = 0;
+    ryuTamagoVideo.muted = !soundOn;
+    ryuTamagoVideo.volume = 0.8;
+    void ryuTamagoVideo.offsetHeight;
+    ryuTamagoVideo.style.opacity = '1';
+    const p = ryuTamagoVideo.play();
+    if (p) p.catch(() => { ryuTamagoVideo.muted = true; const q = ryuTamagoVideo.play(); if (q) q.catch(hideRyuTamagoVideo); });
+    return true;
   }
   function openRyu() {
     ensureAudio();
+    if (!ryuSave().hatched && !ryuTamagoVideo.getAttribute('src')) {   // はじめての旅の前に、誕生の映像を読んでおく（2.5MB）
+      ryuTamagoVideo.src = './video/ryu-tamago.mp4'; ryuTamagoVideo.load();
+    }
     state = 'ryu-intro';
     showOverlay('ryu-intro');
   }
@@ -5581,40 +5639,64 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       depthWrite: false, blending: THREE.AdditiveBlending,
     })));
     const order = eightKami.filter(k => (save.counts[k.id] || 0) > 0).map(k => k.id).sort(() => Math.random() - .5);
-    ryu = { h, group, anim, starGlow, starCore, sgeo, d: null, time: 0, lift: 0, speed: 0.3,
-            ht: [], hx: [], hy: [], hz: [], passes: [], nextPass: 1, passN: 0, order, arriving: -1 };
-    for (let t = -RYU.lag - 1; t < 0; t += 0.05) {   // 胴がはじめから伸びているように、来た道を先に置いておく
-      ryuHeadAt(t, 0, _dvA);
-      ryu.ht.push(t); ryu.hx.push(_dvA.x); ryu.hy.push(_dvA.y); ryu.hz.push(_dvA.z);
-    }
-    ryu.d = makeRyuDragon(ryuIro(rs.uroko));
+    const umare = !rs.hatched;   // はじめての旅は、卵から
+    ryu = { h, group, anim, starGlow, starCore, sgeo, time: 0, lift: 0, speed: 0.3, wait: umare ? 11.5 : 6.5,
+            passes: [], nextPass: 1, passN: 0, order, arriving: -1, arriveEnd: RYU.arrive, got: false, dropped: false, grown: false };
     ryuBackEl.classList.add('on');
     stopRyuTsuku(0.3);
-    startShirabe('ryujin');   // 空をゆくあいだは、龍神様の調べ
+    stopShirabe();            // 電子の調べは、旅では鳴らさない（2026-11-16 本人「長いと飽きる」「下がる音が嫌」）
     loadRyuTsuku();           // 着いたときの一節を、いまのうちに読んでおく
-    showRyuWord('<b>ゆく先は</b>' + h.name + '（' + h.wamei + '）', 5.5);
+    if (rs.uroko === RYU_MAN - 1 && rs.day !== localDate() && !ryujinVideoAsked) {   // 育ちきる日は、龍神様の映像を用意しておく
+      ryujinVideoAsked = true; ryujinVideo.src = './video/ryujin.mp4'; ryujinVideo.load();
+    }
+    // 龍神様の姿（絵）。はじめは雲のなか
+    clearTimeout(ryuWordTimer); ryuTimers.forEach(clearTimeout); ryuTimers = [];
+    setRyuSugata(rs.uroko);
+    ryuSugataEl.className = 'on';
+    const yukusaki = () => showRyuWord('<b>ゆく先は</b>' + h.name + '（' + h.wamei + '）', 5);
+    if (umare && playRyuTamagoVideo()) {   // 誕生の映像（10秒）。おわりに、同じ赤ちゃん龍の絵へひきつぐ
+      ryu.wait = 13;
+      ryuSugataEl.classList.add('eizou');
+      showRyuWord('<b>雲のなかに</b><span>ひとつの光が、</span><span>やどっています</span>', 3.4);
+      ryuLater(5.6, () => { rs.hatched = true; persist(); showRyuWord('<b>龍神様が</b><span>お生まれになりました</span>', 4.2); });
+      ryuLater(9.4, () => { ryuSugataEl.classList.add('mieru'); ryuTamagoVideo.style.opacity = '0'; });
+      ryuLater(11.0, hideRyuTamagoVideo);
+      ryuLater(11.8, () => { ryuSugataEl.classList.remove('mieru'); yukusaki(); });
+    } else if (umare) {
+      showRyuWord('<b>雲のなかに</b><span>ひとつの光が、</span><span>やどっています</span>', 4.2);
+      ryuLater(0.4, () => ryuSugataEl.classList.add('tamago'));
+      ryuLater(4.0, () => ryuSugataEl.classList.add('hibi'));
+      ryuLater(5.4, () => {
+        ryuSugataEl.classList.add('wareru', 'hare', 'mieru'); ryuPika(); playSuzu(true);
+        rs.hatched = true; persist();
+        showRyuWord('<b>龍神様が</b><span>お生まれになりました</span>', 4.6);
+      });
+      ryuLater(10.3, () => { ryuSugataEl.classList.remove('mieru'); yukusaki(); });
+    } else {
+      showRyuWord('<b>雲のなかから</b><span>龍神様が、</span><span>姿をあらわしました</span>', 4);
+      ryuLater(0.4, () => ryuSugataEl.classList.add('hare', 'mieru'));
+      ryuLater(5.2, () => { ryuSugataEl.classList.remove('mieru'); yukusaki(); });
+    }
   }
   function updateRyu(dt, bs) {
     const r = ryu;
     if (!r) return;
-    r.time += dt;
     for (const f of r.anim) f(dt);
+    if (r.wait > 0) { r.wait -= dt; return; }   // 龍神様が姿をあらわすあいだは、まだ発たない
+    r.time += dt;
     const flying = r.arriving < 0;
     r.lift += ((flying ? (bs.value - 0.35) * 9 : 3) - r.lift) * Math.min(1, dt * 1.2);           // 吸うと、のぼる
     r.speed += ((!flying ? 0.12 : bs.label === '吐く' ? 1 : 0.3) - r.speed) * Math.min(1, dt * 1.5);  // 吐くと、すすむ
-    const age = clockTime - r.d.bornAt;
-    ryuHeadAt(age, r.lift, _dvA);
-    r.ht.push(age); r.hx.push(_dvA.x); r.hy.push(_dvA.y); r.hz.push(_dvA.z);
-    if (r.ht.length > 1200) { r.ht.splice(0, 400); r.hx.splice(0, 400); r.hy.splice(0, 400); r.hz.splice(0, 400); }
+    r.group.position.y = -r.lift * 0.45;   // 龍の背からの眺め。のぼると、空がさがる
     const sa = r.sgeo.attributes.position.array, v = (10 + 46 * r.speed) * dt;
     for (let i = 0; i < sa.length; i += 3) {
       sa[i+2] += v;
       if (sa[i+2] > 34) { sa[i] = (Math.random() - .5) * 90; sa[i+1] = (Math.random() - .5) * 60; sa[i+2] = -130; }
     }
     r.sgeo.attributes.position.needsUpdate = true;
-    // 縁を結んだ八柱が、ひと柱ずつ通りすぎて、ひとこと（ふた呼吸にひと柱）
-    if (flying && r.order.length && Math.floor(r.time / (RYU.in + RYU.out)) >= r.nextPass) {
-      r.nextPass += 2;
+    // 縁を結んだ八柱が、ひと柱ずつ通りすぎて、ひとこと（ひと呼吸にひと柱）
+    if (flying && r.order.length && r.time > 1.5 && r.nextPass <= RYU.breaths && Math.floor(r.time / (RYU.in + RYU.out)) >= r.nextPass - 1) {
+      r.nextPass += 1;
       const k = kamiById(r.order[r.passN % r.order.length]);
       const side = r.passN % 2 ? 1 : -1;
       r.passN++;
@@ -5635,23 +5717,37 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       p.halo.scale.setScalar(9); p.halo.material.opacity = 0.6 * op;
       p.core.scale.setScalar(2.2); p.core.material.opacity = 0.95 * op;
     }
-    // 着く: 星の光がひろがる
+    // 着く: 星の光がひろがり、龍神様がもう一度、姿をあらわす
     if (flying && r.time >= RYU.breaths * (RYU.in + RYU.out)) {
       r.arriving = 0;
+      r.got = ryuSave().day !== localDate();   // 鱗は、一日に一枚
       playSho(3.0);
       playRyuTsuku();
+      ryuSugataEl.classList.add('mieru');
+      showRyuWord('<b>' + r.h.name + '（' + r.h.wamei + '）</b><span>のほとりに、</span><span>着きました</span>', 4.5);
     }
     if (!flying) {
       r.arriving += dt;
-      const u = easeInOut(r.arriving / RYU.arrive);
+      const u = easeInOut(Math.min(1, r.arriving / RYU.arrive));
       r.starGlow.scale.setScalar(12 + 80 * u);
       r.starGlow.material.opacity = 0.55 + 0.3 * u;
       r.starCore.scale.setScalar(2.6 + 6 * u);
-      if (r.arriving >= RYU.arrive) finishRyu();
+      if (r.got && !r.dropped && r.arriving >= 2.2) {   // 星から、鱗がひとひら
+        r.dropped = true;
+        const el = ryuSugataEl.querySelector('.rs-uroko');
+        el.classList.remove('ochiru'); void el.offsetWidth; el.classList.add('ochiru');
+      }
+      if (r.got && !r.grown && r.arriving >= 3.9) {     // 鱗が体に入り、ひとまわり大きく、明るく
+        r.grown = true;
+        const nu = ryuSave().uroko + 1;
+        setRyuSugata(nu); ryuPika(); playSuzu(true);
+        if (nu === RYU_MAN && playRyujinVideo()) r.arriveEnd += RYUJIN_VIDEO.hold;   // 育ちきった日は、龍神様の映像がもう一度
+      }
+      if (r.arriving >= r.arriveEnd) finishRyu();
     }
   }
   // 星に着いたときの一節（audio/ryu-tsuku.mp3・10秒・笛の節。本人が Muse で作った動画の音・2026-11-16）
-  // 空をゆくあいだは機械の調べ、着いたところでだけ本物の節が一度鳴る。読みこめなければ黙って調べのまま
+  // 着いたところでだけ、小さく、そっと一度鳴る。読みこめなければ黙ってそのまま
   let ryuTsukuBuf = null, ryuTsukuLoading = false, ryuTsukuNow = null;
   function loadRyuTsuku() {
     if (ryuTsukuBuf || ryuTsukuLoading || !audioCtx) return;
@@ -5672,59 +5768,59 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   function playRyuTsuku() {
     if (!audioCtx || !soundOn || !ryuTsukuBuf) return;
     stopRyuTsuku(0.2);
-    if (shirabe) {   // 調べは下がって、節にゆずる
-      const t = audioCtx.currentTime;
-      shirabe.out.gain.cancelScheduledValues(t);
-      shirabe.out.gain.setValueAtTime(shirabe.out.gain.value, t);
-      shirabe.out.gain.linearRampToValueAtTime(0.5, t + 1.5);
-    }
     const src = audioCtx.createBufferSource(); src.buffer = ryuTsukuBuf;
-    const g = audioCtx.createGain(); g.gain.value = 0.9;
+    const g = audioCtx.createGain();   // 2026-11-16 本人「いきなり大きくなる」→ 小さく、2.5秒かけてそっと入る
+    g.gain.setValueAtTime(0, audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(0.42, audioCtx.currentTime + 2.5);
     src.connect(g); g.connect(audioCtx.destination);
     src.start();
     ryuTsukuNow = { src, g };
     src.onended = () => { if (ryuTsukuNow && ryuTsukuNow.src === src) ryuTsukuNow = null; };
   }
-  function cleanupRyu() {
+  function cleanupRyu(keepSugata) {
     const r = ryu;
-    if (!r) return;
+    if (!r) { if (!keepSugata) ryuSugataEl.className = ''; return; }
     ryu = null;
-    stopShirabe();
+    ryuTimers.forEach(clearTimeout); ryuTimers = [];
+    hideRyuTamagoVideo();
     clearTimeout(ryuWordTimer);
     ryuWordEl.style.opacity = '0';
     ryuBackEl.classList.remove('on');
+    if (!keepSugata) ryuSugataEl.className = '';
     scene.remove(r.group);
     r.group.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
-    scene.remove(r.d.body); scene.remove(r.d.face.group);
-    r.d.geo.dispose(); r.d.body.material.dispose();
-    const i = dragons.indexOf(r.d);
-    if (i >= 0) dragons.splice(i, 1);
     for (const d of dragons) { d.body.visible = true; d.face.group.visible = true; }
     counterEl.style.opacity = '';
     dotsEl.style.opacity = '';
   }
   function finishRyu() {
-    const h = ryu.h, rs = ryuSave(), today = localDate();
+    const rs = ryuSave(), today = localDate();
     const before = ryuIro(rs.uroko);
     const got = rs.day !== today;   // 鱗は、一日に一枚（空は何度でもゆける）
     if (got) { rs.uroko++; rs.day = today; }
     rs.count++;
     persist();
-    const after = ryuIro(rs.uroko), next = RYU_IRO.find(c => c.n > rs.uroko);
-    document.getElementById('ryu-end-msg').innerHTML = h.name + '（' + h.wamei + '）のほとりに、<br>着きました。';
-    document.getElementById('ryu-end-stats').innerHTML = got
-      ? '龍の鱗を、一枚いただきました<br>これまでに <b>' + rs.uroko + '</b> 枚' +
-        (after !== before ? '<br>龍神様が、<b>' + after.name + '</b>の姿になりました'
-          : next ? '<br>あと ' + (next.n - rs.uroko) + ' 枚で、龍の姿がかわります' : '') +
-        '<br>鱗は一日に一枚。つぎの一枚は、あしたです'
-      :'今日の鱗は、もういただいています<br>空は、何度でもゆけます';
-    cleanupRyu();
+    setRyuSugata(rs.uroko);
+    const after = ryuIro(rs.uroko);
+    document.getElementById('ryu-end-msg').innerHTML = got
+      ? (rs.uroko === RYU_MAN ? '三十三枚の鱗がそろい、<br>龍神様が、育ちきりました。' : '龍の鱗を、一枚いただきました。')
+      : '今日の鱗は、もういただいています。';
+    document.getElementById('ryu-end-stats').innerHTML =
+      [got && rs.uroko < RYU_MAN ? '龍神様が、ひとまわり大きくなりました' : '',
+       got && rs.uroko === RYU_OTONA ? '赤ちゃんだった龍神様が、<b>おとなの姿</b>になりました' : '',
+       got && after !== before ? '龍神様が、<b>' + after.hikari + '</b>をまといました' : ''].filter(Boolean).join('<br>') +
+      urokoZu(rs.uroko) +
+      '鱗 <b>' + rs.uroko + '</b> 枚' + (rs.uroko < RYU_MAN ? '（' + RYU_MAN + '枚で、育ちきります）' : '') +
+      '<br>' + (got ? 'つぎの一枚は、あしたです' : '空は、何度でもゆけます');
+    cleanupRyu(true);
+    ryuSugataEl.classList.add('mieru', 'ue');   // 着いた画面では、龍神様は上に
     state = 'ryu-end';
     showOverlay('ryu-end');
   }
   function leaveRyu() {
     stopRyuTsuku();
     cleanupRyu();
+    ryuSugataEl.className = '';
     populateWelcome(); populateOharae();
     state = 'title';
     showOverlay('start');
@@ -6241,7 +6337,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
     // 呼吸リング
     breathRing.style.transform = `scale(${0.75 + bs.value * 0.55})`;
-    breathText.textContent = (breathing || inMusubi || (inRyu && ryu.arriving < 0)) ? bs.label : '';
+    breathText.textContent = (breathing || inMusubi || (inRyu && ryu.arriving < 0 && !(ryu.wait > 0))) ? bs.label : '';
     if (state === 'session' && bs.label !== lastPhaseLabel) {
       if (lastPhaseLabel) playPhaseTick();
       // 吐くフェーズに入ったら、ことばを出す
@@ -6454,9 +6550,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     dragon: () => birthDragon(),
     reset: () => { localStorage.removeItem(SAVE_KEY); location.reload(); },
     ryu: (uroko) => { save.counts.ryujin = save.counts.ryujin || 1; if (uroko != null) { ryuSave().uroko = uroko; ryuSave().day = ''; } persist(); openRyu(); },   // テスト用: 龍神様と縁を結んだことにして「空をゆく」をひらく（引数で鱗の数）
-    ryuSkip: () => { if (ryu) ryu.time = RYU.breaths * (RYU.in + RYU.out) - 0.5; },   // テスト用: 着くところまで飛ばす
+    ryuSkip: () => { if (ryu) { ryu.wait = 0; ryu.time = RYU.breaths * (RYU.in + RYU.out) - 0.5; } },
+    ryuTamago: () => { ryuTamagoVideo.removeAttribute('src'); ryuSave().hatched = false; ryuSave().uroko = 0; ryuSave().day = ''; persist(); },   // テスト用: 卵からやり直す   // テスト用: 着くところまで飛ばす
     ryuStep: (sec) => { if (ryu) { for (let i = 0; i < (sec || 1) * 20 && ryu; i++) { clockTime += 0.05; updateRyu(0.05, ryuBreath()); } updateDragons(); } return ryu && { time: Math.round(ryu.time), passes: ryu.passes.length, arriving: ryu.arriving, word: ryuWordEl.textContent }; },   // テスト用: 画面が隠れていても時間を進める
-    ryuState: () => ({ state, save: save.ryu, flying: !!ryu, tsuku: { loaded: !!ryuTsukuBuf, playing: !!ryuTsukuNow }, end: document.getElementById('ryu-end-stats').textContent }),   // テスト用
+    ryuState: () => ({ state, save: save.ryu, flying: !!ryu, wait: ryu && ryu.wait, eizou: ryuTamagoVideo.className + ' ready=' + ryuTamagoVideo.readyState + ' t=' + ryuTamagoVideo.currentTime.toFixed(1), e: ryuSugataEl.querySelector('.rs-ryu').getAttribute('src'), sugata: ryuSugataEl.className + ' s=' + ryuSugataEl.style.getPropertyValue('--rs-s'), tsuku: { loaded: !!ryuTsukuBuf, playing: !!ryuTsukuNow }, end: document.getElementById('ryu-end-stats').textContent }),   // テスト用
     shirabe: (id) => { if (id) openShirabe(id); else closeShirabe(); return shirabe ? 'on' : 'off'; },   // テスト用: 神様のしらべをひらく（引数なしでとじる）
     kabegami: async (id) => { const img = new Image(); img.src = shirabeSrc(kamiById(id)); await img.decode(); const cv = drawSugataKabegami(img); return cv.toDataURL('image/jpeg', .6); },   // テスト用: 待ち受けの一枚
     save: () => save,
